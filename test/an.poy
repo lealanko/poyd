@@ -1,0 +1,6 @@
+(* Build and transform annotated chromosome using locus_breakpoint *)
+read (annotated:("FILENAME"))
+transform ((all, dynamic_pam:(locus_breakpoint:20)))
+
+
+

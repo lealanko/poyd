@@ -1,0 +1,8 @@
+(* Build 10 trees and check if auto sequence partition works fine in every case
+*)
+repeat 10 times
+wipe ()
+read ("FILENAME")
+build (1)
+transform (auto_sequence_partition)
+end

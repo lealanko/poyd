@@ -1,0 +1,7 @@
+(* Read and build  custom alphabet *)
+read (custom_alphabet:("FILENAME1","FILENAME2"))
+build (1)
+
+
+
+

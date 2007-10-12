@@ -1,0 +1,4 @@
+(* Build and swap chel.aln *)
+read ("FILENAME")
+build (1)
+swap (all, trajectory, timeout:60)

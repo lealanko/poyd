@@ -1,0 +1,4 @@
+(* Build and swap chel.aln *)
+read ("FILENAME")
+transform (tcm:(2,1), gap_opening:1, weightfactor:-1)
+read ("../test/FILENAME.2.tree")

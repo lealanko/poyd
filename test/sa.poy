@@ -1,0 +1,4 @@
+(* Testing static approximation, we only test with *)
+read ("FILENAME")
+read ("../test/FILENAME.tree")
+transform (static_approx)

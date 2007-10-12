@@ -1,0 +1,4 @@
+(* Report ia for custom alphabet *)
+read (custom_alphabet:("FILENAME1","FILENAME2"))
+build (1)
+report ("ca.xml", data, diagnosis)

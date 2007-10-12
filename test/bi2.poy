@@ -1,0 +1,5 @@
+(* Read and transform custom alphabet to breakinv produce xml output*)
+read (custom_alphabet:("FILENAME1","FILENAME2"))
+transform ((all, seq_to_breakinv:()))
+build (1)
+report ("bi.xml", data, diagnosis)

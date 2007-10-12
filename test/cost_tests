@@ -1,0 +1,136 @@
+-message "Check tree cost 1 chromosome ua.poy" -command "sed -e s/FILENAME/ua.fas/ ua.poy" -cost 208 
+-message "Check tree cost ua2 with locus_indel chromosome ua2.poy" -command "sed -e s/FILENAME/ua2.fas/ ua2.poy" -cost 482
+-message "Check tree cost ua3 with rearranged_len chromosome ua3.poy" -command "sed -e s/FILENAME/ua3.fas/ ua3.poy" -cost 208
+-message "Check tree cost ua4 with sig_block_len chromosome ua4.poy" -command "sed -e s/FILENAME/ua4.fas/ ua4.poy" -cost 208
+-message "Check tree cost an2 with locus_indel annotated chromosome an2.poy" -command "sed -e s/FILENAME/an2.fas/ an2.poy" -cost 40 
+-message "Check tree cost an3 with rearranged_len annotated chromosome an3.poy" -command "sed -e s/FILENAME/an3.fas/ an3.poy" -cost 40
+-message "Check tree cost 1 cnc.poy" -command "sed -e s/FILENAME/1.fas/ cnc.poy" -cost -880
+-message "Check tree cost 2 cnc.poy" -command "sed -e s/FILENAME/2.fas/ cnc.poy" -cost -339
+-message "Check tree cost 3 cnc.poy" -command "sed -e s/FILENAME/3.fas/ cnc.poy" -cost -502
+-message "Check tree cost 4 cnc.poy" -command "sed -e s/FILENAME/4.fas/ cnc.poy" -cost -853
+-message "Check tree cost 5 cnc.poy" -command "sed -e s/FILENAME/5.fas/ cnc.poy" -cost -668
+-message "Check tree cost 6 cnc.poy" -command "sed -e s/FILENAME/6.fas/ cnc.poy" -cost -20579
+-message "Check tree cost 7 cnc.poy" -command "sed -e s/FILENAME/7.fas/ cnc.poy" -cost -723
+-message "Check tree cost 8 cnc.poy" -command "sed -e s/FILENAME/8.fas/ cnc.poy" -cost -810
+-message "Check tree cost 9 cnc.poy" -command "sed -e s/FILENAME/9.fas/ cnc.poy" -cost -1673
+-message "Check tree cost 10 cnc.poy" -command "sed -e s/FILENAME/10.fas/ cnc.poy" -cost -16007
+-message "Check tree cost 11 cnc.poy" -command "sed -e s/FILENAME/11.fas/ cnc.poy" -cost -723
+-message "Check tree cost 12 cnc.poy" -command "sed -e s/FILENAME/12.fas/ cnc.poy" -cost -810
+-message "Check tree cost 13 cnc.poy" -command "sed -e s/FILENAME/13.fas/ cnc.poy" -cost -1673
+-message "Check tree cost 1 cnc1.poy" -command "sed -e s/FILENAME/1.fas/ cnc1.poy" -cost -614
+-message "Check tree cost 2 cnc1.poy" -command "sed -e s/FILENAME/2.fas/ cnc1.poy" -cost -303
+-message "Check tree cost 3 cnc1.poy" -command "sed -e s/FILENAME/3.fas/ cnc1.poy" -cost -506
+-message "Check tree cost 4 cnc1.poy" -command "sed -e s/FILENAME/4.fas/ cnc1.poy" -cost -622
+-message "Check tree cost 5 cnc1.poy" -command "sed -e s/FILENAME/5.fas/ cnc1.poy" -cost -604
+-message "Check tree cost 6 cnc1.poy" -command "sed -e s/FILENAME/6.fas/ cnc1.poy" -cost -16903
+-message "Check tree cost 7 cnc1.poy" -command "sed -e s/FILENAME/7.fas/ cnc1.poy" -cost -730
+-message "Check tree cost 8 cnc1.poy" -command "sed -e s/FILENAME/8.fas/ cnc1.poy" -cost -816
+-message "Check tree cost 9 cnc1.poy" -command "sed -e s/FILENAME/9.fas/ cnc1.poy" -cost -1672
+-message "Check tree cost 10 cnc1.poy" -command "sed -e s/FILENAME/10.fas/ cnc1.poy" -cost -14128
+-message "Check tree cost 11 cnc1.poy" -command "sed -e s/FILENAME/11.fas/ cnc1.poy" -cost -730
+-message "Check tree cost 12 cnc1.poy" -command "sed -e s/FILENAME/12.fas/ cnc1.poy" -cost -816
+-message "Check tree cost 13 cnc1.poy" -command "sed -e s/FILENAME/13.fas/ cnc1.poy" -cost -1672
+-message "Check tree cost 1 cnc2.poy" -command "sed -e s/FILENAME/1.fas/ cnc2.poy" -cost -1139
+-message "Check tree cost 2 cnc2.poy" -command "sed -e s/FILENAME/2.fas/ cnc2.poy" -cost -580
+-message "Check tree cost 3 cnc2.poy" -command "sed -e s/FILENAME/3.fas/ cnc2.poy" -cost -1004
+-message "Check tree cost 4 cnc2.poy" -command "sed -e s/FILENAME/4.fas/ cnc2.poy" -cost -1139
+-message "Check tree cost 5 cnc2.poy" -command "sed -e s/FILENAME/5.fas/ cnc2.poy" -cost -1149
+-message "Check tree cost 6 cnc2.poy" -command "sed -e s/FILENAME/6.fas/ cnc2.poy" -cost -42299
+-message "Check tree cost 7 cnc2.poy" -command "sed -e s/FILENAME/7.fas/ cnc2.poy" -cost -1443
+-message "Check tree cost 8 cnc2.poy" -command "sed -e s/FILENAME/8.fas/ cnc2.poy" -cost -1620
+-message "Check tree cost 9 cnc2.poy" -command "sed -e s/FILENAME/9.fas/ cnc2.poy" -cost -3350
+-message "Check tree cost 10 cnc2.poy" -command "sed -e s/FILENAME/10.fas/ cnc2.poy" -cost -27472
+-message "Check tree cost 11 cnc2.poy" -command "sed -e s/FILENAME/11.fas/ cnc2.poy" -cost -1443
+-message "Check tree cost 12 cnc2.poy" -command "sed -e s/FILENAME/12.fas/ cnc2.poy" -cost -1620
+-message "Check tree cost 13 cnc2.poy" -command "sed -e s/FILENAME/13.fas/ cnc2.poy" -cost -3350
+-message "Check tree cost 1 cnc3.poy" -command "sed -e s/FILENAME/1.fas/ cnc3.poy" -cost -2801
+-message "Check tree cost 2 cnc3.poy" -command "sed -e s/FILENAME/2.fas/ cnc3.poy" -cost -1068
+-message "Check tree cost 3 cnc3.poy" -command "sed -e s/FILENAME/3.fas/ cnc3.poy" -cost -1506
+-message "Check tree cost 4 cnc3.poy" -command "sed -e s/FILENAME/4.fas/ cnc3.poy" -cost -2867
+-message "Check tree cost 5 cnc3.poy" -command "sed -e s/FILENAME/5.fas/ cnc3.poy" -cost -2876
+-message "Check tree cost 6 cnc3.poy" -command "sed -e s/FILENAME/6.fas/ cnc3.poy" -cost -64872
+-message "Check tree cost 7 cnc3.poy" -command "sed -e s/FILENAME/7.fas/ cnc3.poy" -cost -2169
+-message "Check tree cost 8 cnc3.poy" -command "sed -e s/FILENAME/8.fas/ cnc3.poy" -cost -2430
+-message "Check tree cost 9 cnc3.poy" -command "sed -e s/FILENAME/9.fas/ cnc3.poy" -cost -5136
+-message "Check tree cost 10 cnc3.poy" -command "sed -e s/FILENAME/10.fas/ cnc3.poy" -cost -48552
+-message "Check tree cost 11 cnc3.poy" -command "sed -e s/FILENAME/11.fas/ cnc3.poy" -cost -2169
+-message "Check tree cost 12 cnc3.poy" -command "sed -e s/FILENAME/12.fas/ cnc3.poy" -cost -2430
+-message "Check tree cost 13 cnc3.poy" -command "sed -e s/FILENAME/13.fas/ cnc3.poy" -cost -5136
+-message "Check tree cost 1 cc.poy" -command "sed -e s/FILENAME/1.fas/ cc.poy" -cost 865
+-message "Check tree cost 2 cc.poy" -command "sed -e s/FILENAME/2.fas/ cc.poy" -cost 336
+-message "Check tree cost 3 cc.poy" -command "sed -e s/FILENAME/3.fas/ cc.poy" -cost 502
+-message "Check tree cost 4 cc.poy" -command "sed -e s/FILENAME/4.fas/ cc.poy" -cost 839
+-message "Check tree cost 5 cc.poy" -command "sed -e s/FILENAME/5.fas/ cc.poy" -cost 667
+-message "Check tree cost 6 cc.poy" -command "sed -e s/FILENAME/6.fas/ cc.poy" -cost 20482
+-message "Check tree cost 7 cc.poy" -command "sed -e s/FILENAME/7.fas/ cc.poy" -cost 723
+-message "Check tree cost 8 cc.poy" -command "sed -e s/FILENAME/8.fas/ cc.poy" -cost 810
+-message "Check tree cost 9 cc.poy" -command "sed -e s/FILENAME/9.fas/ cc.poy" -cost 1672
+-message "Check tree cost 10 cc.poy" -command "sed -e s/FILENAME/10.fas/ cc.poy" -cost 15959
+-message "Check tree cost 11 cc.poy" -command "sed -e s/FILENAME/11.fas/ cc.poy" -cost 723
+-message "Check tree cost 12 cc.poy" -command "sed -e s/FILENAME/12.fas/ cc.poy" -cost 810
+-message "Check tree cost 13 cc.poy" -command "sed -e s/FILENAME/13.fas/ cc.poy" -cost 1672
+-message "Check tree cost 1 cc1.poy" -command "sed -e s/FILENAME/1.fas/ cc1.poy" -cost 607
+-message "Check tree cost 2 cc1.poy" -command "sed -e s/FILENAME/2.fas/ cc1.poy" -cost 295
+-message "Check tree cost 3 cc1.poy" -command "sed -e s/FILENAME/3.fas/ cc1.poy" -cost 505
+-message "Check tree cost 4 cc1.poy" -command "sed -e s/FILENAME/4.fas/ cc1.poy" -cost 609
+-message "Check tree cost 5 cc1.poy" -command "sed -e s/FILENAME/5.fas/ cc1.poy" -cost 585
+-message "Check tree cost 6 cc1.poy" -command "sed -e s/FILENAME/6.fas/ cc1.poy" -cost 16812
+-message "Check tree cost 7 cc1.poy" -command "sed -e s/FILENAME/7.fas/ cc1.poy" -cost 729
+-message "Check tree cost 8 cc1.poy" -command "sed -e s/FILENAME/8.fas/ cc1.poy" -cost 815
+-message "Check tree cost 9 cc1.poy" -command "sed -e s/FILENAME/9.fas/ cc1.poy" -cost 1669
+-message "Check tree cost 10 cc1.poy" -command "sed -e s/FILENAME/10.fas/ cc1.poy" -cost 14082
+-message "Check tree cost 11 cc1.poy" -command "sed -e s/FILENAME/11.fas/ cc1.poy" -cost 729
+-message "Check tree cost 12 cc1.poy" -command "sed -e s/FILENAME/12.fas/ cc1.poy" -cost 815
+-message "Check tree cost 13 cc1.poy" -command "sed -e s/FILENAME/13.fas/ cc1.poy" -cost 1669
+-message "Check tree cost 1 cc2.poy" -command "sed -e s/FILENAME/1.fas/ cc2.poy" -cost 1124
+-message "Check tree cost 2 cc2.poy" -command "sed -e s/FILENAME/2.fas/ cc2.poy" -cost 556
+-message "Check tree cost 3 cc2.poy" -command "sed -e s/FILENAME/3.fas/ cc2.poy" -cost 1002
+-message "Check tree cost 4 cc2.poy" -command "sed -e s/FILENAME/4.fas/ cc2.poy" -cost 1124
+-message "Check tree cost 5 cc2.poy" -command "sed -e s/FILENAME/5.fas/ cc2.poy" -cost 1096
+-message "Check tree cost 6 cc2.poy" -command "sed -e s/FILENAME/6.fas/ cc2.poy" -cost 40456
+-message "Check tree cost 7 cc2.poy" -command "sed -e s/FILENAME/7.fas/ cc2.poy" -cost 1439
+-message "Check tree cost 8 cc2.poy" -command "sed -e s/FILENAME/8.fas/ cc2.poy" -cost 1620
+-message "Check tree cost 9 cc2.poy" -command "sed -e s/FILENAME/9.fas/ cc2.poy" -cost 3338
+-message "Check tree cost 10 cc2.poy" -command "sed -e s/FILENAME/10.fas/ cc2.poy" -cost 27383
+-message "Check tree cost 11 cc2.poy" -command "sed -e s/FILENAME/11.fas/ cc2.poy" -cost 1439
+-message "Check tree cost 12 cc2.poy" -command "sed -e s/FILENAME/12.fas/ cc2.poy" -cost 1620
+-message "Check tree cost 13 cc2.poy" -command "sed -e s/FILENAME/13.fas/ cc2.poy" -cost 3338
+-message "Check tree cost 1 cc3.poy" -command "sed -e s/FILENAME/1.fas/ cc3.poy" -cost 2241
+-message "Check tree cost 2 cc3.poy" -command "sed -e s/FILENAME/2.fas/ cc3.poy" -cost 1002
+-message "Check tree cost 3 cc3.poy" -command "sed -e s/FILENAME/3.fas/ cc3.poy" -cost 1506
+-message "Check tree cost 4 cc3.poy" -command "sed -e s/FILENAME/4.fas/ cc3.poy" -cost 2213
+-message "Check tree cost 5 cc3.poy" -command "sed -e s/FILENAME/5.fas/ cc3.poy" -cost 1643
+-message "Check tree cost 6 cc3.poy" -command "sed -e s/FILENAME/6.fas/ cc3.poy" -cost 57257
+-message "Check tree cost 7 cc3.poy" -command "sed -e s/FILENAME/7.fas/ cc3.poy" -cost 2169
+-message "Check tree cost 8 cc3.poy" -command "sed -e s/FILENAME/8.fas/ cc3.poy" -cost 2430
+-message "Check tree cost 9 cc3.poy" -command "sed -e s/FILENAME/9.fas/ cc3.poy" -cost 5012
+-message "Check tree cost 10 cc3.poy" -command "sed -e s/FILENAME/10.fas/ cc3.poy" -cost 46986
+-message "Check tree cost 11 cc3.poy" -command "sed -e s/FILENAME/11.fas/ cc3.poy" -cost 2169
+-message "Check tree cost 12 cc3.poy" -command "sed -e s/FILENAME/12.fas/ cc3.poy" -cost 2430
+-message "Check tree cost 13 cc3.poy" -command "sed -e s/FILENAME/13.fas/ cc3.poy" -cost 5012
+-message "Check tree cost after static approx 1 sa.poy" -command "sed -e s/FILENAME/1.fas/ sa.poy" -cost 865
+-message "Check tree cost after static approx 2 sa.poy" -command "sed -e s/FILENAME/2.fas/ sa.poy" -cost 336
+-message "Check tree cost after static approx 3 sa.poy" -command "sed -e s/FILENAME/3.fas/ sa.poy" -cost 502
+-message "Check tree cost after static approx 4 sa.poy" -command "sed -e s/FILENAME/4.fas/ sa.poy" -cost 839
+-message "Check tree cost after static approx 5 sa.poy" -command "sed -e s/FILENAME/5.fas/ sa.poy" -cost 667
+-message "Check tree cost after static approx 6 sa.poy" -command "sed -e s/FILENAME/6.fas/ sa.poy" -cost 20482
+-message "Check tree cost after static approx 7 sa.poy" -command "sed -e s/FILENAME/7.fas/ sa.poy" -cost 723
+-message "Check tree cost after static approx 8 sa.poy" -command "sed -e s/FILENAME/8.fas/ sa.poy" -cost 810
+-message "Check tree cost after static approx 9 sa.poy" -command "sed -e s/FILENAME/9.fas/ sa.poy" -cost 1672
+-message "Check tree cost after static approx 10 sa.poy" -command "sed -e s/FILENAME/10.fas/ sa.poy" -cost 15959
+-message "Check tree cost after static approx 11 sa.poy" -command "sed -e s/FILENAME/11.fas/ sa.poy" -cost 723
+-message "Check tree cost after static approx 12 sa.poy" -command "sed -e s/FILENAME/12.fas/ sa.poy" -cost 810
+-message "Check tree cost after static approx 13 sa.poy" -command "sed -e s/FILENAME/13.fas/ sa.poy" -cost 1672
+-message "Check tree cost after static approx 1 sa1.poy" -command "sed -e s/FILENAME/1.fas/ sa1.poy" -cost 607
+-message "Check tree cost after static approx 2 sa1.poy" -command "sed -e s/FILENAME/2.fas/ sa1.poy" -cost 295
+-message "Check tree cost after static approx 3 sa1.poy" -command "sed -e s/FILENAME/3.fas/ sa1.poy" -cost 505
+-message "Check tree cost after static approx 4 sa1.poy" -command "sed -e s/FILENAME/4.fas/ sa1.poy" -cost 609
+-message "Check tree cost after static approx 5 sa1.poy" -command "sed -e s/FILENAME/5.fas/ sa1.poy" -cost 585
+-message "Check tree cost after static approx 6 sa1.poy" -command "sed -e s/FILENAME/6.fas/ sa1.poy" -costless 16812
+-message "Check tree cost after static approx 7 sa1.poy" -command "sed -e s/FILENAME/7.fas/ sa1.poy" -cost 729
+-message "Check tree cost after static approx 8 sa1.poy" -command "sed -e s/FILENAME/8.fas/ sa1.poy" -cost 815
+-message "Check tree cost after static approx 9 sa1.poy" -command "sed -e s/FILENAME/9.fas/ sa1.poy" -cost 1669
+-message "Check tree cost after static approx 10 sa1.poy" -command "sed -e s/FILENAME/10.fas/ sa1.poy" -costless 14082
+-message "Check tree cost after static approx 11 sa1.poy" -command "sed -e s/FILENAME/11.fas/ sa1.poy" -cost 729
+-message "Check tree cost after static approx 12 sa1.poy" -command "sed -e s/FILENAME/12.fas/ sa1.poy" -cost 815
+-message "Check tree cost after static approx 13 sa1.poy" -command "sed -e s/FILENAME/13.fas/ sa1.poy" -cost 1669

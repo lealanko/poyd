@@ -1,0 +1,4 @@
+(DM1 (DM3 (DM4 DM2)));
+(DM1 (DM2 (DM4 DM3)));
+(DM1 (DM2 (DM4 DM3)));
+(DM1 (DM2 (DM4 DM3)));

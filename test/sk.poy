@@ -1,0 +1,5 @@
+(* Create sankoff character *)
+read ("FILENAME1")
+transform ((all,tcm: "FILENAME2"))
+build (1)
+transform ((all, static_approx))

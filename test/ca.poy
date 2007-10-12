@@ -1,0 +1,6 @@
+(* Read build and swap custom alphabet *)
+read (custom_alphabet:("FILENAME1","FILENAME2"))
+build (1)
+swap (trajectory, timeout:60)
+
+
