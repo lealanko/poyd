@@ -249,8 +249,11 @@ let dependency_relations (init : Methods.script) =
     | #Methods.build as meth ->
             let res = 
                 match meth with
+                | `Branch_and_Bound _
                 | `Prebuilt _ ->
                         [([Data], [Data; Trees], init, Linnearizable)]
+                | `Build (_, (`Constraint (_, _, None, _)), _) ->
+                        [([Data; Trees], [Trees], init, NonComposable)]
                 | `Build _
                 | `Build_Random _ ->
                         [([Data], [Trees], init, Parallelizable)]
@@ -1384,6 +1387,8 @@ let script_to_string (init : Methods.script) =
     | #Methods.build as meth ->
             let res = 
                 match meth with
+                | `Branch_and_Bound _ ->
+                        "@[Build trees using branch and bound@]"
                 | `Prebuilt _ ->
                         "@[load the trees from a file@]"
                 | `Build _

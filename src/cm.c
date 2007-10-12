@@ -812,7 +812,7 @@ cm_CAML_deserialize (void *v) {
     n->tail_cost = (int *) malloc (len * sizeof(int));
     if ((n->cost == NULL) || (n->median == NULL)) failwith ("Memory error.");
     deserialize_block_4(n->cost, len);
-    deserialize_block_4(n->median, len);
+    DESERIALIZE_SEQT(n->median, len);
     deserialize_block_4(n->worst, len);
     deserialize_block_4(n->prepend_cost, len);
     deserialize_block_4(n->tail_cost, len);
@@ -835,7 +835,7 @@ cm_CAML_deserialize_3d (void *v) {
     n->median = (SEQT *) malloc (len * sizeof(SEQT));
     if ((n->cost == NULL) || (n->median == NULL)) failwith ("Memory error.");
     deserialize_block_4(n->cost, len);
-    deserialize_block_4(n->median, len);
+    DESERIALIZE_SEQT(n->median, len);
     return (sizeof(struct cm_3d));
 }
 
@@ -860,7 +860,7 @@ cm_CAML_serialize (value vcm, unsigned long *wsize_32, \
     *wsize_64 = *wsize_32 = sizeof(struct cm);
     len = 1 << (c->lcm * 2);
     serialize_block_4(c->cost, len);
-    serialize_block_4(c->median, len);
+    SERIALIZE_SEQT(c->median, len);
     serialize_block_4(c->worst, len);
     serialize_block_4(c->prepend_cost, len);
     serialize_block_4(c->tail_cost, len);
@@ -883,7 +883,7 @@ cm_CAML_serialize_3d (value vcm, unsigned long *wsize_32, \
     *wsize_64 = *wsize_32 = sizeof(struct cm);
     len = (c->a_sz + 1) * (c->a_sz + 1) * (c->a_sz + 1);
     serialize_block_4(c->cost, len);
-    serialize_block_4(c->median, len);
+    SERIALIZE_SEQT(c->median, len);
     CAMLreturn0;
 }
 
@@ -954,8 +954,12 @@ cm_CAML_clone (value v) {
     clone = alloc_custom (&cost_matrix, sizeof(struct cm), 1, 1000000);
     clone2 = Cost_matrix_struct(clone);
     c = Cost_matrix_struct(v);
-    cm_set_val (c->lcm, c->combinations, c->cost_model_type, \
-            c->gap_open, c->is_metric, clone2);
+    if (c->combinations)
+        cm_set_val (c->lcm, c->combinations, c->cost_model_type, \
+                c->gap_open, c->is_metric, clone2);
+    else
+        cm_set_val (c->a_sz, c->combinations, c->cost_model_type, \
+                c->gap_open, c->is_metric, clone2);
     len = (c->a_sz + 1) * (c->a_sz + 1);
     cm_copy_contents (c->cost, clone2->cost, len);
     cm_copy_contents_seqt (c->median, clone2->median, len);

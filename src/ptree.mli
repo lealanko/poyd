@@ -107,6 +107,7 @@ type ('a, 'b) cost_fn =
 * at this location. *)
 
 type ('a, 'b) reroot_fn =
+    bool ->
     Tree.edge ->
     ('a, 'b) p_tree ->
     ('a, 'b) p_tree * incremental list
@@ -246,7 +247,7 @@ module type SEARCH = sig
   val make_wagner_tree :
       ?sequence:(int list) ->
     (a, b) p_tree ->
-    (unit -> int) -> (a, b) wagner_mgr ->
+    (a, b) wagner_mgr ->
     ((a, b) p_tree -> int -> (a, b) wagner_edges_mgr) ->
     (a, b) wagner_mgr
 
@@ -290,10 +291,11 @@ module type SEARCH = sig
           (a, b) p_tree ->
           Tree.join_jxn -> a -> float -> Tree.t_status
 
-      (** [alternate_spr_tbr search] takes each tree in search manager [search]
+      (** [alternate spr_searcher tbr_searcher search] takes each tree in search manager [search]
           and performs rounds of alternating SPR and TBR until there is no further
-          improvement *)
-      val alternate_spr_tbr : searcher
+          improvement, using the [spr_searcher] and [tbr_searcher] passed as
+          arugment. *)
+      val alternate : searcher -> searcher -> searcher
 
       (** [repeat_until_no_more f s sm] iterates a search using whatever
        * searcher [s] is selected until no better tree is found, using the search
@@ -375,7 +377,7 @@ module type SEARCH = sig
 
     end
     
-val set_avail_start : ('a, 'b) p_tree -> int -> ('a, 'b) p_tree
+val set_avail_start : ('a, 'b) p_tree -> ('a, 'b) p_tree
 val int_of_id : Tree.id -> int
 val get_id : Tree.node -> int
 val is_handle : int -> ('a, 'b) p_tree -> bool

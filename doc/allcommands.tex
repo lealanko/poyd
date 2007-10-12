@@ -38,6 +38,27 @@
             sequence.}
             {asis}
 
+        \argumentdefinition{branch\_and\_bound}{\optional{\poyfloat}}
+            {Calculates the exact solution using the branch and bound algorithm
+            ~\cite{hendy1982}. By default only one optimal tree is kept but
+            the number of optimal trees to be retained can be specified by the
+            argument \poyargument{trees}. The optional float value specifies the
+            bound (either tree cost or likelihood score. Instead of building a tree the default heuristic method,}
+            {branchandbound} 
+
+        \argumentdefinition{constraint}{\optional{\poystring}}
+            {Builds trees using the set of constraints contained in the input
+            file. If no input file is provided, the constraint is calculated as
+            the strict consensus of the trees held in memory. Every tree built
+            using this method is subjected to the same randomization as wagner
+            builds within each constraint.}
+            {buildconstraint}
+
+        \argumentdefinition{random}{}
+            {Generate a tree at random.  All possible trees have equal
+            probability.}
+            {buildrandom}
+
 		\argumentdefinition{randomized}{} 
             {Indicates that terminals are added in random order on every Wagner
             tree built.}
@@ -101,6 +122,10 @@
             {Builds the first Wagner tree using  tree using the order of terminals in
             as they are listed in the first imported datafile and generates the remaining
             14 trees using a random addition sequence.}
+            
+            	\poyexample{build(branch\_and\_bound, trees:5)}
+            {Builds trees using branch\_and\_bound method and keeps up to
+            5 optimal trees in memory.}
             
 	\end{poyexamples}
 
@@ -690,7 +715,7 @@
             and to the standard error in the flat interface.}
             {}
 
-        \argumentdefinition{ratchet}{\obligatory{(\poyfloat, \poyint)}}
+        \argumentdefinition{ratchet}{\optional{(\poyfloat, \poyint)}}
             {Perturbs the data by implementing a variant of the parsimony
             ratchet~\cite{Nixon1999}. For unaligned data,
             \poyargument{ratchet} randomly selects and reweighs a fraction of
@@ -882,8 +907,10 @@
             only character data and ignore other content (such as blocks of
             commands, \emph{etc.}). For certain data file formats, \poy will interpret
             additional information as detailed for each file type below.
+            It is important, however, to verify that the data was interpreted properly (using
+            the command \poycommand{report}).
         \end{statement}
-        
+          
         \begin{statement}
             Unlike many phylogenetic programs, \poy does not clear the memory
             buffer upon reading a second file. Instead, any subsequently read files
@@ -904,7 +931,7 @@
              taxon name appears to match a nucleotide sequence.
 
              If one of the terminal names in an imported molecular file contains
-             an \atsymbol or a percentage symbol, the file will not be loaded as
+             an \atsymbol  or a percentage symbol, the file will not be loaded as
              it may cause the program to crash when reporting results.
         \end{statement}
 	\end{poydescription}
@@ -943,14 +970,20 @@
             {Specifies that the data listed in the string argument
             are amino acid sequences in FASTA format.} 
             {}
-
+            
+	\begin{statement}
+            Currently, IUPAC ambiguity codes for aminoacids are \emph{not} supported 
+            and inputing files that contain aminoacid data with ambiguities results in
+            an error message.
+        \end{statement}
+        
         \argumentdefinition{annotated}{\obligatory{(\poystring list)}}
             {Specifies that the data listed in the string argument are chromosomal
             sequences with pipes (`` $\vline$ '') separating individual
             loci. This data type allows for locus-level rearrangements specified by
             the argument \nccross{dynamic\_pam}{dynamicpam} of the command
             \nccross{transform}{transformcommand}. Locus homologies are
-            determined dynamically, but based on annotated regions.} 
+            determined dynamically, but based on annotated regions~\cite{vinh2006}.} 
             {}
 
         \argumentdefinition{breakinv}{\obligatory{(STRING, STRING, 
@@ -972,7 +1005,7 @@
             command~\nccross{transform}{transformcommand}.  
             Unlike when using \poycommand{annotated} data type,
             both locus-level and nucleotide-level homologies
-            are determined dynamically. If chromosome sequences were imported as
+            are determined dynamically~\cite{vinh2007}. If chromosome sequences were imported as
             nucleotide type data, they can be converted to chromosome type data
             using the argument \poyargument{seq\_to\_chrom} of
             \nccross{transform}{transformcommand}.} 
@@ -1049,14 +1082,21 @@
             {Specifies that the data in the list of files hold nucleotide
             sequences in FASTA format.} 
             {}
-
+            
+	\begin{statement}
+            By default, upon importing prealigned sequence data, all the gaps are
+             removed and the sequences are treated as dynamic homology characters.
+             To preserve the alignment the data must be imported using the
+             \poyargument{prealigned} argument of the command \poycommand{read}.
+          \end{statement}
+        
         \argumentdefinition{prealigned}{\obligatory{(read argument,
         tcm:\poystring)}}
             {Specifies that the input sequences are prealigned and
             should be assigned the transformation cost matrix from the 
             input file specified by the string argument. (See \poyargument{tcm}.)}
             {}
-
+        
         \argumentdefinition{prealigned}{\obligatory{(read argument,
         tcm:(\poyint, \poyint))}}
             {Specifies that the input sequences are prealigned and should be
@@ -1200,14 +1240,79 @@
 
 \begin{command}{rename}{}
 
-	\syntax{\obligatory{(argument)}}
+	\syntax{\obligatory{argument list}}
 
 	\begin{poydescription} 
-        Changes the name of specified items from one string to another. Valid
-        \poycommand{rename} arguments can be \poycommand{character},
-        \poycommand{terminals}, a filename, or a pair of strings. Specifying \texttt{("a",
-        "b")} would rename the character or taxon \texttt{a} to \texttt{b}.
-	\end{poydescription}
+        Replaces the name(s) of specified item(s) (characters or terminals). This command allows 
+        for substituting taxon names and helps merging multiple datasets without modifying the original
+        datafiles. More specifically, it can be used, for example, (1) for housekeeping purposes
+        when it is desirable to maintain long verbose taxon names (such as catalog or GenBank
+        accession numbers) associated with the original datafiles but avoid reporting these 
+        names on the trees; (2) to provide a single name for a terminal in cases where the corresponding
+        data is stored in different files under different terminal names; and (3) to simply change an
+        outdated or invalid terminal name.
+        
+        The command consists of a terminal or character identifier followed by a comma and then by
+        either a string containing a synonymy file or a pair (or pairs) of strings containing the names of
+        items being renamed.
+	\end{poydescription}  
+          
+	\begin{statement}
+            In order to change taxon names, the command \poycommand{rename} must be
+            executed \emph{before} importing the datafiles (see command  \nccross{read}{read})
+            that contain character data the taxa to be renamed.
+          \end{statement}
+          
+          \begin{arguments}
+		\begin{argumentgroup}{Identifiers}
+		{The identifiers specify whether terminals or characters are being renamed. An identifier
+		must precede the subsequent arguments.}
+		
+		\argumentdefinition{characters}{}
+                {Specifies that the subsequently subsequently items to be renamed are characters.} 
+                {}
+		\argumentdefinition{terminals}{}
+                {Specifies that the subsequently subsequently items to be renamed are terminals.} 
+                {}
+		\end{argumentgroup}
+	      
+	      \begin{argumentgroup}{Specifying items to be renamed}
+	      {These arguments allow to specify the items to be renamed either individually (by 
+	      using a pair of string arguments) or in a group (by importing a \emph{synonymy} file.
+	      The latter is useful when there are multiple items to be renamed and/or when it is
+	      desirable to substitute a single name for  multiple ones.}
+	      
+	      \argumentdefinition{STRING}{}
+                {Specifies the name of the file (a \emph{synonymy} file) that contains the list of
+                terminals or characters to be renamed. The synonymy file has the following structure:
+                each line contains a list of synonyms (two or more) separated by spaces. The name of the
+                item listed first is going to be substituted for all the subsequently listed names. Consider,
+                for example, a two-line synonymy file below:
+                
+                \texttt{alpha beta gamma \\
+                delta 1\\}
+                 
+                 When this file is imported, the items \texttt{beta} and \texttt{gamma} will be
+                 renamed as \texttt{alpha} and the item \texttt{1} will be renamed as \texttt{delta}
+                 in all subsequently imported datafiles.}
+                {}
+                \argumentdefinition{(STRING, STRING)}{}
+                {Specifies the names of individual items to be renamed. The first item will be renamed
+                as the second item: specifying \texttt{("alpha","beta")} would rename the character or taxon
+                \texttt{alpha} to \texttt{beta}. To specify multiple pairwise name substitution, several 
+                name pairs can be listed: \texttt{("alpha","beta"),("gamma","delta").}}
+                {}
+	      \end{argumentgroup}
+	      
+          \end{arguments}
+          
+          \begin{poyexamples}
+        \poyexample{rename(terminals,"synfile")}{This command will rename terminal names
+            contained in the synonymy file \texttt{synfile} in all subsequently imported datafiles.}
+            \poyexample{rename(terminals,("Mytilus\_sp","Mytilus\_edulis"))}{This command will
+            rename terminal file \texttt{Mytilus\_sp} as \texttt{Mytilus\_edulis} in all subsequently
+            imported datafiles.}
+    \end{poyexamples}
 
 \end{command}
         
@@ -1536,7 +1641,7 @@
 			{This set of arguments will output the diagnosis.} 
 
 			\argumentdefinition{diagnosis}{}
-                {Outputs the diagnosis of each tree to screen or to a file, if
+                {Outputs the diagnosis of each tree on screen or redirects it to a file, if
                 specified.} 
                 {}
 
@@ -1605,8 +1710,14 @@
                 \poy session. This command is useful for monitoring the execution time
                 of specific tasks.}
                 {}
-
-		\end{argumentgroup}
+                
+                \argumentdefinition{xslt}{\obligatory{(STRING, STRING)}}
+	     {Applies a user-defined stylesheet to the xml output. The first string is
+	     the filename of the output, the second string is the name of the stylesheet
+	     requested to generate it.}
+	     {}
+	     
+	     \end{argumentgroup}
 	\end{arguments}
 
 	\poydefaults{data, diagnosis, trees}
@@ -1848,8 +1959,8 @@
 
 	\end{arguments}
 
-    \poydefaults{build:false, transform:false}{Under default settings, all the trees
-     currently in memory (either from prior builds or imported as tree files) are subjected
+    \poydefaults{build:true, transform:false}{Under default settings, 10 trees
+    are built, then subjected
      to branch swapping using alternating SPR and TBR, keeping one tree per
      swap (the default of \poycommand{swap}), and without transforming characters.}
         
@@ -2192,7 +2303,15 @@
                 the tree cost estimation but at the expense of a tremendous execution time.
                 Use at the very end to polish the final set of trees and perform a final search.}
                 {}
-
+                
+	\begin{statement}
+  	  Due to the complexity of heuristics of the iterative pass optimization, there is no
+	  guarantee that the tree cost recovered from the search would be exactly the same
+	  as produced by the diagnosis of the same tree. However, once the cost is computed
+	  by the diagnosis, subsequent rediagnosing of the same tree must produce the same
+	  cost.
+	\end{statement}
+	
         \end{argumentgroup}
 
         \begin{argumentgroup}{Randomized routines}
@@ -2203,7 +2322,12 @@
                 value. If unspecified, \poy uses the system's time as seed. It
                 is reported when the program starts.}
                 {}
-
+	\begin{statement}
+  	 It is critical to set a seed value to insure reproducibility of the results
+	 of the analyses that require randomization routines (such as tree
+	 building).
+	\end{statement}
+	
             \end{argumentgroup}
 	\end{arguments}
 
@@ -2443,39 +2567,39 @@
     \end{argumentgroup}
 
 	\begin{argumentgroup}{Trajectory samples}
-	{During the search, \poy visits a (large) number of trees; it is
-        possible to ask the program to collect information about those
-        trees, to be used later: either to provide backups of the state of a
-        search (in the improbable case that \poy crashes), or simply to
-        analyze the characteristics of the alignments. A difference with
-        other groups of arguments in \poycommand{swap}, is that the user can
-        choose any combination of trajectory samples, and they will all be 
+	{During the search, \poy visits a large number of trees. For some applications
+	 it might be desirable to  collect information about the trees examined during a
+	 search: for example, to provide backups of the state of a
+        search (in an unlikely crash), or to examine the characteristics of the alignments.
+        The difference from the \poycommand{swap} arguments is that the user can
+        choose any combination of trajectory samples, and they will all can be 
         used during the search. None of the trajectory samples is used by
         default.}
 
 	\argumentdefinition{recover}{}
-	{Store the current best tree in memory to recover it in
-            case of failure (default is off); If it is necessary to recover such
+	{Stores the current best tree in memory that can be recovered it 
+            case of failure. If it is necessary to recover such
             trees after an aborted command, use the command~\ccross{recover}. 
             If the program terminates normally, the stored trees are exactly
             those produced at the end of the \poycommand{swap}. Using
-            \poyargument{recover} will require twice as much memory as the
-            \poycommand{swap} would take without it; however, it will not
-            affect the application's performance.}
+            \poyargument{recover}, however, requires twice as much memory
+            compared to swapping without it.}
             {recoverarg}
 
          \argumentdefinition{timeout}{\obligatory{\poyint}}
-	{is the number of seconds after which the swap will
-           be cancelled. Use this argument in association with \poycommand{recover}
+	{Specifies the number of seconds after which branch swapping isl
+           stopped. Use this argument in association with \poycommand{recover}
            to keep the best trees found up to \emph{n} seconds after
            starting the search.}
                 {}
 
         \argumentdefinition{timedprint}{\obligatory{(\poyint, \poystring)}}
-			{\poyargument{timedprint:(n, "trees.txt")} will print the current
-                best tree in memory to the file \texttt{trees.txt}, at least every 
-                \texttt{n} seconds. However, \poy typically underestimates the amount of
-                time and, therefore, the samples can be slightly sparcer.}
+	{\poyargument{timedprint:(n, "trees.txt")} will print the current
+            best tree in memory to the file \texttt{trees.txt}, at least every 
+            \texttt{n} seconds. However, \poy typically underestimates the amount of
+            time and, therefore, the samples can be slightly sparcer. \poyargument{timedprint} 
+            can only be used in combination with the argument \poyargument{recover}. This
+            argument requires the argument \poyargument{recover} to be specified.}
             {}
 
 		\argumentdefinition{trajectory}{\optional{\poystring}}
@@ -2546,17 +2670,20 @@
             cost trees for each starting tree.}
             
         \poyexample{swap(constraint:(depth:4))}
-            {Calculate a consensus tree of the files in memory and use it as
-            constraint file, then join at distance at most 4 from the breaking
-            branch. This is equivalent to swap (constraint:(4))}
+            {Calculates a consensus tree of the files in memory and uses it as
+            constraint file, then joins at distance at most 4 from the breaking
+            branch. This is equivalent to \texttt{swap(constraint:(4))}.}
 	
         \poyexample{swap(constraint:(file:"bleh"))}
-            {Read the tree in file "bleh" and use it as constraint for the
-            search. This is equivalent to swap (constraint:("bleh")).}	
+            {Reads the tree in file \texttt{bleh} and use it as constraint for the
+            search. This is equivalent to \texttt{swap(constraint:("bleh"))}.}	
 		
-		\poyexample{swap(constraint:(file:"bleh", depth:4))}
-            {Use the tree in file "bleh" as constraint tree, and join at
+        \poyexample{swap(constraint:(file:"bleh", depth:4))}
+            {Uses the tree in the file \texttt{bleh} as a constraint tree and joins at
             distance at most 4 from the breaking branch during the swap.}
+        
+         \poyexample{swap(recover, timedprint:(5, "timedprint.txt"))}
+            {Saves the current best tree to file \texttt{timedprint.txt} every 5 seconds.}
             
 	\end{poyexamples}
 
@@ -2638,13 +2765,13 @@
             long sequences greatly accelerates searching.}
             {autosequencepartition}
 
-        \argumentdefinition{fixedstates}{}
+        \argumentdefinition{fixed\_states}{}
           {Transforms the characters specified in fixed state characters~\cite{wheeler1999a}
           with distances equal to the edition distance between their observed values.
-          By default, the application of \poyargument{fixedstates} transforms
+          By default, the application of \poyargument{fixed\_states} transforms
           all molecular characters. To specify a subset of characters, an identifier
-          must be used in conjunction with \poyargument{fixedstates}.}
-          {}
+          must be used in conjunction with \poyargument{fixed\_states}.}
+          {fixedstates}
         \argumentdefinition{gap\_opening}{\obligatory{\poyint}}
             {Sets the cost of opening a block of gaps to the specified value. Note that
             this cost is in addition to the standard cost of the insertion as
@@ -2791,7 +2918,7 @@
             {Transforms custom\_alphabet character type into breakinv
             character type to allow for rearrangement operations
             (translocations and inversions; duplications are not currently
-            supported.) This argument is useful, for example, when
+            supported). This argument is useful, for example, when
             custom\_alphabet characters are used to define a sequence of
             individual genes and once is interested in detecting potential
             change in their order on a chromosome. See the
@@ -2856,7 +2983,7 @@
                         takes into account rearrangements but not inversions.
                         Note, that this argument \emph{cannot} be used in
                         conjunction with \poyargument{inversion}. The default
-                        value of \poyargument{breakpoint} is \texttt{50}.} 
+                        value of \poyargument{breakpoint} is \texttt{10}.} 
                         {breakpoint}
                         
                         \argumentdefinition{circular}{\obligatory{\poybool}} 
@@ -2872,7 +2999,7 @@
                         rearrangement specified by an integer value. The breakpoint distance
                         takes into account locus rearrangements between non-homologous
                         chromosomes (translocations) but not inversions. The default value of
-                        \poyargument{chrom\_breakpoint} is \texttt{10}.}
+                        \poyargument{chrom\_breakpoint} is \texttt{100}.}
                         {chrombreakpoint}
 		
 		\argumentdefinition{chrom\_hom}{\obligatory{\poyfloat}}
@@ -2951,20 +3078,22 @@
                         fragments. Increasing the value of \poyargument{sig\_block\_len} decreases
                         the chance of inferring small-size rearrangements. The default value is \texttt{100}.} 
                         {sigblocklen}
-
-  		    \argumentdefinition{rearranged\_len}{\obligatory{\poyint}}
-           	 {Two seeds are said to be \emph{non-rearranged}, 
-              	if their distance is not greater than  a predefined 
-              	threshold $rearranged\_len$. In other words, it is unlikely that rearrangement 
-              	operations can occur between seeds if they are connected.
-             	 The default value is \texttt{100}}{rearrangedlen} 
-
+                        
+  		            \argumentdefinition{rearranged\_len}{\obligatory{\poyint}}
+           	               {Two seeds are said to be \emph{non-rearranged}, 
+               	             if their distance is not greater than  a predefined 
+              	             threshold $rearranged\_len$. 
+                             In other words, it is unlikely that rearrangement 
+              	             operations can occur between two non-rearranged seeds 
+                             if they are connected.
+                	         The default value is \texttt{100}}{rearrangedlen} 
+ 
 
 
                     \argumentdefinition{swap\_med}{\obligatory{\poyint}}
                         {Specifies the maximum number of swapping iterations
-                        per each HTU (median) to search for best pairwise
-                        alignment of two genomes taking into account locus-level
+                        to search for best pairwise
+                        alignment of two chromosomes taking into account locus-level
                         rearrangement events. Limiting the number of swapping
                         iterations accelerates the search at the expense of
                         thoroughness. The default value is \texttt{1}.}
@@ -3032,10 +3161,10 @@
             \texttt{Molmatrix1} to the sequence data contained in files \texttt{gen5} and
             \texttt{gen6}.}
          
-         \poyexample{transform(fixedstates)}
+         \poyexample{transform(fixed\_states)}
          {Transformed all sequence characters into fixed states characters.}
             
-          \poyexample{transform((names:("gen1", "gen4"), fixedstates))}
+          \poyexample{transform((names:("gen1", "gen4"), fixed\_states))}
            {Transformed only specified sequence characters (\texttt{gen1} and
            \texttt{gen4}) into fixed states characters.}
            

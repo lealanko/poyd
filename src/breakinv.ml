@@ -111,19 +111,6 @@ let find_meds2 (meds1 : meds_t) (meds2 : meds_t) =
          num_med = List.length kept_med_ls} 
 
     
-
-(** Given three lists of medians [medsp=(x1,...,xk)], [meds1=(y1,...,yt)]
- * and [meds2=(z1,...,zq)] where xi, yj, and zp are medians. 
- * For each triplet (xi, yj, zp) we have 
- * a list of medians w_ijp with the same cost c_ijp. 
- * Find w*ijp = minargv_(w_ijp) (c_ijp) *)
-let find_meds3 (medsp: meds_t) (meds1: meds_t) (meds2: meds_t) =
-    let meds1p = find_meds2 meds1 medsp in 
-    let meds2p = find_meds2 meds2 medsp in 
-    if meds1p.total_cost < meds2p.total_cost then meds1p
-    else meds2p
-            
-       
 (** Given two lists of medians [meds1=(x1,...,xk)] and [meds2=(y1,...,yt)]
  * where xi and yj are medians. For each pair (xi, yj) we have 
  * a list of medians z_ij with the same cost c_ij. 
@@ -166,6 +153,45 @@ let cmp_max_pair_cost (meds1 : meds_t) (meds2 : meds_t) =
         ) (0, 0) meds1.med_ls 
     in 
     max_cost, max_recost
+
+
+(** Given three lists of medians [medsp=(x1,...,xk)], [meds1=(y1,...,yt)]
+ * and [meds2=(z1,...,zq)] where xi, yj, and zp are medians. 
+ * For each triplet (xi, yj, zp) we have 
+ * a list of medians w_ijp with the same cost c_ijp. 
+ * Find w*ijp = minargv_(w_ijp) (c_ijp) *)
+let find_meds3 (medsp: meds_t) (meds1: meds_t) (meds2: meds_t) =
+    let meds1p = find_meds2 meds1 medsp in 
+    let meds2p = find_meds2 meds2 medsp in 
+    if meds1p.total_cost < meds2p.total_cost then meds1p
+    else meds2p
+            
+
+let readjust_3d ch1 ch2 mine c2 c3 parent = 
+    let seq1 = (List.hd ch1.med_ls).BreakinvAli.seq in
+    let seq2 = (List.hd ch2.med_ls).BreakinvAli.seq in
+    let seq3 = (List.hd parent.med_ls).BreakinvAli.seq in
+
+    let ali_pam = BreakinvAli.get_breakinv_pam ch1.breakinv_pam in          
+
+    let adjust_seq, cost = GenAli.create_gen_ali3 seq1 seq2 seq3 
+        ch1.pure_gen_cost_mat ch1.alpha ali_pam.BreakinvAli.re_meth
+        ali_pam.BreakinvAli.swap_med ali_pam.BreakinvAli.circular
+    in 
+    let amed = List.hd mine.med_ls in
+    let adjust_med = {amed with BreakinvAli.seq = adjust_seq} in 
+    let adjust_mine = {mine with med_ls = [adjust_med]} in 
+
+
+    let cost1, _ = cmp_min_pair_cost ch1 mine in 
+    let cost2, _ = cmp_min_pair_cost ch2 mine in 
+    let cost3, _ = cmp_min_pair_cost parent mine in 
+    let old_cost = cost1 + cost2 + cost3 in 
+(*    fprintf stdout "Cost: %i  -> adjusted cost: %i\n" old_cost cost;*)
+    if old_cost < cost then old_cost, mine, false
+    else cost, adjust_mine, 0 <> (compare mine adjust_mine)
+
+       
     
 
 (** Compare two list of medians *)

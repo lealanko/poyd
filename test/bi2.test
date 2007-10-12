@@ -1,0 +1,5 @@
+(* Read and transform custom alphabet to breakinv and build 1 tree *)
+read (custom_alphabet:("FILENAME1","FILENAME2"))
+transform ((all, seq_to_breakinv:()))
+transform ((all, dynamic_pam:(median:1, locus_indel:(15,6))))
+read ("../test/FILENAME.1.tree")

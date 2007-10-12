@@ -17,8 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-(* $Id: chartree.ml 2145 2007-08-25 16:28:42Z andres $ *)
-let () = SadmanOutput.register "Chartree" "$Revision: 2145 $"
+(* $Id: chartree.ml 2296 2007-10-09 17:17:31Z andres $ *)
+let () = SadmanOutput.register "Chartree" "$Revision: 2296 $"
 
 
 (** chartree.ml *)
@@ -161,7 +161,16 @@ let downpass ({Ptree.tree=tree} as ptree) =
         ptree
 
 let uppass_handle handle ({Ptree.tree=tree} as ptree) =
-    let ptree = Ptree.set_component_cost 0. None None handle ptree in
+    let ptree = 
+        let d =
+            match Ptree.get_node handle ptree with
+            | Tree.Single _ -> 
+                    let d = Ptree.get_node_data handle ptree in
+                    Some ((`Single handle), d)
+            | _ -> None
+        in
+        Ptree.set_component_cost 0. None d handle ptree 
+    in
     let virt_root : Node.node_data Ptree.root_node ref = ref None in
     let get_parent myid id tree =
         match !virt_root with
@@ -178,7 +187,14 @@ let uppass_handle handle ({Ptree.tree=tree} as ptree) =
              (* assumption: tree topology has not changed *)
              let node = Tree.get_node self_id tree in
              match node with
-             | Tree.Single _ -> (Tree.Continue, ptree)
+             | Tree.Single _ -> 
+                     let data = Ptree.get_node_data self_id ptree in
+                     let ptree = 
+                         Ptree.set_component_cost 0. None 
+                         (Some ((`Single self_id), data)) 
+                         self_id ptree
+                     in
+                     (Tree.Continue, ptree)
              | Tree.Leaf (selfid, otherid) -> begin
                    match parent_id with
                    | Some p ->
@@ -864,7 +880,7 @@ type 'a break_fn_t =
   'a p_tree ->
   'a p_tree * Tree.break_delta * float * int * Node.node_data * incremental list
 
-let reroot_fn edge ptree =
+let reroot_fn (_ : bool) edge ptree =
     let Tree.Edge (h, n) = edge in
     let my_handle = Ptree.handle_of h ptree in
     let ptree = Ptree.remove_root_of_component my_handle ptree in
@@ -1300,7 +1316,7 @@ let to_formatter atr data tree : Tags.output =
 let root_costs tree = 
     All_sets.Integers.fold (fun handle acc ->
         let get_cost edge acc = 
-            let ntree, _ = reroot_fn edge tree in
+            let ntree, _ = reroot_fn false edge tree in
             (Tree.Continue, (((edge, Ptree.get_cost `Adjusted ntree) :: acc)))
         in
         Ptree.pre_order_edge_visit get_cost handle tree acc)
