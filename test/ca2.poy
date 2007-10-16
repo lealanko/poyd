@@ -1,7 +1,3 @@
 (* Read and build  custom alphabet *)
-read (custom_alphabet:("FILENAME1","FILENAME2"))
+read (custom_alphabet:("ca2.fas","m1.fas"))
 build (1)
-
-
-
-

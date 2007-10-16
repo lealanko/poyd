@@ -2,7 +2,7 @@
 *)
 repeat 10 times
 wipe ()
-read ("FILENAME")
+read ("FILENAME1")
 build (1)
 transform (auto_static_approx)
 end

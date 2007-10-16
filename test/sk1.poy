@@ -1,6 +1,6 @@
 (* Create sankoff character *)
-read ("FILENAME1")
-transform ((all,tcm: "FILENAME2"))
+read ("2.fas")
+transform ((all,tcm: "g6ts1tv2"))
 build (1)
 transform ((all, static_approx))
 report ("sk.xml", data, diagnosis)

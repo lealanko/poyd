@@ -1,5 +1,5 @@
 (* read and report ia for break_inv character *)
-read (custom_alphabet:("FILENAME1","FILENAME2"))
+read (custom_alphabet:("ca1.fas","m1.fas"))
 transform ((all, seq_to_breakinv:()))
 build (1)
 report ("bi_ia", ia)

@@ -1,3 +1,3 @@
 (* Build and swap chel.aln *)
-read ("FILENAME")
-read ("../test/FILENAME.tree")
+read ("FILENAME1")
+read ("../test/FILENAME1.tree")

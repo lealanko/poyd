@@ -1,5 +1,5 @@
 (* Build and transform annotated chromosome using locus_breakpoint *)
-read (annotated:("FILENAME"))
+read (annotated:("an.fas"))
 transform ((all, dynamic_pam:(locus_breakpoint:20)))
 
 

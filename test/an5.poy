@@ -1,5 +1,5 @@
 (* Build and transform annotated chromosome with sig_block_len*)
-read (annotated:("FILENAME"))
+read (annotated:("an2.fas"))
 transform ((all, dynamic_pam:(locus_breakpoint:50)))
 build (1)
 report ("an.xml", data, diagnosis)

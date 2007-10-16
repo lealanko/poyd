@@ -1,5 +1,5 @@
 (* Build and transform unannotated chromosome and report ia *)
-read (chromosome:("FILENAME"))
+read (chromosome:("ua2.fas"))
 transform ((all, dynamic_pam:(locus_breakpoint:20)))
 build (1)
 report ("ua_ia",ia)

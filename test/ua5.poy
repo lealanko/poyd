@@ -1,5 +1,5 @@
 (* check xml output with unannotated chromosome using locus_breakpoint *)
-read (chromosome:("FILENAME"))
+read (chromosome:("ua.fas"))
 transform ((all, dynamic_pam:(locus_breakpoint:20)))
 build(1)
 report ("ua.xml", data, diagnosis)

@@ -5,7 +5,7 @@
 
 test_program="poy_test"
 list_of_tests=$3
-test_execution_script="ocaml unix.cma test_line.ml"
+test_execution_script="ocaml unix.cma str.cma test_line.ml"
 report_bug_to="avaron@amnh.org"
 temp="tmp_mail"
 

@@ -1,4 +1,4 @@
 (* Read and transform custom alphabet to breakinv and build 1 tree *)
-read (custom_alphabet:("FILENAME1","FILENAME2"))
+read (custom_alphabet:("ca1.fas","m1.fas"))
 transform ((all, seq_to_breakinv:()))
 build (1)

@@ -1,6 +1,6 @@
 (* Testing static approximation, we only test with *)
-read ("FILENAME")
+read ("FILENAME1")
 transform (tcm:(1,1))
-read ("../test/FILENAME.1.tree")
+read ("../test/FILENAME1.1.tree")
 transform (static_approx)
 swap ()

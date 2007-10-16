@@ -1,5 +1,5 @@
 (* Build and transform annotated chromosome and report ia *)
-read (annotated:("FILENAME"))
+read (annotated:("an.fas"))
 transform ((all, dynamic_pam:(locus_breakpoint:20)))
 build (1)
 report ("an_ia",ia)

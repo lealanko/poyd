@@ -1,7 +1,7 @@
 (* Build and transform unannotated chromosome using locus_breakpoint *)
 set(seed:1)
-read (chromosome:("FILENAME"))
+read (chromosome:("ua.fas"))
 transform ((all, dynamic_pam:(locus_breakpoint:20)))
-read ("../test/FILENAME.tree")
+read ("../test/ua.fas.tree")
 
 
