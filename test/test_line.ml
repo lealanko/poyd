@@ -12,6 +12,7 @@ let rmstdout = ref None
 let rmdiff = ref None
 let costfile = ref None
 let costlessfile = ref None
+let error_expected = ref false
 
 let assign item v = item := v
 let assign_opt item v = item := Some v
@@ -20,6 +21,8 @@ let () =
     let parse_list = [
         ("-inputfile", Arg.String (fun x -> files := x :: !files), 
         "An input file containing a list of files that should be replacing FILENAMEX");
+        ("-error", Arg.Unit (fun () -> error_expected := true), 
+        "Expect an error with normal program termination (no signals) from the poy_test.");
         ("-stderr", Arg.String (assign_opt mstderr),
         "The file where the reference stderr is located.");
         ("-stdout", Arg.String (assign_opt mstdout),
@@ -179,33 +182,34 @@ let () =
         let execution_line = append_output execution_line in
         print_endline ("Executing " ^ execution_line);
         match Unix.system execution_line with
-        | Unix.WEXITED 0 ->
-                (* We finished cleanly, time to verify that things are correct
-                * *)
-                let () =
-                    match !rmdiff with
-                    | None -> ()
-                    | Some x -> 
-                            let x = filename_fixer x in
-                            match Unix.system ("mv " ^ default_report ^ " " ^ x)
-                            with
-                            | Unix.WEXITED 0 -> ()
-                            | _ ->
-                                    Printf.printf 
-                                    "FAILED: Could not generate reference %s\n"
-                                    x
-                in
-                let res = 
-                    (check_files !mstdout default_stdout) &&
-                    (check_files !mstderr default_stderr) &&
-                    (check_files !mdiff default_report)
-                in
-                if res then
-                    Printf.printf "PASSED: %s\n%!" message
+        | Unix.WEXITED n ->
+                if n = 0 || !error_expected then
+                    (* We finished cleanly, time to verify that things are correct
+                    * *)
+                    let () =
+                        match !rmdiff with
+                        | None -> ()
+                        | Some x -> 
+                                let x = filename_fixer x in
+                                match Unix.system ("mv " ^ default_report ^ " " ^ x)
+                                with
+                                | Unix.WEXITED 0 -> ()
+                                | _ ->
+                                        Printf.printf 
+                                        "FAILED: Could not generate reference %s\n"
+                                        x
+                    in
+                    let res = 
+                        (check_files !mstdout default_stdout) &&
+                        (check_files !mstderr default_stderr) &&
+                        (check_files !mdiff default_report)
+                    in
+                    if res then
+                        Printf.printf "PASSED: %s\n%!" message
+                    else
+                        Printf.printf "FAILED: %s\n%!" message
                 else
                     Printf.printf "FAILED: %s\n%!" message
-        | Unix.WEXITED n ->
-                Printf.printf "FAILED: %s\n%!" message
         | Unix.WSIGNALED x ->
                 Printf.printf "FAILED: terminated with signal %d -- %s\n%!" x message
         | Unix.WSTOPPED x ->
