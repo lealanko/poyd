@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "Scripting" "$Revision: 2265 $"
+let () = SadmanOutput.register "Scripting" "$Revision: 2371 $"
 
 module IntSet = All_sets.Integers
 
@@ -1317,6 +1317,7 @@ IFDEF USEPARALLEL THEN
 ELSE 
                 run 
 END
+    | `Skip
     | `Entry -> run
     | `StoreTrees -> 
             { run with trees = `Empty; stored_trees = run.trees }
@@ -1790,11 +1791,22 @@ END
 (*                        message@ is@ : " ^ Printexc.to_string err in*)
 (*                        Status.user_message Status.Error msg;*)
 (*                        run)*)
-            | `RootName name ->
-                folder run (`Root (Some (Data.taxon_code name run.data)))
             | `Root where ->
               { run with data =
                       { run.data with Data.root_at = where } }
+            | `RootName name ->
+                    try folder run 
+                    (`Root (Some (Data.taxon_code name run.data))) with
+                    | Not_found -> 
+                            let msg = 
+                                "Terminal@ " ^ name ^ 
+                                "@ not@ found.@ To@ set@ the@ root@ I@ "
+                                ^ "must@ have@ loaded@ some@ data@ for@ it.@ "
+                                ^ "The@ assigned@ root@ " ^ 
+                                "will@ remain@ unchanged."
+                            in
+                            Status.user_message Status.Error msg;
+                            run
               
 
 let deal_with_error output_file run tmp err =
