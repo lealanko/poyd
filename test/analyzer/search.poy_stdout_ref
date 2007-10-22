@@ -1,0 +1,331 @@
+1.with {
+          }, the followingbeginning of the program1.2.with {
+                                                               [] from 
+                                                              1.}, the following
+                                                      read an input file
+1.2.3.with {
+               [data; trees; ] from 1.2.}, the followingread an input file
+1.2.3.4.with {
+                 [data; trees; ] from 1.2.3.}, the followingread an input file
+1.2.3.4.5.with {
+                   [bremer; data; jackboot; trees; ] from 1.2.3.4.}, the following
+          change the random number generator's seed1.2.3.4.5.6.with {
+                                                               
+                                                                  [bremer; 
+                                                                 data; 
+                                                                 jackboot; 
+                                                                 trees; 
+                                                                 ] from 
+                                                                 1.2.
+                                                                 3.4.
+                                                                 5.}, the following
+                                                               change my log file
+1.2.3.4.5.6.7.with {
+                       [data; trees; ] from 1.2.3.4.5.6.}, the following
+change the root
+               
+                 I will calculate the following in separate processors
+                 (if available)
+                 
+                 processor group 1:
+                 
+                   1.2.3.4.5.6.7.8.with {
+                                            [data; trees; ] from 1.2.
+                                           3.4.5.6.7.}, the following
+                                   report the time delta
+                 processor group 2:
+                 
+                   1.2.3.4.5.6.7.9.with {
+                                            [data; ] from 1.2.3.4.5.6
+                                           .7.}, the following
+                                   transform some characterstransform some characters
+                 
+                   I will calculate the following in separate processors
+                   (if available)
+                   
+                   processor group 1:
+                   
+                     in parallel:
+                     
+                       1.2.3.4.5.6.7.9.10.11.with {
+                                                      [data; ] from 1
+                                                     .2.3.4.5.6.7.9.10
+                                                     .}, the following
+                                             build some trees from scratch
+                       1.2.3.4.5.6.7.9.10.11.12.with {
+                                                         [trees; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.}, the following
+                                                swap the trees in memory
+                       
+                       while keeping the following invariant:
+                       1.2.3.4.5.6.7.9.10.11.12.13.with {
+                                                            [trees; ] from 
+                                                           1.2.3.4.5.
+                                                           6.7.9.10.11
+                                                           .12.}, the following
+                                                   eliminate repeated trees
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.with {
+                                                               [trees; 
+                                                              ] from 
+                                                              1.2.3.4
+                                                              .5.6.7.
+                                                              9.10.11
+                                                              .12.13.
+                                                              }, the following
+                                                      select the optimal trees
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.with {
+                                                                  [trees; 
+                                                                 ] from 
+                                                                 1.2.
+                                                                 3.4.
+                                                                 5.6.
+                                                                 7.9.
+                                                                 10.11
+                                                                 .12.
+                                                                 13.14
+                                                                 .}, the following
+                                                         try to escape the local optimum
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.with {
+                                                                     [
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    10
+                                                                    .
+                                                                    11
+                                                                    .
+                                                                    12
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    15
+                                                                    .
+                                                                    }, the following
+                                                            eliminate repeated trees
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.with {
+                                                               
+                                                                  [trees; 
+                                                                 ] from 
+                                                                 1.2.
+                                                                 3.4.
+                                                                 5.6.
+                                                                 7.9.
+                                                                 10.11
+                                                                 .12.
+                                                                 13.14
+                                                                 .15.
+                                                                 16.}, the following
+                                                               select the optimal trees
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.with {
+                                                                  
+                                                                     [
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    10
+                                                                    .
+                                                                    11
+                                                                    .
+                                                                    12
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    15
+                                                                    .
+                                                                    16
+                                                                    .
+                                                                    17
+                                                                    .
+                                                                    }, the following
+                                                                  fuse the trees I have in memory
+                   1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.19.with {
+                                                                 
+                                                                    [
+                                                                   trees; 
+                                                                   ] from 
+                                                                   1.
+                                                                   2.
+                                                                   3.
+                                                                   4.
+                                                                   5.
+                                                                   6.
+                                                                   7.
+                                                                   9.
+                                                                   10
+                                                                   .11
+                                                                   .12
+                                                                   .13
+                                                                   .14
+                                                                   .15
+                                                                   .16
+                                                                   .17
+                                                                   .18
+                                                                   .}, the following
+                                                                 eliminate repeated trees
+                   1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.19.20.with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.9
+                                                                    .10
+                                                                    .11
+                                                                    .12
+                                                                    .13
+                                                                    .14
+                                                                    .15
+                                                                    .16
+                                                                    .17
+                                                                    .18
+                                                                    .19
+                                                                    .}, the following
+                                                                    select the optimal trees
+                   
+                     I will calculate the following in separate processors
+                     (if available)
+                     
+                     processor group 1:
+                     
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.19.
+                     20.21.with {
+                                    [data; trees; ] from 1.2.3.4.5.6.
+                                   7.9.10. [trees; ] from 1.2.3.4.5.6
+                                   .7.9.10.11.12.13.14.15.16.17.18.19
+                                   .20.}, the following
+                           report the trees in memory
+                     processor group 2:
+                     
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.19.
+                     20.22.with {
+                                    [trees; ] from 1.2.3.4.5.6.7.9.10
+                                   .11.12.13.14.15.16.17.18.19.20.}, the following
+                           report the consensus
+                     processor group 3:
+                     
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.19.
+                     20.23.with {
+                                    [data; trees; ] from 1.2.3.4.5.6.
+                                   7.9.10. [trees; ] from 1.2.3.4.5.6
+                                   .7.9.10.11.12.13.14.15.16.17.18.19
+                                   .20.}, the following
+                           report the diagnosis
+                     processor group 4:
+                     
+                       1.2.3.4.5.6.7.9.10.11.12.13.14.15.16.17.18.19.
+                     20.24.with {
+                                    [data; trees; ] from 1.2.3.4.5.6.
+                                   7.9.10. [trees; ] from 1.2.3.4.5.6
+                                   .7.9.10.11.12.13.14.15.16.17.18.19
+                                   .20.}, the following
+                           report the time delta
+                     Then with {
+                                   [bremer; data; jackboot; trees; ] from 
+                                  1.2.3.4.5.6.7.9.10. [trees; ] from 
+                                  1.2.3.4.5.6.7.9.10.11.12.13.14.15.16
+                                  .17.18.19.20. [file "all_trees"; ] from 
+                                  1.2.3.4.5.6.7.9.10.11.12.13.14.15.16
+                                  .17.18.19.20.21. [file "constree"; 
+                                  ] from 1.2.3.4.5.6.7.9.10.11.12.13.
+                                  14.15.16.17.18.19.20.22. [file "diagnosis"; 
+                                  ] from 1.2.3.4.5.6.7.9.10.11.12.13.
+                                  14.15.16.17.18.19.20.23.}, the following
+                          change my log file
+                                            
+                                              I will calculate the following
+                                              in separate processors
+                                              (if available)
+                                              
+                                              processor group 1:
+                                              
+                                                with {
+                                                         [stdout; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.12.13
+                                                        .14.15.16.17.
+                                                        18.19.20.24.}, the following
+                                                close POY
+                                              processor group 2:
+                                              
+                                                with {
+                                                         [stdout; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.12.13
+                                                        .14.15.16.17.
+                                                        18.19.20.24.}, the following
+                                                close POY
+                                              processor group 3:
+                                              
+                                                with {
+                                                         [stdout; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.12.13
+                                                        .14.15.16.17.
+                                                        18.19.20.24.}, the following
+                                                close POY
+                                              processor group 4:
+                                              
+                                                with {
+                                                         [stdout; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.12.13
+                                                        .14.15.16.17.
+                                                        18.19.20.24.}, the following
+                                                close POY
+                                              processor group 5:
+                                              
+                                                with {
+                                                         [stdout; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.12.13
+                                                        .14.15.16.17.
+                                                        18.19.20.24.}, the following
+                                                close POY
+                                              processor group 6:
+                                              
+                                                with {
+                                                         [stdout; ] from 
+                                                        1.2.3.4.5.6.7
+                                                        .9.10.11.12.13
+                                                        .14.15.16.17.
+                                                        18.19.20.24.}, the following
+                                                close POY
+                                              ----------
+                 

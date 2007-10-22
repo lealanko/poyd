@@ -1,0 +1,188 @@
+1.with {
+          }, the followingbeginning of the programread an input file
+                                                                    
+                                                                    I will
+                                                                    calculate
+                                                                    the
+                                                                    following
+                                                                    in
+                                                                    separate
+                                                                    processors
+                                                                    (if available)
+                                                                    
+                                                                    processor group 1:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .}, the following
+                                                                    change the root
+                                                                    
+                                                                    I will
+                                                                    calculate
+                                                                    the
+                                                                    following
+                                                                    in
+                                                                    separate
+                                                                    processors
+                                                                    (if available)
+                                                                    
+                                                                    processor group 1:
+                                                                    
+                                                                    in parallel:
+                                                                    
+                                                                    1.2
+                                                                    .3.
+                                                                    4.with {
+                                                                    
+                                                                     [data; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    }, the following
+                                                                    build some trees from scratch
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.}, the following
+                                                                    swap the trees in memory
+                                                                    
+                                                                    while keeping the following invariant:
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .}, the following
+                                                                    eliminate repeated trees
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    }, the following
+                                                                    select the optimal trees
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    }, the following
+                                                                    select the optimal trees
+                                                                    processor group 2:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    }, the following
+                                                                    calculate the jackknife clades
+                                                                    Then 
+                                                                    with {
+                                                                    
+                                                                     [bremer; 
+                                                                    data; 
+                                                                    jackboot; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    . [
+                                                                    data; 
+                                                                    jackboot; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7. [
+                                                                    jackboot; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    8.}, the following
+                                                                    report the support values
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    stdout; 
+                                                                    file "jacktree"; 
+                                                                    jackboot; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7. [
+                                                                    jackboot; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    8.}, the following
+                                                                    close POY
+                                                                    ----------
+                                                                    

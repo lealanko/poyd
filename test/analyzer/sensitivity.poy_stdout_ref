@@ -1,0 +1,534 @@
+1.with {
+          }, the followingbeginning of the program1.2.with {
+                                                               [] from 
+                                                              1.}, the following
+                                                      read an input file
+1.2.3.with {
+               [data; trees; ] from 1.2.}, the followingchange the root
+1.2.3.4.with {
+                 [trees; ] from 1.2.3.}, the followingstore my state in a variable
+1.2.3.4.5.with {
+                   [data; ] from 1.2.3.4.}, the followingtransform some characters
+in parallel:
+
+  1.2.3.4.5.6.with {
+                       [data; ] from 1.2.3.4.5.}, the followingbuild some trees from scratch
+  1.2.3.4.5.6.7.with {
+                         [trees; ] from 1.2.3.4.5.6.}, the followingswap the trees in memory
+  
+  while keeping the following invariant:
+  1.2.3.4.5.6.7.8.with {
+                           [trees; ] from 1.2.3.4.5.6.7.}, the following
+  eliminate repeated trees1.2.3.4.5.6.7.8.9.with {
+                                                     [trees; ] from 1
+                                                    .2.3.4.5.6.7.8.}, the following
+                                            select the optimal trees
+1.2.3.4.5.6.7.8.9.with {
+                           [trees; ] from 1.2.3.4.5.6.7.8.}, the following
+select the optimal trees
+                        
+                          I will calculate the following in separate
+                          processors (if available)
+                          
+                          processor group 1:
+                          
+                            1.2.3.4.5.6.7.8.9.10.with {
+                                                          [data; trees; 
+                                                         ] from 1.2.3
+                                                         .4.5. [trees; 
+                                                         ] from 1.2.3
+                                                         .4.5.6.7.8.9
+                                                         .}, the following
+                                                 report the trees in memory
+                          processor group 2:
+                          
+                            1.2.3.4.5.6.7.8.9.11.with {
+                                                          [trees; ] from 
+                                                         1.2.3.4.5.6.
+                                                         7.8.9.}, the following
+                                                 report the consensus
+                          processor group 3:
+                          
+                            1.2.3.4.5.6.7.8.9.12.with {
+                                                          [trees; ] from 
+                                                         1.2.3.4.5.6.
+                                                         7.8.9.}, the following
+                                                 report the consensus
+                          processor group 4:
+                          
+                            use a stored state as my current state
+                                                                  
+                                                                    I will
+                                                                    calculate
+                                                                    the
+                                                                    following
+                                                                    in
+                                                                    separate
+                                                                    processors
+                                                                    (if available)
+                                                                    
+                                                                    processor group 1:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    }, the following
+                                                                    transform some characters
+                                                                    in parallel:
+                                                                    
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    }, the following
+                                                                    build some trees from scratch
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    }, the following
+                                                                    swap the trees in memory
+                                                                    
+                                                                    while keeping the following invariant:
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    }, the following
+                                                                    eliminate repeated trees
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    }, the following
+                                                                    select the optimal trees
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    15
+                                                                    .
+                                                                    16
+                                                                    .
+                                                                    17
+                                                                    .
+                                                                    18
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    }, the following
+                                                                    select the optimal trees
+                                                                    
+                                                                    I will
+                                                                    calculate
+                                                                    the
+                                                                    following
+                                                                    in
+                                                                    separate
+                                                                    processors
+                                                                    (if available)
+                                                                    
+                                                                    processor group 1:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    15
+                                                                    .
+                                                                    16
+                                                                    .
+                                                                    17
+                                                                    .
+                                                                    18
+                                                                    .
+                                                                    19
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    }, the following
+                                                                    report the trees in memory
+                                                                    processor group 2:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    15
+                                                                    .
+                                                                    16
+                                                                    .
+                                                                    17
+                                                                    .
+                                                                    18
+                                                                    .
+                                                                    20
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    }, the following
+                                                                    report the consensus
+                                                                    processor group 3:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    13
+                                                                    .
+                                                                    14
+                                                                    .
+                                                                    15
+                                                                    .
+                                                                    16
+                                                                    .
+                                                                    17
+                                                                    .
+                                                                    18
+                                                                    .
+                                                                    21
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    }, the following
+                                                                    report the consensus
+                                                                    Then 
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    stdout; 
+                                                                    file "112con.ps"; 
+                                                                    file "112con.tre"; 
+                                                                    file "112.tre"; 
+                                                                    file "111con.ps"; 
+                                                                    file "111con.tre"; 
+                                                                    file "111.tre"; 
+                                                                    jackboot; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                     [data; 
+                                                                    jackboot; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                     [file "112.tre"; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    19.
+                                                                     [file "112con.tre"; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    20.
+                                                                     [file "112con.ps"; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.8
+                                                                    .9.
+                                                                    13.
+                                                                    14.
+                                                                    15.
+                                                                    16.
+                                                                    17.
+                                                                    18.
+                                                                    21.
+                                                                    }, the following
+                                                                    close POY
+                                                                    ----------
+                                                                    

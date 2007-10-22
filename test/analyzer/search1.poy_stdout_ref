@@ -1,0 +1,129 @@
+1.with {
+          }, the followingbeginning of the program1.2.with {
+                                                               [] from 
+                                                              1.}, the following
+                                                      read an input file
+1.2.3.with {
+               [data; trees; ] from 1.2.}, the followingread an input file
+1.2.3.4.with {
+                 [data; trees; ] from 1.2.3.}, the followingread an input file
+1.2.3.4.5.with {
+                   [data; trees; ] from 1.2.3.4.}, the followingread an input file
+1.2.3.4.5.6.with {
+                     [data; ] from 1.2.3.4.5.}, the followingtransform some characters
+transform some characters
+                         
+                           I will calculate the following in separate
+                           processors (if available)
+                           
+                           processor group 1:
+                           
+                             1.2.3.4.5.6.7.8.with {
+                                                      [data; trees; ] from 
+                                                     1.2.3.4.5.6.7.}, the following
+                                             set the cost calculation to iterative
+                           in parallel:
+                           
+                             1.2.3.4.5.6.7.8.9.with {
+                                                        [trees; ] from 
+                                                       1.2.3.4.5.6.7.
+                                                       8.}, the following
+                                               swap the trees in memory
+                             
+                             while keeping the following invariant:
+                             1.2.3.4.5.6.7.8.9.10.with {
+                                                           [trees; ] from 
+                                                          1.2.3.4.5.6
+                                                          .7.8.9.}, the following
+                                                  eliminate repeated trees
+                             1.2.3.4.5.6.7.8.9.10.11.with {
+                                                              [trees; 
+                                                             ] from 1
+                                                             .2.3.4.5
+                                                             .6.7.8.9
+                                                             .10.}, the following
+                                                     select the optimal trees
+                             1.2.3.4.5.6.7.8.9.10.11.with {
+                                                              [trees; 
+                                                             ] from 1
+                                                             .2.3.4.5
+                                                             .6.7.8.9
+                                                             .10.}, the following
+                                                     select the optimal trees
+                           
+                             I will calculate the following in separate
+                             processors (if available)
+                             
+                             processor group 1:
+                             
+                               1.2.3.4.5.6.7.8.9.10.11.12.with {
+                                                                   [data; 
+                                                                  trees; 
+                                                                  ] from 
+                                                                  1.2
+                                                                  .3.
+                                                                  4.5
+                                                                  .6.
+                                                                  7. [
+                                                                  trees; 
+                                                                  ] from 
+                                                                  1.2
+                                                                  .3.
+                                                                  4.5
+                                                                  .6.
+                                                                  7.8
+                                                                  .9.
+                                                                  10.
+                                                                  11.
+                                                                  }, the following
+                                                          report the trees in memory
+                             processor group 2:
+                             
+                               1.2.3.4.5.6.7.8.9.10.11.13.with {
+                                                                   [trees; 
+                                                                  ] from 
+                                                                  1.2
+                                                                  .3.
+                                                                  4.5
+                                                                  .6.
+                                                                  7.8
+                                                                  .9.
+                                                                  10.
+                                                                  11.
+                                                                  }, the following
+                                                          report the consensus
+                             processor group 3:
+                             
+                               1.2.3.4.5.6.7.8.9.10.11.14.with {
+                                                                   [data; 
+                                                                  trees; 
+                                                                  ] from 
+                                                                  1.2
+                                                                  .3.
+                                                                  4.5
+                                                                  .6.
+                                                                  7. [
+                                                                  trees; 
+                                                                  ] from 
+                                                                  1.2
+                                                                  .3.
+                                                                  4.5
+                                                                  .6.
+                                                                  7.8
+                                                                  .9.
+                                                                  10.
+                                                                  11.
+                                                                  }, the following
+                                                          report the diagnosis
+                             Then with {
+                                           [data; jackboot; trees; ] from 
+                                          1.2.3.4.5.6.7. [trees; ] from 
+                                          1.2.3.4.5.6.7.8.9.10.11. [file "all_trees"; 
+                                          ] from 1.2.3.4.5.6.7.8.9.10
+                                          .11.12. [file "constree"; ] from 
+                                          1.2.3.4.5.6.7.8.9.10.11.13.
+                                           [file "diagnosis"; ] from 
+                                          1.2.3.4.5.6.7.8.9.10.11.14.
+                                          }, the following
+                                  close POY----------
+                         

@@ -1,0 +1,11 @@
+(* search using all data under ip *) 
+read("*.seq", "morph.ss", aminoacids:("myosin.aa")) 
+read("inter_tree.tre") 
+transform (tcm:(1,2), gap_opening:1) 
+set(iterative)
+swap() 
+select() 
+report("all_trees", trees:(total) ,"constree", graphconsensus, 
+"diagnosis", diagnosis) 
+exit() 
+

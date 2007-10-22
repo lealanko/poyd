@@ -128,7 +128,7 @@ let files =
 let replacer (command, message, filename_fixer, counter) filename =
     let initial_filename = "FILENAME" ^ string_of_int counter in
     let replacer = 
-        String.concat "" ["sed -e s/"; initial_filename; "/"; filename; "/"] 
+        String.concat "" ["sed -e s,"; initial_filename; ","; filename; ","] 
     in
     let local_fix x = 
         Str.global_replace (Str.regexp initial_filename) filename x
@@ -168,7 +168,8 @@ let () =
             match a with
             | None -> true
             | Some a ->
-                    match Unix.system ("diff -q " ^ a ^ " " ^ b) with
+                    match Unix.system ("diff -q " ^ filename_fixer a ^ " " ^
+                    filename_fixer b) with
                     | Unix.WEXITED 0 -> true
                     | _ -> false
         in

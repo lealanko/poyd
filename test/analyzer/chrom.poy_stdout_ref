@@ -1,0 +1,114 @@
+1.with {
+          }, the followingbeginning of the program1.2.with {
+                                                               [] from 
+                                                              1.}, the following
+                                                      read an input file
+transform some characters
+                         
+                           I will calculate the following in separate
+                           processors (if available)
+                           
+                           processor group 1:
+                           
+                             in parallel:
+                             
+                               1.2.3.4.with {
+                                                [data; ] from 1.2.3.}, the following
+                                       build some trees from scratch1
+                               .2.3.4.5.with {
+                                                 [trees; ] from 1.2.3
+                                                .4.}, the following
+                                        swap the trees in memory
+                               while keeping the following invariant:
+                               1.2.3.4.5.6.with {
+                                                    [trees; ] from 1.
+                                                   2.3.4.5.}, the following
+                                           eliminate repeated trees1.
+                               2.3.4.5.6.7.with {
+                                                    [trees; ] from 1.
+                                                   2.3.4.5.6.}, the following
+                                           select the optimal trees
+                             1.2.3.4.5.6.7.with {
+                                                    [trees; ] from 1.
+                                                   2.3.4.5.6.}, the following
+                                           select the optimal trees
+                                                                   
+                                                                    I will
+                                                                    calculate
+                                                                    the
+                                                                    following
+                                                                    in
+                                                                    separate
+                                                                    processors
+                                                                    (if available)
+                                                                    
+                                                                    processor group 1:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    8
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [data; 
+                                                                    trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.}, the following
+                                                                    report the diagnosis
+                                                                    processor group 2:
+                                                                    
+                                                                    1
+                                                                    .
+                                                                    2
+                                                                    .
+                                                                    3
+                                                                    .
+                                                                    4
+                                                                    .
+                                                                    5
+                                                                    .
+                                                                    6
+                                                                    .
+                                                                    7
+                                                                    .
+                                                                    9
+                                                                    .
+                                                                    with {
+                                                                    
+                                                                     [trees; 
+                                                                    ] from 
+                                                                    1.2
+                                                                    .3.
+                                                                    4.5
+                                                                    .6.
+                                                                    7.}, the following
+                                                                    report the consensus
+                                                                    Then 
+                           with {
+                                    [data; jackboot; trees; ] from 1.
+                                   2.3. [trees; ] from 1.2.3.4.5.6.7.
+                                    [file "chrom"; ] from 1.2.3.4.5.6
+                                   .7.8. [file "consensustree"; ] from 
+                                   1.2.3.4.5.6.7.9.}, the following
+                           close POY----------
+                         
