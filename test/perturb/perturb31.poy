@@ -1,0 +1,5 @@
+(* simple "build" and 'perturb' with multiple dynamic homology characters; INCLUDE MULTIPLE fas FILES *)
+read ("1.fas", "3.fas", aminoacids:("40.aa"))
+set(seed:1)
+build (2)
+perturb ()

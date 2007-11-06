@@ -1,0 +1,5 @@
+(* Running simulated annealing *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap (annealing:(0.2, 0.3), timeout:300)

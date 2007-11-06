@@ -1,0 +1,6 @@
+(* setting and verifying rooting *)
+set(root:"10")
+read("1.fas")
+set(seed:1)
+build(1)
+report(trees)

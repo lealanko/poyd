@@ -1,0 +1,5 @@
+(* 'perturb' using 'iterations', 'resample', and 'swap' with specified values *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+perturb (iterations:2, swap(tbr, trees:5, timeout:300), resample:(10, terminals))

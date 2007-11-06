@@ -1,0 +1,5 @@
+(* 'search' with 'bild'; XML VERIFY *)
+read("1.fas")
+set(seed:1)
+search(build:true, transform:false)
+report("/search/xml/search10.poy.xml", diagnosis)

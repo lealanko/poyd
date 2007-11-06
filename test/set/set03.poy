@@ -1,0 +1,6 @@
+(* starting and ending log, see if works *)
+set(log:"/set/txt/set03log.txt")
+read("1.fas")
+set(seed:1)
+build(2)
+set(nolog)

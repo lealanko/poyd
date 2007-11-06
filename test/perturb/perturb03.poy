@@ -1,0 +1,1 @@
+(* default 'perturb' with 'build' and default 'swap' *)read ("1.fas", "30.ss", aminoacids:("40.aa"))set(seed:1)build (2)swap (timeout:300)perturb ()

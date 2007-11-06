@@ -1,0 +1,6 @@
+(* test 'iterative'; VERIFY COST *)
+set(iterative)
+read("1.fas")
+set(seed:1)
+build(1)
+report("/set/xml/set08.poy.xml", diagnosis)

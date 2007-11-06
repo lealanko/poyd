@@ -1,0 +1,5 @@
+(* Running 'swap' under 'bfs' with float value; ERROR DETECTED *)
+read ("1.fas")
+set(seed:1)
+build (2)
+swap(bfs:0.8)

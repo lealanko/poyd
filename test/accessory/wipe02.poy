@@ -1,0 +1,4 @@
+(* 'wipe'; just to see if works #2*)
+read("1.fas")
+build(2)
+wipe()

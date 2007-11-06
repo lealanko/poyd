@@ -1,0 +1,8 @@
+(* test 'normal_do' and 'exhaustive_do' ran together; VERIFY COST *)
+set(seed:1)
+set(exhaustive_do)
+read("1.fas")
+build(1)
+set(normal_do)
+build(1)
+report("/set/xml/set07.poy.xml", diagnosis)

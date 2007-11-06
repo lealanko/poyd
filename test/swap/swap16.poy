@@ -1,0 +1,5 @@
+(* Running 'swap' with 'tbr' and random braking edge *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap (tbr, randomized, timeout:300)

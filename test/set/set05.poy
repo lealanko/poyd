@@ -1,0 +1,6 @@
+(* test 'normal_do'; VERIFY COST *)
+set(normal_do)
+read("1.fas")
+set(seed:1)
+build(1)
+report("/set/xml/set05.poy.xml", diagnosis)

@@ -1,0 +1,5 @@
+(* Running 'swap' default under 'around' trajectory *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap (around, timeout:300)

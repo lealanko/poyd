@@ -1,0 +1,2 @@
+(* 'echo' stdout outputs, verify by stdout *)
+echo ("print on screen", output)

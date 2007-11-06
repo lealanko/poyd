@@ -1,0 +1,1 @@
+(* 'perturb' with default 'ratchet'; ERROR EXPECTED and DETECTED *)read ("1.fas")set(seed:1)build (2)perturb (ratchet:())

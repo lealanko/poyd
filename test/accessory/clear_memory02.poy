@@ -1,0 +1,4 @@
+(* 'clear_memory' with all arguments; use any file *)
+read ("1.fas")
+build (2)
+clear_memory (m, s)

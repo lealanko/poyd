@@ -1,0 +1,5 @@
+(* Running 'swap' and outputting visited trees *)
+read ("1.fas")
+set(seed:1)
+build(2)
+swap(visited, timeout:300)

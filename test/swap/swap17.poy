@@ -1,0 +1,5 @@
+(* Running 'swap' with 'spr' and length-dependent edge braking *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap (distance, spr, timeout:300)

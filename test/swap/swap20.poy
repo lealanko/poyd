@@ -1,0 +1,5 @@
+(* Running 'swap' under imported constraint tree with specified 'depth' *)
+read ("FILENAME1")
+set(seed:1)
+build (2)
+swap(constraint:(file:"swap20.poy.tre", depth:4), timeout:300)

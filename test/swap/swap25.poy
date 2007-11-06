@@ -1,0 +1,5 @@
+(* Running sectorial search specifying float instead of integer value; ERROR EXPECTED *)
+read ("1.fas")
+set(seed:1)
+build (2)
+swap(sectorial:0.85)

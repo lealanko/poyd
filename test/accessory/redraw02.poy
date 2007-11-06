@@ -1,0 +1,2 @@
+(* 'redraw' with specified argument; ERROR EXPECTED and DETECTED *)
+redraw(swap)

@@ -1,0 +1,113 @@
+-command accessory/cd_pwd01.poy -message "'cd' and 'pwd' stdout" -ostdout "accessory/stdout/cd_ped01.poy.out"
+-command accessory/clear_memory01.poy -message "'clear_memory' under defaults"
+-command accessory/clear_memory02.poy -message "'clear_memory' with all arguments"
+-command accessory/echo01.poy -message "'echo' stderr outputs, verify by stderr" -ostderr "accessory/stderr/echo01.poy.stderr" -error
+-command accessory/echo02.poy -message "'echo' text output" -diff "accessory/txt/echo02.poy.txt"
+-command accessory/echo03.poy -message "'echo' stdout outputs, verify by stdout" -ostdout "accessory/stdout/echo03.poy.out"
+-command accessory/echo04.poy -message "'echo' stderr outputs, verify by stderr" -ostderr "accessory/stderr/echo04.poy.err" -error
+-command accessory/exit01.poy -message "'exit' with arguments; ERROR expected" -ostderr "accessory/stderr/exit01.poy.err" -error
+-command accessory/exit02.poy -message "'exit', just checking if works"
+-command accessory/help01.poy -message "confirming 'help' is working" -ostderr "accessory/stderr/help01.poy.err" -error
+-command perturb/perturb01.poy -message "simple "build" and 'perturb' with one dynamic homology character, warning expected" -ostderr "perturb/stderr/perturb01.poy.err" -error
+-command perturb/perturb02.poy -message "'perturb' defaults, no builds, warning expected" -ostderr "perturb/stderr/perturb02.poy.err" -error
+-command perturb/perturb03.poy -message "default 'perturb' with 'build' and default 'swap' for for fas, ss, and aa data"
+-command perturb/perturb04.poy -message "'perturb' with integer argument and 'build'; ERROR expected" -ostderr "perturb/stderr/perturb04.poy.err" -error
+-command perturb/perturb05.poy -message "'perturb' with specified iterations and 'build' for fas, ss, and aa data"
+-command perturb/perturb06.poy -message "'perturb' with negative number of iterations; ERROR expected" -ostderr "perturb/stderr/perturb06.poy.err" -error
+-command perturb/perturb07.poy -message "'perturb' with decimal number of iterations; ERROR expected" -ostderr "perturb/stderr/perturb07.poy.err" -error
+-command perturb/perturb08.poy -message "'perturb' with default 'ratchet' for for fas, ss, and aa data"
+-command perturb/perturb09.poy -message "'perturb' with default 'ratchet'; ERROR expected" -ostderr "perturb/stderr/perturb09.poy.err" -error
+-command perturb/perturb10.poy -message "default 'perturb' with 'build' and 'swap' under 'static_approx' using fas and aa"
+-command perturb/perturb11.poy -message "default 'perturb' with 'build' and multiple 'swap' arguments for fas, ss, aa"
+-command perturb/perturb12.poy -message "'perturb' using 'ratchet' with specified values for fas, ss, aa"
+-command perturb/perturb13.poy -message "'perturb' using 'ratchet' with reversed order of float and integer values; ERROR expected" -ostderr "perturb/stderr/perturb13.poy.err" -error
+-command perturb/perturb14.poy -message "'perturb' using 'ratchet' with integer values; ERROR detected" -ostderr "perturb/stderr/perturb14.poy.err" -error
+-command perturb/perturb15.poy -message "'perturb' using 'ratchet' with float values, ERROR expected" -ostderr "perturb/stderr/perturb15.poy.err" -error
+-command perturb/perturb16.poy -message "'perturb' using 'ratchet' with negative float value, ERROR expected" -ostderr "perturb/stderr/perturb16.poy.err" -error
+-command perturb/perturb17.poy -message "'perturb' using 'ratchet' with negative integer value, ERROR expected" -ostderr "perturb/stderr/perturb17.poy.err" -error
+-command perturb/perturb18.poy -message "'perturb' using 'resample' under default, ERROR expected" -ostderr "perturb/stderr/perturb18.poy.err" -error
+-command perturb/perturb19.poy -message "'perturb' using 'resample' under default, ERROR expected" -ostderr "perturb/stderr/perturb19.poy.err" -error
+-command perturb/perturb20.poy -message "default 'perturb' with specified values and multiple 'swap' arguments for fas, ss, aa"
+-command perturb/perturb21.poy -message "default 'perturb' with specified swap, ratchet and iterations values and multiple 'swap' arguments for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command perturb/perturb22.poy -message "default 'perturb' with specified swap, ratchet, iterations, and transform values and multiple 'swap' arguments for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command perturb/perturb23.poy -message "'perturb' using 'resample' under default, ERROR expected" -ostderr "perturb/stderr/perturb23.poy.err" -error
+-command perturb/perturb24.poy -message "'perturb' using 'resample' without specifying lident value, ERROR expected" -ostderr "perturb/stderr/perturb24.poy.err" -error
+-command perturb/perturb26.poy -message "'perturb' using 'resample' with specifying values for fas, aa, ss"
+-command perturb/perturb27.poy -message "'perturb' using 'resample' with values in reverse order, ERROR expected" -ostderr "perturb/stderr/perturb27.poy.err" -error
+-command perturb/perturb28.poy -message "'perturb' using 'resample' and 'swap' with specified values for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command perturb/perturb29.poy -message "'perturb' using 'iterations', 'resample', and 'swap' with specified values for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command perturb/perturb30.poy -message "'perturb' using 'iterations', 'resample', 'transform', and 'swap' with specified values for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command perturb/perturb31.poy -message "simple "build" and 'perturb' with multiple dynamic homology characters for fas and aa"
+-command perturb/perturb32.poy -message "default 'perturb' with 'build' and 'swap' under 'static_approx' using fas and ss for FILENAME1 FILENAME2" -inputfile "fas" -inputfile "ss"
+-command accessory/quit01.poy -message "'quit' with arguments, ERROR expected" -ostderr "accessory/stderr/quit01.poy.err" -error
+-command accessory/quit02.poy -message "'quit', just checking if works"
+-command accessory/redraw01.poy -message "'redraw', just checking if works"
+-command accessory/redraw02.poy -message "'redraw' with specified argument, ERROR expected" -ostderr "accessory/stderr/redraw02.poy.err" -error
+-command accessory/run01.poy -message "'run' without argument, ERROR expected" -ostderr "accessory/stderr/run01.poy.err" -error
+-command accessory/run02.poy -message "'run' using multiple scripts" -ostderr "run02.poy.err" -ostdout "accessory/stderr/run02.poy.err" -error
+-command search/search01.poy -message "'search' under defaults without reading data files, WARNING expected" -ostderr "search/stderr/search01.poy.err" -error
+-command search/search02.poy -message "'search' under defaults for fas, ss, aa"
+-command search/search03.poy -message "'search' without specifying 'build' argument for fas, ss, aa"
+-command search/search04.poy -message "'search' without specifying 'transform' argument for fas, ss, aa"
+-command search/search05.poy -message "'search' without specifying 'build' and 'transform' arguments for fas, ss, aa"
+-command search/search06.poy -message "'search' with 'build' for fas, ss, aa"
+-command search/search07.poy -message "'search' with 'transform' but without building for fas, ss, aa"
+-command search/search08.poy -message "'search' with 'transform' based on existing trees" -odiff "search/xml/search08.poy.xml"
+-command search/search09.poy -message "'search' with 'bild' and'transform'" -odiff "search/xml/search09.poy.xml"
+-command search/search10.poy -message "'search' with 'bild' and'transform'" -odiff "search/xml/search10.poy.xml"
+-command set/set01.poy -message "'set' under defaults, just to see if works"
+-command set/set02.poy -message "setting 'history', just to see if works"
+-command set/set03.poy -message "starting and ending log, see if works" -ostdout "set/stdout/set03.poy.out"
+-command set/set04.poy -message "setting and verifying rooting" -odiff "set04.tre" -ostdout "set/stdout/set04.poy.out"
+-command set/set05.poy -message "test 'normal_do'" -odiff "set/xml/set05.poy.xml"
+-command set/set06.poy -message "test 'exhaustive_do'" -odiff "set/xml/set06.poy.xml"
+-command set/set07.poy -message "test 'normal_do' and 'exhaustive_do'" -odiff "set/xml/set07.poy.xml"
+-command set/set08.poy -message "test 'iterative'" -odiff "set/xml/set08.poy.xml"
+-command swap/swap01.poy -message "'swap' under defaults without build, ERROR expected" -ostderr "swap/stderr/swap01.poy.err"  -error
+-command swap/swap02.poy -message "'swap' under defaults for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap03.poy -message "'swap' with 'alternate' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap04.poy -message "'swap' with 'spr' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap05.poy -message "'swap' with 'tbr' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap06.poy -message "'swap' with 'tbr' and 'spr' under 'once' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap07.poy -message "'swap' default under 'around' trajectory for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap08.poy -message "alternate 'swap' under 'around' trajectory for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap09.poy -message "simulated annealing without specifying values; ERROR expected" -ostderr "swap/stderr/swap09.poy.err" -error
+-command swap/swap10.poy -message "simulated annealing without specifying values; ERROR expected" -ostderr "swap/stderr/swap10.poy.err" -error
+-command swap/swap11.poy -message "alternate 'swap' under 'around' trajectory for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap12.poy -message "tree drifting for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap13.poy -message "tree drifting without specifying values, ERROR expected" -ostderr "swap/stderr/swap13.poy.err"  -error
+-command swap/swap14.poy -message "tree drifting without specifying values, ERROR expected" -ostderr "swap/stderr/swap14.poy.err" -error
+-command swap/swap15.poy -message "'swap' with 'alternate' and braking edge once for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap16.poy -message "'swap' with 'tbr' and random braking edge for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap17.poy -message "'swap' with 'spr' and length-dependent edge braking for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap18.poy -message "'swap' under default constraint for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap19.poy -message "'swap' under imported constraint tree for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap20.poy -message "'swap' under imported constraint tree with specified 'depth' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap21.poy -message "'swap' under under default with specified 'depth' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap22.poy -message "'swap' using all join positions for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap23.poy -message "sectorial search without specifying value for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap24.poy -message "sectorial search for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap25.poy -message "sectorial search with float value, ERROR expected" -ostderr "swap/stderr/swap25.poy.err"  -error
+-command swap/swap26.poy -message "sectorial search with float value, ERROR expected" -ostderr "swap/stderr/swap26.poy.err" -error
+-command swap/swap27.poy -message "'swap' under default 'bfs' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap28.poy -message "'swap' under 'bfs' with integer value for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap29.poy -message "'swap' under 'bfs' with negative integer value; ERROR expected" -ostderr "swap/stderr/swap29.poy.err" -error
+-command swap/swap30.poy -message "'swap' under 'bfs' with float value; ERROR expected" -ostderr "swap/stderr/swap30.poy.err" -error
+-command swap/swap31.poy -message "'swap' with 'alternate' under 'bfs' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap32.poy -message "'swap' under defaults with timeout"
+-command swap/swap33.poy -message "'swap' under defaults with timeout but not specifying seconds, ERROR expected" -ostderr "swap/stderr/swap33.poy.err" -error
+-command swap/swap34.poy -message "'swap' under defaults with timeout but negative seconds, ERROR expected" -ostderr "swap/stderr/swap34.poy.err" -error
+-command swap/swap35.poy -message "'swap' and printing intermediate trees" -odiff "swap/tre/swap35.tre"
+-command swap/swap36.poy -message "'swap' evaluating suboptimal trees specified by integer for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap37.poy -message "'swap' evaluating suboptimal trees specified by float for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap38.poy -message "'swap' evaluating suboptimal trees specified by negative number, ERROR expected" -ostderr "swap/stderr/swap38.poy.err" -error
+-command swap/swap39.poy -message "'swap' with  number number of trees to retain" -odiff "swap/xml/swap39.poy.xml"
+-command swap/swap40.poy -message "'swap' with  number of trees to retain by float; ERROR expected" -ostderr "swap/stderr/swap40.poy.err" -error
+-command swap/swap41.poy -message "'swap' with  number of trees to retain by negative integer; ERROR expected" -ostderr "swap/stderr/swap41.poy.err" -error
+-command swap/swap42.poy -message "'swap' argument combination 1 for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command swap/swap43.poy -message "'swap' and outputting visited trees" -ostdout "swap/stdout/swap43.poy.out"
+-command swap/swap44.poy -message "'swap' under constraint tree with specified 'depth' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
+-command accessory/version01.poy -message "'version' test" -ostdout "accessory/stdout/version01.poy.out"
+-command accessory/wipe01.poy -message "'wipe'; just to see if works 1"
+-command accessory/wipe02.poy -message "'wipe'; just to see if works 2"
+-command accessory/wipe03.poy -message "'wipe' with argument, ERROR expected" -ostderr "accessory/stderr/wipe03.poy.err" -error

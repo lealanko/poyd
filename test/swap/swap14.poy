@@ -1,0 +1,5 @@
+(* Running tree drifting without specifying values; ERROR expected *)
+read ("1.fas")
+set(seed:1)
+build (2)
+swap (drifting:())

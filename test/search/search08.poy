@@ -1,0 +1,6 @@
+(* 'search' with 'transform' based n existing trees; XML VERIFY *)
+read("1.fas")
+set(seed:1)
+build(2)
+search(transform:true)
+report("/search/xml/search08.poy.xml", diagnosis)

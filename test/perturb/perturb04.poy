@@ -1,0 +1,1 @@
+(* perturb with integer argument; with 'build'; ERROR expected and correctly detected *)read ("1.fas")set(seed:1)build (2)perturb (5)

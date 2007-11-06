@@ -1,0 +1,6 @@
+(* default 'perturb' with 'build' and 'swap' under 'static_approx' combinded using nucleotide and morph data *)
+read ("FILENAME1", "FILENAME2")
+set(seed:1)
+build (2)
+swap (transform(static_approx), timeout:300)
+perturb ()

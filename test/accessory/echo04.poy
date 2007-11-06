@@ -1,0 +1,3 @@
+(* 'echo' outputs on screen; verify by stderr *)
+echo ("error message", error)
+echo ("information", info)

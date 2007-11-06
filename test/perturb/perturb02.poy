@@ -1,0 +1,1 @@
+(* executing 'perturb' under defaults without prior builds; SHOULD ISSUE WARNING THAT TREES ARE NOT LOADED *)read ("1.fas")set(seed:1)perturb ()

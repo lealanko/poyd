@@ -1,0 +1,5 @@
+(* Running 'swap' under defaults with timeout *)
+read ("1.fas")
+set(seed:1)
+build(2)
+swap(timeout:100)

@@ -1,0 +1,6 @@
+(* test 'exhaustive_do'; VERIFY COST *)
+set(exhaustive_do)
+read("1.fas")
+set(seed:1)
+build(1)
+report("/set/xml/set06.poy.xml", diagnosis)

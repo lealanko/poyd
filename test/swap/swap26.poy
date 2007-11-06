@@ -1,0 +1,5 @@
+(* Running sectorial search specifying negative integer value; ERROR DETECTED *)
+read ("1.fas")
+set(seed:1)
+build (2)
+swap(sectorial:-6)

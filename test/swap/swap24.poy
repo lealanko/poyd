@@ -1,0 +1,5 @@
+(* Running sectorial search *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap(sectorial:10, timeout:300)

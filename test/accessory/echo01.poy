@@ -1,0 +1,2 @@
+(* 'echo' stderr outputs, verify by strerr *)
+echo ("error message", error, "information", info)

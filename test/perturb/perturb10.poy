@@ -1,0 +1,1 @@
+(* default 'perturb' with 'build' and 'swap' under 'static_approx' combinded using nucleotide and aa data *)read ("1.fas", aminoacids:("40.aa"))set(seed:1)build (2)swap (transform(static_approx))perturb ()

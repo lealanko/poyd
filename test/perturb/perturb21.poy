@@ -1,0 +1,6 @@
+(* default 'perturb' with specified swap, ratchet and iterations values and multiple 'swap' arguments *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap (spr, around, randomized, threshold:10, trees:2, timeout:300)
+perturb (swap(tbr, trees:5, timeout:300), ratchet:(0.6, 5), iterations:2)

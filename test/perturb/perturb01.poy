@@ -1,0 +1,1 @@
+(* simple "build" and 'perturb' with one dynamic homology character, warning expected *)read ("1.fas")set(seed:1)build (2)perturb ()

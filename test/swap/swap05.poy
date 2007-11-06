@@ -1,0 +1,5 @@
+(* Running 'swap' with 'tbr' *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build (2)
+swap (tbr, timeout:300)

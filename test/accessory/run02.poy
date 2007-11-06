@@ -1,0 +1,2 @@
+(* 'run' using multiple scripts *)
+run ("/accessory/echo03.poy", "/accessory/echo01.poy")

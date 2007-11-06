@@ -1,0 +1,5 @@
+(* 'perturb' using 'ratchet' with float values; ERROR EXPECTED and DETECTED *)
+read ("1.fas")
+set(seed:1)
+build (2)
+perturb (ratchet:(0.6, 0.5))

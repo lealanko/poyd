@@ -1,0 +1,2 @@
+(* 'wipe' with argument, ERROR expected *)
+wipe(build)

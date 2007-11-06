@@ -1,0 +1,4 @@
+(* Running 'swap' under defaults without build; ERROR expected *)
+read ("1.fas")
+set(seed:1)
+swap()

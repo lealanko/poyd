@@ -1,0 +1,5 @@
+(* Running 'swap' argument combination #1 *)
+read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
+set(seed:1)
+build(2)
+swap(spr, around, randomized, threshold:10, trees:2, timeout:300)

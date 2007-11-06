@@ -1,0 +1,5 @@
+(* 'perturb' using 'resample' with specifying values #1 *)
+read ("1.fas", "30.ss", aminoacids:("40.aa"))
+set(seed:1)
+build (2)
+perturb (resample:(10, characters))
