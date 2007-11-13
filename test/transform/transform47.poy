@@ -1,0 +1,3 @@
+(* Read annotated chromosome using dynamic pam locus_indel 50, 2.0 *)
+read (annotated:("FILENAME1"))
+transform ((all, dynamic_pam:(locus_indel:(50,2.0))))

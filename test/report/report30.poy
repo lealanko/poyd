@@ -1,0 +1,4 @@
+(* Build and report trees : nomargin *)
+read ("1.fas")
+build (1)
+report (trees: (nomargin))

@@ -2,4 +2,4 @@
 read("1.fas")
 set(seed:1)
 search(build:true, transform:true)
-report("/search/xml/search09.poy.xml", diagnosis)
+report("test.xml", diagnosis)

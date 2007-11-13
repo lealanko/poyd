@@ -1,0 +1,4 @@
+(* Fuse build Keep *)
+read ("1.fas", "30.ss", aminoacids:("40.aa"))
+build (3)
+fuse (keep:2)

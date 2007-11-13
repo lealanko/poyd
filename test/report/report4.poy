@@ -1,0 +1,5 @@
+(* Build report data defaults *)
+read ("2.fas","30.ss")
+build (1)
+set(seed:50)
+report (data)

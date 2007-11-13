@@ -1,0 +1,5 @@
+(* Read and transform prealigned Expect error*)
+read ("FILENAME1")
+build (2)
+transform ((all, tcm:(1,1), prealigned))
+

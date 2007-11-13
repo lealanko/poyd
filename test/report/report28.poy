@@ -1,0 +1,4 @@
+(* Build and report trees : cost *)
+read ("1.fas", "30.ss" )
+build (1)
+report (trees: (_cost))

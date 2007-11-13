@@ -1,0 +1,5 @@
+(* Build 3 trees and report graphconsensus Majority rules 44 EXPECT "under 50" ERROR *)
+read ("1.fas")
+set(seed:50)
+build (3)
+report ("report15.err", graphconsensus:44)

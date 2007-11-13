@@ -1,0 +1,3 @@
+(* Read genome and transform with dynamic_pam inversion  *)
+read (genome:("FILENAME1"))
+transform ((all, dynamic_pam:(inversion:15)))

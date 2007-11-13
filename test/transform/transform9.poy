@@ -1,0 +1,5 @@
+(* Read and transform multi_static_approx *)
+read ("1.fas")
+build (2)
+transform ((all, multi_static_approx))
+

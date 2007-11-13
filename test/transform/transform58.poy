@@ -1,0 +1,3 @@
+(* Read unannotated chromosome using dynamic pam inversion 50 *)
+read (chromosome:("ua_inv2.fas"))
+transform ((all, dynamic_pam:(inversion:50)))

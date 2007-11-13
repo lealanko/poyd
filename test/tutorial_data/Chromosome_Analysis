@@ -1,0 +1,11 @@
+(* Chromosome analysis of unannotated sequences *)
+read(chromosome:("mit5.txt"))
+transform((all, dynamic_pam:(locus_breakpoint:20, locus_indel:(10, 1.5), 
+circular:true, median:2, seed_length:15, rearranged_len:45,
+sig_block_len:50, median:2, swap_med:1)))
+build()
+swap()
+select()
+report("chrom", diagnosis)
+report("consensustree", graphconsensus)
+exit()

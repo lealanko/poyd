@@ -1,0 +1,4 @@
+(*Fuse with a float rather than an integer for keep expect ERROR*)
+read ("1.fas", "30.ss")
+build (3)
+fuse (keep:2.5)

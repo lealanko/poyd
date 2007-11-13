@@ -24,7 +24,7 @@
 exception Invalid_Argument of string;;
 exception Invalid_Sequence of (string * string * int);; 
 
-let () = SadmanOutput.register "Sequence" "$Revision: 2349 $"
+let () = SadmanOutput.register "Sequence" "$Revision: 2461 $"
 
 module Pool = struct
     type p
@@ -1676,28 +1676,40 @@ let split positions s alph =
         and last = b in
         let total = 1 + (last - first) in
         let seq = create_same_pool s (total + 1)  in
-        for i = last downto first do
+        for i = (last - 1) downto first do
             prepend seq (get s i);
         done;
         if first <> 0 then prepend seq gap;
         seq :: acc
     in
     let rec splitter acc = function
-        | (a, _) :: (((_, b) :: _) as t) -> 
+        | (a, _) :: (((c, b) :: _) as t) -> 
                 assert (
-                    if a <> b then true
+                    if a <= b then true
                     else 
                         let _ = print_endline 
                         ("Trying to split " ^ string_of_int a ^ 
                         " and " ^ string_of_int b) in
                         false
                 );
-                splitter (do_one_pair a b acc) t
+                let b = if c = b then b else b + 1 in
+                splitter (do_one_pair a c acc) t
         | (a, _) :: [] ->
-                List.rev (do_one_pair a len acc)
+                (* We add one at the end because we remove one in do_one_pair *)
+                List.rev (do_one_pair a (len + 1) acc)
         | [] -> []
     in
-    splitter [] positions
+    let res = splitter [] positions in
+    assert (
+        let res = List.map (fun x -> to_string x alph) res in
+        let res = String.concat "" res in
+        let initial = to_string s alph in
+        let res = Str.global_replace (Str.regexp "-") "" res in
+        let assertion = ("-" ^ res) = initial in
+        if not assertion then Printf.printf "Initial: %s\nFinal: %s\n%!" initial
+        res;
+        assertion);
+    res
 
 module Unions = struct
     (* 
@@ -1791,10 +1803,25 @@ END
         let get_positions ua positions = 
             let len = (Bigarray.Array1.dim ua.offset) in
             let seq_len = length ua.seq in
-            let get_position arr (x, y) = 
+            let rec pos_finder modifier arr x =
+                if x = 0 then arr.{0}
+                else if x = len then pos_finder ( - ) arr (x - 1)
+                else if 0 <> arr.{x} then arr.{x}
+                else pos_finder modifier arr (modifier x 1)
+            in
+            let get_position arr poslen pos (x, y) = 
                 try
-                    to_int (arr.{len - seq_len + x}),
-                    to_int arr.{len - seq_len + y}
+                    let xmod = 
+                        if pos = poslen then ( + )
+                        else ( - )
+                    and ymod = 
+                        if pos = 0 then ( - )
+                        else ( + ) 
+                    in
+                    let posx = len - seq_len + x 
+                    and posy = len - seq_len + y in
+                    to_int (pos_finder xmod arr posx), 
+                    to_int (pos_finder ymod arr posy)
                 with
                 | err ->
                         print_endline ("I have an error with len " ^
@@ -1803,8 +1830,11 @@ END
                         string_of_int x ^ " and " ^ string_of_int y);
                         raise err;
             in
-            List.map (get_position ua.union_c1) positions,
-            List.map (get_position ua.union_c2) positions
+            let positions = Array.of_list positions in
+            let len = (Array.length positions) - 1 in
+            let a = Array.mapi (get_position ua.union_c1 len) positions 
+            and b = Array.mapi (get_position ua.union_c2 len) positions in
+            Array.to_list a, Array.to_list b
 
         let compare a b = 
             match compare a.seq b.seq with

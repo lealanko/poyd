@@ -1,0 +1,5 @@
+(* Build 3 trees and report graphconsensus Majority rules 88 on screen *)
+read ("1.fas", "30.ss")
+set(seed:50)
+build (3)
+report ("report14", graphconsensus:88)

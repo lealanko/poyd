@@ -1,0 +1,4 @@
+(* Build and report as a phatwinclad file  *)
+read ("1.fas")
+build (1)
+report ("report46.ss", phastwinclad)

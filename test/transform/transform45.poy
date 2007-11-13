@@ -1,0 +1,3 @@
+(* Read annotated chromosome and transform using dynamic pam circular true *)
+read (annotated:("FILENAME1"))
+transform ((all, dynamic_pam:(circular:true)))

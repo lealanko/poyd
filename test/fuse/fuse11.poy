@@ -1,0 +1,4 @@
+(* Fuse with swap constraint *)
+read ("1.fas", "30.ss")
+build (2)
+fuse (swap(constraint))

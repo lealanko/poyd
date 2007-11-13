@@ -1,0 +1,4 @@
+(* Read and transform custom alphabet to breakinv using dynamic pam locus_breakpoint 50 *)
+read (custom_alphabet:("ca1.fas","m1.fas"))
+transform ((all, seq_to_breakinv:()))
+transform ((all, dynamic_pam:(locus_breakpoint:50)))

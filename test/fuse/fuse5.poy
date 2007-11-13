@@ -1,0 +1,4 @@
+(* Fuse with 10 iterations *)
+read ("1.fas", "30.ss", aminoacids:("40.aa"))
+build (2)
+fuse (iterations:10)

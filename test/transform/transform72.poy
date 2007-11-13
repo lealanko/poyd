@@ -1,0 +1,3 @@
+(* Read genome and transform with dynamic_pam chrom_indel *)
+read (genome:("FILENAME1"))
+transform ((all, dynamic_pam:(chrom_indel:(2,0.80))))     

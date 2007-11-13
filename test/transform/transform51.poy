@@ -1,0 +1,3 @@
+(* Read annotated chromosome using dynamic pam rearranged_len 150 *)
+read (annotated:("FILENAME1"))
+transform ((all, dynamic_pam:(rearranged_len:150)))

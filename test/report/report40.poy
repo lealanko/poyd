@@ -1,0 +1,4 @@
+(* Build and report diagnosis to screen  *)
+ read ("1.fas")
+build (1)
+report (diagnosis)

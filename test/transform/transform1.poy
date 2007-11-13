@@ -1,0 +1,4 @@
+(* Read and transform all gap_opening and build" *)
+read ("1.fas")
+transform ((all, gap_opening:1))
+build (1)

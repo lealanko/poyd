@@ -1,0 +1,3 @@
+(* Build with as_is 5 trees *)
+read ("1.fas", "30.ss", aminoacids:("40.aa"))
+build (5, as_is)

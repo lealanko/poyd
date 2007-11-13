@@ -1,0 +1,5 @@
+(* Build and Report cross_references defaults *)
+read ("2.fas", "30.ss")
+set(seed:50)
+build (1)
+report (cross_references)

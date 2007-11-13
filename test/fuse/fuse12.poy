@@ -1,0 +1,4 @@
+(* Fuse with swap around *)
+read ("1.fas", "30.ss")
+build (1)
+fuse (swap(around))

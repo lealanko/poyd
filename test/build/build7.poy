@@ -1,0 +1,5 @@
+(* Build with set seed for xml output *)
+read ("1.fas")
+set (seed:50)
+build (1)
+report ("./build/xml/build7.xml", diagnosis, data)

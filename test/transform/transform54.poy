@@ -1,0 +1,3 @@
+(* Read unannotated chromosome cusing dynamic pam default *)
+read (chromosome:("FILENAME1"))
+transform ((all, dynamic_pam:()))

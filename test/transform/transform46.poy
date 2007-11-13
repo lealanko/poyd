@@ -1,0 +1,3 @@
+(* Read annotated chromosome using dynamic pam inversion 50 *)
+read (annotated:("FILENAME1"))
+transform ((all, dynamic_pam:(inversion:50)))

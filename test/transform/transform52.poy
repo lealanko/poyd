@@ -1,0 +1,3 @@
+(* Read annotated chromosome using dynamic pam swap_med 2 *)
+read (annotated:("FILENAME1"))
+transform ((all, dynamic_pam:(swap_med:2)))

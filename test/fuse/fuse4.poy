@@ -1,0 +1,4 @@
+(*Fuse from read tree files *)
+read ("2.fas","2.fas.1.tree")
+build (4)
+fuse ()

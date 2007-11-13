@@ -1,0 +1,4 @@
+(* Build and report diagnosis to file *)
+ read ("1.fas")
+build (1)
+report ("report41", diagnosis)

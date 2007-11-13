@@ -2,4 +2,4 @@
 read ("FILENAME1")
 set(seed:1)
 build (2)
-swap(constraint:(file:"swap20.poy.tre", depth:4), timeout:300)
+swap(constraint:(file:"constraint49taxa.tre", depth:4), timeout:300)

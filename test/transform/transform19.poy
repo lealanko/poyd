@@ -1,0 +1,11 @@
+(* Read and transform weight integer *)
+read ("FILENAME1")
+set(seed:50)
+build (1)
+transform (weight:4)
+
+
+
+
+
+

@@ -1,4 +1,3 @@
 (* 'cd' and 'pwd'; VERIFY stdout *)
-cd ("/Users/ilyat/poy4/branches/release5-05-07/test/perturb/")
+cd ("./test/perturb/")
 pwd ()
-exit ()

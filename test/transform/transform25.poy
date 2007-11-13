@@ -1,0 +1,9 @@
+(* Read and transform weightfactor integer *)
+read ("1.fas")
+transform (weightfactor:4)
+
+
+
+
+
+

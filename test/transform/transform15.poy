@@ -1,0 +1,10 @@
+(* Read and transform trailing_deletion *)
+read ("FILENAME1")
+set(seed:50)
+build (1)
+transform (td:(2,2,2,2,0))
+
+
+
+
+

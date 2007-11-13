@@ -1,0 +1,4 @@
+(* Read and transform custom alphabet to breakinv using dynamic pam rearranged_len *)
+read (custom_alphabet:("ca1.fas","m1.fas"))
+transform ((all, seq_to_breakinv:()))
+transform ((all, dynamic_pam:(rearranged_len:150)))

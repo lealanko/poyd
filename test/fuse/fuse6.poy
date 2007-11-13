@@ -1,0 +1,4 @@
+(* Fuse with a float rather than an integer for iterations Expect Error *)
+read ("1.fas", "30.ss")
+build (2)
+fuse (iterations:10.5)

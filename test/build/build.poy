@@ -1,0 +1,3 @@
+(* Build default *)
+read ("1.fas", "30.ss", aminoacids:("40.aa"))
+build ()

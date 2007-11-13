@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Update the repository, and use the fresh repository to run the tests.
-report_bug_to="avaron@amnh.org"
+report_bug_to="megan@amnh.org"
 temp="tmp_mail"
 echo "Updating from the repository"
 cd ../

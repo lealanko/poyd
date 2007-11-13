@@ -1,0 +1,3 @@
+(* Read unannotated chromosome using dynamic pam median 2 *)
+read (chromosome:("ua.fas"))
+transform ((all, dynamic_pam:(median:2)))

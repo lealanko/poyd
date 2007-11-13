@@ -1,0 +1,4 @@
+(* Build and Report cross_references: names:()) *)
+read ("1.fas")
+build (1)
+report (cross_references: names:())

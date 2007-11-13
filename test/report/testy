@@ -1,0 +1,1 @@
+-message "test read and transform all tcm:(1,1) and build with 1.fas transform.poy" -command ./transform/transform.poy

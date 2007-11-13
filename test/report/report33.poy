@@ -1,0 +1,4 @@
+(* Build and report implied_alignments *)
+read ("1.fas")
+build (1)
+report (implied_alignments)

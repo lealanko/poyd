@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "Methods" "$Revision: 2369 $"
+let () = SadmanOutput.register "Methods" "$Revision: 2453 $"
 
 (** Data *)
 
@@ -146,7 +146,7 @@ type char_transform = [
     | `Static_Aprox of (characters * bool)
     | `Search_Based of characters
     | `Fixed_States of characters
-    | `Automatic_Sequence_Partition of (characters * bool)
+    | `Automatic_Sequence_Partition of (characters * bool * (int option))
     | `Automatic_Static_Aprox of bool
     | `Prioritize
     | `ReWeight of (characters * float)
@@ -177,7 +177,7 @@ type cost_calculation = [
 
 type diagnosis = [
     | `AllRootsCost of string option
-    | `Implied_Alignment of (string option * characters)]
+    | `Implied_Alignment of (string option * characters * bool)]
 
 type summary_class = [ `Individual | `Consensus ]
 
@@ -190,6 +190,7 @@ type support_output = [
 type report = [
     | `MstR of string option
     | `Trees of (information_contained list * string option)
+    | `TreeCosts of string option
     | `TreesStats of string option
     | `TimeDelta of (string * string option)
     | `Clades of string                 (* file prefix *)

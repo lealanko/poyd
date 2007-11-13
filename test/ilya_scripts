@@ -15,7 +15,7 @@
 -command perturb/perturb05.poy -message "'perturb' with specified iterations and 'build' for fas, ss, and aa data"
 -command perturb/perturb06.poy -message "'perturb' with negative number of iterations; ERROR expected" -ostderr "perturb/stderr/perturb06.poy.err" -error
 -command perturb/perturb07.poy -message "'perturb' with decimal number of iterations; ERROR expected" -ostderr "perturb/stderr/perturb07.poy.err" -error
--command perturb/perturb08.poy -message "'perturb' with default 'ratchet' for for fas, ss, and aa data"
+-command perturb/perturb08.poy -message "'perturb' with default 'ratchet' for fas, ss, and aa data"
 -command perturb/perturb09.poy -message "'perturb' with default 'ratchet'; ERROR expected" -ostderr "perturb/stderr/perturb09.poy.err" -error
 -command perturb/perturb10.poy -message "default 'perturb' with 'build' and 'swap' under 'static_approx' using fas and aa"
 -command perturb/perturb11.poy -message "default 'perturb' with 'build' and multiple 'swap' arguments for fas, ss, aa"
@@ -53,15 +53,15 @@
 -command search/search06.poy -message "'search' with 'build' for fas, ss, aa"
 -command search/search07.poy -message "'search' with 'transform' but without building for fas, ss, aa"
 -command search/search08.poy -message "'search' with 'transform' based on existing trees" -odiff "search/xml/search08.poy.xml"
--command search/search09.poy -message "'search' with 'bild' and'transform'" -odiff "search/xml/search09.poy.xml"
--command search/search10.poy -message "'search' with 'bild' and'transform'" -odiff "search/xml/search10.poy.xml"
+-command search/search09.poy -message "'search' with 'bild' and 'transform' 1" -odiff "search/xml/search09.poy.xml"
+-command search/search10.poy -message "'search' with 'bild' and 'transform' 2" -odiff "search/xml/search10.poy.xml"
 -command set/set01.poy -message "'set' under defaults, just to see if works"
 -command set/set02.poy -message "setting 'history', just to see if works"
 -command set/set03.poy -message "starting and ending log, see if works" -ostdout "set/stdout/set03.poy.out"
--command set/set04.poy -message "setting and verifying rooting" -odiff "set04.tre" -ostdout "set/stdout/set04.poy.out"
--command set/set05.poy -message "test 'normal_do'" -odiff "set/xml/set05.poy.xml"
--command set/set06.poy -message "test 'exhaustive_do'" -odiff "set/xml/set06.poy.xml"
--command set/set07.poy -message "test 'normal_do' and 'exhaustive_do'" -odiff "set/xml/set07.poy.xml"
+-command set/set04.poy -message "setting and verifying rooting" -diff "set/tre/set04.tre"
+-command set/set05.poy -message "test 'normal_do'" -diff "set/xml/set05.poy.xml"
+-command set/set06.poy -message "test 'exhaustive_do'" -diff "set/xml/set06.poy.xml"
+-command set/set07.poy -message "test 'normal_do' and 'exhaustive_do'" -diff "set/xml/set07.poy.xml"
 -command set/set08.poy -message "test 'iterative'" -odiff "set/xml/set08.poy.xml"
 -command swap/swap01.poy -message "'swap' under defaults without build, ERROR expected" -ostderr "swap/stderr/swap01.poy.err"  -error
 -command swap/swap02.poy -message "'swap' under defaults for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
@@ -97,7 +97,7 @@
 -command swap/swap32.poy -message "'swap' under defaults with timeout"
 -command swap/swap33.poy -message "'swap' under defaults with timeout but not specifying seconds, ERROR expected" -ostderr "swap/stderr/swap33.poy.err" -error
 -command swap/swap34.poy -message "'swap' under defaults with timeout but negative seconds, ERROR expected" -ostderr "swap/stderr/swap34.poy.err" -error
--command swap/swap35.poy -message "'swap' and printing intermediate trees" -odiff "swap/tre/swap35.tre"
+-command swap/swap35.poy -message "'swap' and printing intermediate trees" -odiff "/swap/tre/swap35.tre"
 -command swap/swap36.poy -message "'swap' evaluating suboptimal trees specified by integer for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
 -command swap/swap37.poy -message "'swap' evaluating suboptimal trees specified by float for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa"
 -command swap/swap38.poy -message "'swap' evaluating suboptimal trees specified by negative number, ERROR expected" -ostderr "swap/stderr/swap38.poy.err" -error

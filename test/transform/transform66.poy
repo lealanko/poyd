@@ -1,0 +1,3 @@
+(* Read genome and transform and using dynamic pam chrom_breakpoint 20 *)
+read (genome:("FILENAME1"))
+transform ((all, dynamic_pam:(chrom_breakpoint:20)))

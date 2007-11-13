@@ -1,0 +1,5 @@
+(* Build and Report with default setting *)
+read ("16.fas","30.ss")
+set(seed:50)
+build (1)
+report ()

@@ -1,0 +1,4 @@
+(* Fuse with swap defaults spr/tbr *)
+read ("1.fas", "30.ss")
+build (2)
+fuse (swap(trajectory, timeout:60))

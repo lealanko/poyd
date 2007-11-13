@@ -1,0 +1,13 @@
+(* Bremer support part 1: generating trees*)
+read("18s.fas", 28s.fas")
+set(root:"Americhernus")
+build()
+swap(all, visited: "tmp.trees")
+select()
+exit()
+
+(*Bremer support part 2: Bremer calculations*)
+read("18s.fas", 28s.fas", "tmp.trees")
+report("support_tree.ps", graphsupports:bremer:"tmp.trees")
+exit()
+

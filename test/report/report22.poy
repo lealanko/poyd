@@ -1,0 +1,6 @@
+(* Build 3 trees and report graphsupports for bremer to ps file *)
+read ("1.fas", "30.ss")
+set(seed:50)
+build (1)
+calculate_support (bremer)
+report ("report22", graphsupports)

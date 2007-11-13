@@ -1,0 +1,4 @@
+(* Fuse with swap spr *)
+read ("1.fas", "30.ss")
+build (2)
+fuse (swap(spr))

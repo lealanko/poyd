@@ -1,0 +1,3 @@
+(*Fuse from read tree files without data file Expext error "could not find data"*)
+read ("2.fas.1.tree")
+fuse ()

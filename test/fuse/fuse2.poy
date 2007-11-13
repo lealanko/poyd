@@ -1,0 +1,3 @@
+(* Fuse without build Expect Error "There are no active trees in memory" *)
+read ("1.fas")
+fuse ()

@@ -1,0 +1,5 @@
+(* Build and Report to a file *)
+read ("1.fas", "30.ss")
+set(seed:50)
+build (1)
+report ("report1", diagnosis)

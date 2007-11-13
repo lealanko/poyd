@@ -1,0 +1,5 @@
+(* Build 3 trees and report graphconsensus on screen * )
+read ("1.fas", "30.ss")
+set(seed:50)
+build (3)
+report ("report13", graphconsensus)

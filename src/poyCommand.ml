@@ -94,7 +94,7 @@ type transform_method = [
     | `Automatic_Static_Aprox of bool
     | `ReWeight of float
     | `WeightFactor of float
-    | `Automatic_Sequence_Partition of bool
+    | `Automatic_Sequence_Partition of (bool * int option)
     | `Prioritize
     | `SearchBased
     | `Fixed_States
@@ -257,6 +257,7 @@ type reporta = [
     | `Graph of bool
     | `Trees of Methods.information_contained list
     | `MstR
+    | `TreeCosts
     | `TreesStats
     | `TimeDelta of string
     | `SequenceStats of old_identifiers
@@ -271,7 +272,7 @@ type reporta = [
     | `Supports of Methods.support_output option
     | `GraphicSupports of Methods.support_output option
     | `AllRootsCost
-    | `Implied_Alignments of identifiers
+    | `Implied_Alignments of identifiers * bool
     | `Diagnosis
     | `Nodes
 ]
@@ -361,8 +362,8 @@ let transform_transform acc (id, x) =
             | `Automatic_Static_Aprox sens -> (`Automatic_Static_Aprox sens) :: acc
             | `ReWeight w -> (`ReWeight (id, w)) :: acc
             | `WeightFactor w -> (`WeightFactor (id, w)) :: acc
-            | `Automatic_Sequence_Partition sens -> 
-                    (`Automatic_Sequence_Partition (id, sens)) :: acc
+            | `Automatic_Sequence_Partition (sens, x) -> 
+                    (`Automatic_Sequence_Partition (id, sens, x)) :: acc
             | `Prioritize -> `Prioritize :: acc
             | `SearchBased -> (`Search_Based id) :: acc
             | `Fixed_States -> (`Fixed_States id) :: acc
@@ -766,6 +767,8 @@ let transform_report ((acc : Methods.script list), file) (item : reporta) =
             (`Trees (lst, file)) :: acc, file
     | `MstR ->
             (`MstR file) :: acc, file
+    | `TreeCosts ->
+            (`TreeCosts (file)) :: acc, file
     | `TreesStats ->
             (`TreesStats (file)) :: acc, file
     | `TimeDelta str ->
@@ -798,10 +801,10 @@ let transform_report ((acc : Methods.script list), file) (item : reporta) =
     | `Supports c -> (`Supports (c, file)) :: acc, file
     | `GraphicSupports c -> (`GraphicSupports (c, file)) :: acc, file
     | `AllRootsCost -> (`AllRootsCost file) :: acc, file
-    | `Implied_Alignments id -> 
+    | `Implied_Alignments (id, include_header) ->
             (match id with
             | #Methods.characters as id ->
-                    (`Implied_Alignment (file, id)) :: acc, file
+                    (`Implied_Alignment (file, id, include_header)) :: acc, file
             | _ -> acc, file)
     | `Diagnosis -> 
             (`Diagnosis file) :: acc, file
@@ -918,11 +921,11 @@ let default_search : Methods.script list =
     let s1 = change_transforms [(`Static_Aprox (`All, false))]
     and s2 = 
         change_transforms 
-        [(`Automatic_Sequence_Partition (`All, false));
+        [(`Automatic_Sequence_Partition (`All, false, None));
         (`Automatic_Static_Aprox false)]
     and s3 = 
         change_transforms
-        [`Automatic_Sequence_Partition (`All, false)]
+        [`Automatic_Sequence_Partition (`All, false, None)]
     in
     List.rev (`Build build_default :: 
         `LocalOptimum s1 :: `LocalOptimum s2 :: [`LocalOptimum s3])
@@ -1070,8 +1073,11 @@ let create_expr () =
                     | Some x -> `Automatic_Static_Aprox x ] |
                 [ LIDENT "auto_sequence_partition"; x = OPT optional_boolean -> 
                     match x with
-                    | None -> `Automatic_Sequence_Partition false 
-                    | Some x -> `Automatic_Sequence_Partition x ] |
+                    | None -> `Automatic_Sequence_Partition (false, None)
+                    | Some x -> `Automatic_Sequence_Partition (x, None) ] |
+                [ LIDENT "sequence_partition"; ":"; x = INT -> 
+                    `Automatic_Sequence_Partition (false, Some (int_of_string
+                    x)) ] |
                 [ LIDENT "weight"; ":"; x = neg_integer_or_float -> `ReWeight (float_of_string x) ] |
                 [ LIDENT "weightfactor"; ":"; x = neg_integer_or_float -> `WeightFactor (float_of_string x) ] |
                 [ LIDENT "search_based" -> `SearchBased ] |
@@ -1252,6 +1258,7 @@ let create_expr () =
                     match x with
                     | Some x -> `Trees x | None -> `Trees [] ] |
                 [ LIDENT "treestats" -> `TreesStats ] |
+                [ LIDENT "treecosts" -> `TreeCosts ] |
                 [ LIDENT "timer"; ":"; x = STRING -> `TimeDelta x ] |
                 [ LIDENT "_mst" -> `MstR ] | 
                 [ LIDENT "consensus"; x = OPT optional_integer_or_float -> 
@@ -1280,11 +1287,15 @@ let create_expr () =
                 [ LIDENT "xslt"; ":"; "("; a = STRING; ","; b = STRING; ")" ->
                     `Xslt (a, b) ] |
                 [ LIDENT "implied_alignments"; ":"; x = identifiers ->
-                    `Implied_Alignments x ] |
+                    `Implied_Alignments (x, true) ] |
+                [ LIDENT "fasta"; ":"; x = identifiers ->
+                    `Implied_Alignments (x, false) ] |
                 [ LIDENT "all_roots" -> `AllRootsCost ] |
-                [ LIDENT "implied_alignments" -> `Implied_Alignments `All] |
-                [ LIDENT "ia"; ":"; x = identifiers -> `Implied_Alignments x ] | 
-                [ LIDENT "ia" -> `Implied_Alignments `All ] |
+                [ LIDENT "implied_alignments" -> 
+                    `Implied_Alignments (`All, true)] |
+                [ LIDENT "ia"; ":"; x = identifiers -> 
+                    `Implied_Alignments (x, true) ] | 
+                [ LIDENT "ia" -> `Implied_Alignments (`All, true) ] |
                 [ LIDENT "nodes" -> `Nodes ] |
                 [ LIDENT "cross_references"; ":"; x = old_identifiers -> 
                     `CrossReferences (Some x) ] |

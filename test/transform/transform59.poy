@@ -1,0 +1,3 @@
+(* Read unannotated chromosome using dynamic pam locus_indel 50, 2.0 *)
+read (chromosome:("ua.fas"))
+transform ((all, dynamic_pam:(locus_indel:(50,2.0))))

@@ -1,0 +1,4 @@
+(* Fuse with better rather than default best *)
+read ("1.fas", "30.ss")
+build (2)
+fuse (replace:better)

@@ -1,0 +1,5 @@
+(* Read and transform all auto_static_approx" *)
+read ("2.fas")
+set(seed:50)
+build (1)
+transform ((all, auto_static_approx))

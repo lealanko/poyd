@@ -1,0 +1,4 @@
+(* Build and report trees : collapse *)
+read ("1.fas")
+build (1)
+report (trees: (collapse))

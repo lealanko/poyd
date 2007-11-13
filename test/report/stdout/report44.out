@@ -1,0 +1,15 @@
+Memory usage:
+  
+  Minor Words: 28277528.
+  Promoted Words: 7152358.
+  Major Words: 10296735.
+  Major Collections: 37
+  Heap Words: 2150400
+  Heap Chunks: 35
+  Live Words: 2130694
+  Free Words: 18289
+  Free Blocks: 798
+  Largest Free: 16695
+  Fragments: 1417
+  Campactions: 2
+  Top Heap Words: 2334720

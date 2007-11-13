@@ -1,2 +1,2 @@
 (* 'echo' outputs to file *)
-echo ("testing Output message", output:"/accessory/txt/echo02.poy.txt")
+echo ("testing Output message", output:"./accessory/txt/echo02.poy.txt")

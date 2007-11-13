@@ -1,0 +1,6 @@
+(* Read and transform all tcm:(1,1)) and build" *)
+read ("1.fas")
+set (seed:50)
+transform ((all, tcm:(4,2)))
+build (1)
+report ("transform.out", data)
