@@ -71,6 +71,7 @@ type dyna_pam_t = {
     in refining alignments with rearrangements *)
     approx : bool option;
     symmetric : bool option;
+    max_3d_len : int option;
 }
 
 let dyna_pam_default ={ 
@@ -87,12 +88,14 @@ let dyna_pam_default ={
     swap_med = Some 1;
     approx = Some false;
     symmetric = Some false;
+    max_3d_len = Some 100;
 }
 
 type dynamic_hom_spec = {
     filename : string;
     fs : string;
     tcm : string;
+    fo : string;
     tcm2d : Cost_matrix.Two_D.m;
     tcm3d : Cost_matrix.Three_D.m;
     alph : Alphabet.a;
@@ -827,6 +830,7 @@ dyna_state data res =
             filename = file;
             fs = data.current_fs_file;
             tcm = tcmfile;
+            fo = "0";
             tcm2d = tcm;
             tcm3d = tcm3;
             alph = alphabet;
@@ -1047,7 +1051,7 @@ matrix, trees, sequences) : Parser.SC.file_output) =
                 size 1 1
             in
             let tcm3d = Cost_matrix.Three_D.of_two_dim tcm in
-            process_parsed_sequences "Default" tcm tcm3d false alphabet file
+            process_parsed_sequences "tcm:(1,2)" tcm tcm3d false alphabet file
             `Seq data sequences
         in
         List.fold_left ~f:single_sequence_adder ~init:data sequences
@@ -1228,6 +1232,13 @@ let process_molecular_file tcmfile tcm tcm3 annotated alphabet is_prealigned dyn
 
 let process_ignore_taxon data taxon =
     let res = All_sets.Strings.add taxon data.ignore_taxa_set in
+    let () =
+        try 
+            Hashtbl.remove data.taxon_characters 
+            (Hashtbl.find data.character_names taxon)
+        with
+        | Not_found -> ()
+    in
     { data with ignore_taxa_set = res; }
 
 let process_ignore_file data file = 
@@ -1341,6 +1352,7 @@ let rec process_analyze_only_taxa meth data =
             process_analyze_only_taxa (`Names (false, excluded)) data
 
 let process_analyze_only_file dont_complement data files =
+    let data = duplicate data in
     try
         let appender acc file = 
             try 
@@ -1747,6 +1759,7 @@ let character_spec_to_formatter enc : Tags.output =
             ( (Tags.Characters.name, dspec.filename) ::
                 (Tags.Characters.fixed_states, dspec.fs) ::
                 (Tags.Characters.tcm, dspec.tcm) ::
+                (Tags.Characters.gap_opening, dspec.fo) ::
                 (Tags.Characters.weight, string_of_float dspec.weight) ::
                 (pam_spec_to_formatter dspec.state dspec.pam)
             ),
@@ -1799,7 +1812,8 @@ let set_dyna_pam dyna_pam_ls =
                 {dyna_pam with keep_median = Some c}
         | `SwapMed c -> {dyna_pam with swap_med = Some c}    
         | `Approx c  -> {dyna_pam with approx = Some c} 
-        | `Symmetric c  -> {dyna_pam with symmetric = Some c}) 
+        | `Symmetric c  -> {dyna_pam with symmetric = Some c}
+        | `Max_3D_Len c -> {dyna_pam with max_3d_len = Some c}) 
     ~init:dyna_pam_default dyna_pam_ls
 
 let get_dynas data dyna_code = 
@@ -2527,7 +2541,7 @@ let transform_chrom_to_rearranged_seq data meth tran_code_ls
     in 
     categorize data
 
-let assign_tcm_to_characters data chars file tcm =
+let assign_tcm_to_characters data chars tcmfile foname tcm =
     (* Get the character codes and filter those that are of the sequence class.
     * This allows simpler specifications by the users, for example, even though
     * morphological characters are loaded, an (all, create_tcm:(1,1)) will
@@ -2550,13 +2564,27 @@ let assign_tcm_to_characters data chars file tcm =
     let new_charspecs = 
         List.map 
         (function ((Dynamic dspec), code) ->
-            (Dynamic { dspec with tcm = file; tcm2d = tcm; tcm3d = tcm3 }), 
+            let tcmfile = 
+                match tcmfile with
+                | None -> dspec.tcm
+                | Some x -> x
+            and fo =
+                match tcmfile, foname with
+                | None, None -> dspec.fo
+                | Some x, None -> "0"
+                | Some _, Some x 
+                | None, Some x -> x
+            in
+            (Dynamic { dspec with tcm = tcmfile; fo = fo; tcm2d = tcm; tcm3d = tcm3 }), 
             code
             | _, code -> raise (Invalid_Character code)) chars_specs
     in
     let files = 
-        if List.exists (fun (x, _) -> x = file) data.files then data.files
-        else (file, [CostMatrix]) :: data.files 
+        match tcmfile with
+        | Some tcmfile ->
+                if List.exists (fun (x, _) -> x = tcmfile) data.files then data.files
+                else (tcmfile, [CostMatrix]) :: data.files 
+        | None -> data.files
     in
     List.iter ~f:(fun (spec, code) -> 
         Hashtbl.replace data.character_specs code spec) 
@@ -2566,12 +2594,12 @@ let assign_tcm_to_characters data chars file tcm =
 let assign_tcm_to_characters_from_file data chars file =
     let tcm, file =
         match file with
-        | None -> Cost_matrix.Two_D.default, ""
+        | None -> Cost_matrix.Two_D.default, Some "tcm:(1,2)"
         | Some f -> 
                 Parser.TransformationCostMatrix.of_file f, 
-                (FileStream.filename f)
+                Some (FileStream.filename f)
     in
-    assign_tcm_to_characters data chars file tcm
+    assign_tcm_to_characters data chars file None tcm
 
 let ( --> ) a b = b a
 
@@ -2609,8 +2637,8 @@ let classify_characters_by_alphabet_size data chars =
 
 let assign_transformation_gaps data chars transformation gaps = 
     let name = 
-        ("Substitutions:" ^ string_of_int transformation ^ 
-        ", Indels:" ^ string_of_int gaps)
+        ("tcm:(" ^ string_of_int transformation ^ 
+        "," ^ string_of_int gaps ^ ")")
     in
     let alphabet_sizes = classify_characters_by_alphabet_size data chars in
     List.fold_left ~f:(fun data (size, chars) ->
@@ -2619,7 +2647,7 @@ let assign_transformation_gaps data chars transformation gaps =
             Cost_matrix.Two_D.of_transformations_and_gaps (size < 7) size 
             transformation gaps
         in
-        assign_tcm_to_characters data chars name tcm) ~init:data alphabet_sizes
+        assign_tcm_to_characters data chars (Some name) None tcm) ~init:data alphabet_sizes
 
 let get_tcm2d data c =
     match Hashtbl.find data.character_specs c with
@@ -2650,8 +2678,15 @@ let rec assign_affine_gap_cost data chars cost =
         Cost_matrix.Two_D.set_affine b cost;
         (true, a), b) codes
     in
+    let cost = 
+        match cost with
+        | Cost_matrix.Linnear
+        | Cost_matrix.No_Alignment -> "0"
+        | Cost_matrix.Affine x -> string_of_int x
+    in
     List.fold_left ~f:(fun acc (a, b) ->
-        assign_tcm_to_characters acc (`Some a) "" b) ~init:data codes
+        assign_tcm_to_characters acc (`Some a) None 
+        (Some cost) b) ~init:data codes
 
 let rec assign_prep_tail filler data chars filit =
     match filit with
@@ -2672,7 +2707,7 @@ let rec assign_prep_tail filler data chars filit =
                 (true, a), b) codes
             in
             List.fold_left ~f:(fun acc (a, b) ->
-                assign_tcm_to_characters acc (`Some a) "" b) ~init:data codes
+                assign_tcm_to_characters acc (`Some a) None None b) ~init:data codes
 
 let assign_prepend data chars filit =
     assign_prep_tail Cost_matrix.Two_D.fill_prepend data chars filit
@@ -2902,12 +2937,15 @@ let report_taxon_file_cross_reference chars data filename =
                 let taxa =
                     All_sets.StringMap.fold 
                      (fun taxon files arr ->
-                         let new_arr = Array.mapi (fun pos file ->
-                             if pos = 0 then taxon
-                             else if All_sets.Strings.mem file files then "+"
-                             else "-") files_arr
-                         in
-                         new_arr :: arr) data.taxon_files []
+                         if All_sets.Strings.mem taxon data.ignore_taxa_set then
+                             arr
+                         else
+                             let new_arr = Array.mapi (fun pos file ->
+                                 if pos = 0 then taxon
+                                 else if All_sets.Strings.mem file files then "+"
+                                 else "-") files_arr
+                             in
+                             new_arr :: arr) data.taxon_files []
                 in
                 files_arr, taxa
         | Some chars -> (* The user requested the data for some characters *)
@@ -2935,14 +2973,16 @@ let report_taxon_file_cross_reference chars data filename =
                 let taxa = 
                     All_sets.IntegerMap.fold
                     (fun code taxon acc ->
-                        let new_arr = Array.mapi (fun pos file ->
-                            if pos = 0 then taxon
-                            else if 
-                                is_specified code (codes_arr.(pos - 1)) data 
-                            then "+"
-                            else "-") chars_arr
-                        in
-                        new_arr :: acc) data.taxon_codes []
+                        try
+                            let new_arr = Array.mapi (fun pos file ->
+                                if pos = 0 then taxon
+                                else if 
+                                    is_specified code (codes_arr.(pos - 1)) data
+                                then "+"
+                                else "-") chars_arr
+                            in
+                            new_arr :: acc
+                        with Not_found -> acc) data.taxon_codes []
                 in
                 chars_arr, taxa
     in
@@ -3421,3 +3461,29 @@ let apply_boolean nonadd_f add_f data char =
                     add_f all_specs
             | _ -> true)
     | _ -> true
+
+(* We define a function that adds the min possible cost to the  *)
+let apply_on_static ordered unordered sankoff char data =
+    let process_code acc code =
+        match Hashtbl.find data.character_specs code with
+        | Static spec ->
+                let specified_static_chars = 
+                    Hashtbl.fold (fun a b acc -> 
+                        match Hashtbl.find b code with
+                        | (Stat (_, x), `Specified) -> x :: acc
+                        | _ -> acc) data.taxon_characters []
+                in
+                let res = 
+                    match spec.Parser.SC.st_type with
+                    | Parser.SC.STOrdered -> 
+                            ordered specified_static_chars
+                    | Parser.SC.STUnordered -> 
+                            unordered specified_static_chars
+                    | Parser.SC.STSankoff mtx -> 
+                            sankoff mtx specified_static_chars 
+                in
+                (code, res) :: acc
+        | _ -> acc
+    in
+    let codes = get_chars_codes_comp data char in
+    List.fold_left ~f:process_code ~init:[] codes

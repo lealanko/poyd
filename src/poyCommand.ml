@@ -68,13 +68,13 @@ type chromosome_args = [
     | `Sig_Block_Len of int (* A conserved block length must be greater than Sig_Block_Len *)
     | `Rearranged_Len of int (* t's believed that no rearrangments or
                                     reversions happened within a segment whose length < rearranged_len *)
-
-
     | `Seed_Len of int
     | `Keep_Median of int 
     | `SwapMed of int 
     | `Approx of bool
     | `Symmetric of bool 
+    | `Max_3D_Len of int (* maximum length used to align 3 sequences in order to
+                            | reduce the time consuming*)
 ]
 
 
@@ -261,6 +261,8 @@ type reporta = [
     | `TreesStats
     | `TimeDelta of string
     | `SequenceStats of old_identifiers
+    | `Ci of old_identifiers option
+    | `Ri of old_identifiers option
     | `CompareSequences of (bool * old_identifiers * old_identifiers)
     | `FasWinClad
     | `ExplainScript of string
@@ -779,6 +781,8 @@ let transform_report ((acc : Methods.script list), file) (item : reporta) =
             (`GraphicConsensus (file, v)) :: acc, file
     | `SequenceStats c ->
             (`SequenceStats (file, c)) :: acc, file
+    | `Ci c -> (`Ci (file, c)) :: acc, file 
+    | `Ri c -> (`Ri (file, c)) :: acc, file
     | `CompareSequences (a, b, c) ->
             (`CompareSequences (file, a, b, c)) :: acc, file
     | `FasWinClad ->
@@ -1129,7 +1133,9 @@ let create_expr () =
                       `Keep_Median (int_of_string c) ] |
                 [ LIDENT "swap_med"; ":"; iters = INT -> `SwapMed (int_of_string iters) ] | 
                 [ LIDENT "approx"; ":"; ans = boolean -> `Approx ans] |
-                [ LIDENT "symmetric"; ":"; ans = boolean -> `Symmetric ans] 
+                [ LIDENT "symmetric"; ":"; ans = boolean -> `Symmetric ans] |
+                [ LIDENT "max_3d_len"; ":"; l = INT -> 
+                      `Max_3D_Len (int_of_string l) ]  
             ];
 
         (* Applications *)
@@ -1275,6 +1281,10 @@ let create_expr () =
                 [ LIDENT "phastwinclad" -> `FasWinClad ] | 
                 [ LIDENT "seq_stats"; ":"; ch = old_identifiers ->
                     `SequenceStats ch ] |
+                [ LIDENT "ci"; ":"; ch = old_identifiers -> `Ci (Some ch) ] |
+                [ LIDENT "ri"; ":"; ch = old_identifiers -> `Ri (Some ch) ] |
+                [ LIDENT "ci" -> `Ci None ] |
+                [ LIDENT "ri" -> `Ri None ] |
                 [ LIDENT "compare"; ":"; left_parenthesis; complement = boolean;
                 ","; ch1 = old_identifiers; ","; ch2 = old_identifiers; right_parenthesis ->
                     `CompareSequences (complement, ch1, ch2) ] |
