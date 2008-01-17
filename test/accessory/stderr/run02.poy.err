@@ -1,0 +1,6 @@
+Error :
+Command error in file ./accessory/echo01.poy line 2 between characters
+28 and 29 :
+    [output_class] expected after "," (in [application_command])
+
+FAILED

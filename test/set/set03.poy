@@ -1,5 +1,5 @@
 (* starting and ending log, see if works *)
-set(log:"/set/stdout/set03log.txt")
+set(log:"set/stdout/set03log.txt")
 read("1.fas")
 set(seed:1)
 build(2)

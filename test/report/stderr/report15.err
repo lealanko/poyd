@@ -426,3 +426,4 @@ You have requested a consensus with majority rule less than or equal to50
 percent; I can not do that because that percentage is not a majority!. Either
 you made a typo or you should reconsider your parameter selection.
 FAILED
+Fatal error: exception Failure("Illegal Consensus Parameter")

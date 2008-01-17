@@ -14,3 +14,4 @@ Status : Loading terminals Finished
 Error :
 POY requires at least two taxa in order to start a search. Please load some data.
 FAILED
+Fatal error: exception Failure("Wagner building  requires a tree with at least two vertices.")

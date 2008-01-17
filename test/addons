@@ -1,0 +1,4 @@
+-message "Build fastas and report true_costs with report49.poy" -command ./report/report49.poy -ostdout "./report/stdout/report49.out"
+-message "Build and report fasta with report48.poy" -command ./report/report48.poy -ostdout  "./report/stdout/report48.out"
+-message "Build and transform dynamic homology using to static_approx and report ci" -command ./report/report50.poy -ostdout "./report/stdout/report50.out"
+-message "Build and transform dynamic homology using to static_approx and report ri" -command ./report/stdout/report51.poy -ostdout "./report/stdout/report50.out"

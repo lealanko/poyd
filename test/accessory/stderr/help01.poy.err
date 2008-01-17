@@ -9,28 +9,28 @@ build :
   
     Description
       
-      Builds Wagner trees  . The arguments of the command build specify the
-      number of trees to be generated and the order in which terminals are
-      added during a singe tree building procedure. The sequence of taxon
-      addition can either be random or correspond to the order of terminals
-      as they are listed in the first imported datafile. During tree
-      building, POY reports in the Current Job window of the ncurses
-      interface which of the terminal addition strategies is currently used.
-      Building multiple trees with a randomized addition of terminals allows
-      for the evaluation of many more possible tree topologies and generates
-      a diversity of trees for subsequent analysis. By default POY replaces
-      the trees stored in memory with those generated in a subsequent build.
-      For example, executing build (10) followed by build (20) will replace
+      Builds Wagner trees  . Building multiple trees with a randomized
+      addition of terminals allows for the evaluation of many more possible
+      tree topologies and generates a diversity of trees for subsequent
+      analysis. The arguments of the command build specify the number of
+      trees to be generated and the order in which terminals are added during
+      a singe tree building procedure. During tree building, POY reports in
+      the Current Job window of the ncurses interface which of the terminal
+      addition strategies is currently used. By default POY replaces the
+      trees stored in memory with those generated in a subsequent build. For
+      example, executing build (10) followed by build (20) will replace the
       10 trees generated during the first build with 20 new trees. However,
       it might be desirable (for example, if computer memory were limited) to
       generate a large number of trees by appending trees from multiple
       separate builds. To keep trees from consecutive builds, a tree output
-      file must be specified using  report(see help (report)) that must
-      precede the subsequent build command. This will produce a file
-      containing the trees appended from all builds. Alternatively, trees
-      from different builds can be redirected to separate files if different
-      file names are specified. The command build is also used as an argument
-      for the command calculate_support . 
+      file must be specified using the command  report(see help (report))
+      that must precede the build command. This will produce a file
+      containing the trees appended from all builds. If the same file name is
+      used for reporting trees for other analysis, the new trees are going to
+      be appended. Alternatively, trees from different builds can be
+      redirected to separate files if different file names are specified. The
+      command build is also used as an argument for the command
+      calculate_support . 
     
     
     Arguments
@@ -42,36 +42,35 @@ build :
         datafile, and all others are built using a random addition sequence. 
       
         branch_and _bound[: FLOAT ]
-        Calculates the exact solution using the branch and bound algorithm  .
+        Calculates the exact solution using the Branch and Bound algorithm  .
         By default only one optimal tree is kept but the number of optimal
         trees to be retained can be specified by the argument trees. The
         optional float value specifies the bound (either tree cost or
-        likelihood score. Instead of building a tree the default heuristic
-        method, 
+        likelihood score ). 
       
         constraint [: STRING ]
-        Builds trees using the set of constraints contained in the input
-        file. If no input file is provided, the constraint is calculated as
-        the strict consensus of the trees held in memory. Every tree built
-        using this method is subjected to the same randomization as wagner
-        builds within each constraint. 
+        Builds trees using the set of constraints specified by the consensus
+        tree input file. If no input file is provided, the constraint is
+        calculated as the strict consensus of the trees in memory. Every tree
+        built using this method is subjected to the same randomization as
+        wagner builds within each constraint. 
       
         random 
-        Generate a tree at random. All possible trees have equal probability. 
+        Generates a tree at random. All possible trees have equal
+        probability. 
       
         randomized 
         Indicates that terminals are added in random order on every Wagner
-        tree built. 
+        tree built. This is a default tree-building strategy. 
       
         trees : INTEGER 
         The integer value specifies the number of independent, individual
         Wagner tree builds. The label trees is optional: it is sufficient to
-        specify only the integer without the trees label. Therefore,
-        build (5) is equivalent to build (trees:5) . Note that trees is also
-        used as an argument of the command  swap(see help (swap)) but with
-        different meaning. The value 0 generates no trees, but, unlike other
-        values, it retains all trees in memory instead of eliminating them.
-        This is useful, for example, in the bremer(see help (bremer)) support
+        specify only the integer value. Therefore, build (5) is equivalent to
+        build (trees:5) . Note that trees is also used as an argument of the
+        command  swap(see help (swap)) but with different meaning. The value
+        0 generates no trees but it retains all trees in memory. This is
+        useful, for example, in the bremer(see help (bremer)) support
         calculation, where instead of generating new trees per each node, the
         searches are performed on the trees in the neighborhood of the
         current trees in memory. 
@@ -90,8 +89,8 @@ build :
         This is a shortcut of the argument of_file. 
       
         all 
-        Turns off all preference strategies to make a join, simply try all
-        possible join positions for all terminals added. 
+        Turns off all preference strategies for adding branches and simply
+        tries all possible addition positions for all terminals. 
       
     
     
@@ -105,22 +104,23 @@ build :
       
       build (20) 
         Builds 20 Wagner trees randomizing the order of terminal addition
-        (note that since random is the default, it is not written ). 
+        (note that because the argument random is specified by default, it
+        can be omitted ). 
       
       build (trees:20, randomized) 
         A more verbose version of the previous example. By default a build is
         randomized, but in this case the addition sequence is explicitly set.
-        For the total number of trees, instead of simply specifying 20, we
-        use the label trees (this might be desirable to improve a script's
-        readability ). 
+        For the total number of trees, rather than simply specifying 20, the
+        label trees is used. The verbose version might be desirable to
+        improve the readability of the script. 
       
       build (15, as_is ) 
-        Builds the first Wagner tree using tree using the order of terminals
-        in as they are listed in the first imported datafile and generates
-        the remaining 14 trees using a random addition sequence. 
+        Builds the first Wagner tree using the order of terminals in the
+        first imported datafile and generates the remaining 14 trees using
+        random addition sequences. 
       
       build (branch_and _bound, trees:5) 
-        Builds trees using branch_and _boundmethod and keeps up to 5 optimal
+        Builds trees using branch and bound method and keeps up to 5 optimal
         trees in memory. 
       
       
@@ -132,39 +132,38 @@ calculate_support :
     Description
       
       Calculates the requested support values. POY implements support
-      estimation based on resampling methods (Jackknife and Bootstrap) and
-      Bremer support. The Jackknife and Bootstrap support values are computed
-      as frequencies of clades recovered in strict consensus trees built in
-      each resampling iteration. The consensus trees are based on best trees
-      recovered in each replicate with zero-length branches collapsed. All
-      the arguments of calculate_support command are and their order is
-      arbitrary. 
+      estimation based on resampling methods (Jackknife  and Bootstrap  ) and
+      Bremer support  . The Jackknife and Bootstrap support values are
+      computed as frequencies of clades recovered in strict consensus trees
+      built in each resampling iteration. The consensus trees are based on
+      best trees recovered in each replicate with zero-length branches
+      collapsed. All the arguments of calculate_support command are optional
+      and their order is arbitrary. 
       The placement of the root affects calculation of the support values.
-      Therefore, it is critical to define the root prior to executing
+      Therefore, it is critical to specify the root prior to executing
       calculate_support . See the description of the command set(see help
       (set)) on how to specify the root. POY does not report support values
-      by default; the output of support values must be requested using 
-      report(see help (report)) . This is particularly important for
+      by default. The output of support values must be requested using the
+      command  report(see help (report)) . This is particularly important for
       Jackknife and Bootstrap support values, as these sampling techniques do
-      not require the existence of trees in memory. Therefore, it is possible
+      not require the presence of trees in memory. Therefore, it is possible
       to perform the sampling for support values before the tree of interest
       has been found. 
-      It is critical to understand that in the context of dynamic homology,
-      the characters being sampled during pseudoreplicates are entire
-      sequence fragments, not individual nucleotides. Consequently, the
-      bootstrap and jackknife support values calculated for dynamic
-      characters are not directly comparable to those calculated based on
-      static character matrices. If it is desirable to perform character
-      sampling at the level of individual nucleotides, the dynamic characters
-      must be transformed into static characters using static_approx argument
-      of the command  transform(see help (transform)) prior to executing
-      calculate_support . Alternatively, an output file in the Hennig86
-      format can be generated based on an implied alignment using 
-      phastwinclad(see help (phastwinclad)) that can subsequently be analyzed
-      using other programs such as NONA or TNT. It is important to remember
-      that the local optimum for the dynamic homology characters can differ
-      from that for the static homology characters based on the same sequence
-      data. Therefore, in calculating support values by sampling individual
+      In the context of dynamic homology, the characters being sampled during
+      pseudoreplicates are entire sequence fragments, not individual
+      nucleotides. Consequently, the bootstrap and jackknife support values
+      calculated for dynamic characters are not directly comparable to those
+      calculated based on static character matrices. If it is desired to
+      perform character sampling at the level of individual nucleotides, the
+      dynamic characters must be transformed into static characters using
+      static_approx argument of the command  transform(see help (transform))
+      prior to executing calculate_support . Alternatively, an output file in
+      the Hennig86 format can be generated based on an implied alignment
+      using  phastwinclad(see help (phastwinclad)) that can subsequently be
+      analyzed using other programs. It is important to remember that the
+      local optimum for the dynamic homology characters can differ from that
+      for the static homology characters based on the same sequence data.
+      Therefore, in calculating support values by sampling individual
       nucleotides based on the static homology data (obtained by
       static_approx) can produce a discrepancy in tree costs when compared to
       the tree cost based on the original dynamic homology data. Therefore,
@@ -177,14 +176,14 @@ calculate_support :
       
       
       Support calculation methods 
-        The following commands allow to choose among several methods for
+        The following commands allow selecting among several methods for
         calculating support.
         
           bremer 
           Calculates Bremer support  for each tree in memory by performing
-          independent searches for each node. The parameters for the searches
-          can be modified using arguments described under Search strategy.
-          The argument bremer takes no values. 
+          independent constrained searches for each node. The parameters for
+          the searches can be modified using arguments described under Search
+          strategy. The argument bremer takes no values. 
         
           bootstrap [: INTEGER ]
           Calculates Bootstrap support  . The integer value specifies the
@@ -218,23 +217,23 @@ calculate_support :
           specifies the number of independent Wagner tree builds per node.
           The integer value 0 (build:0) specifies that Bremer support values
           are calculated on the starting trees currently in memory, rather
-          than on newly generated trees. Alternatively, the initial trees for
-          calculating Bremer support can be imported using the argument
-          of_file of the command  build(see help (build)) . For calculating
-          Jackknife and Bootstrap supports, it specifies the number of Wagner
-          tree builds per pseudoreplicate. Single best trees from all
+          than on newly generated trees. The initial trees for calculating
+          Bremer support can also be imported using the argument of_file of
+          the command  build(see help (build)) . For calculating Jackknife
+          and Bootstrap supports, it specifies the number of Wagner tree
+          builds per pseudoreplicate. Single best trees from all
           psudoreplicates are used to calculate the support values. If
-          multiple best trees are recovered in a pseudoreplicate, only one of
-          them is selected at random. If build is omitted from the argument
-          list of calculate_support , POY a single random addition Wagner
-          tree per pseudoreplicate by default. This is equivalent to
+          multiple best trees are recovered in a pseudoreplicate, one is
+          selected. If build is omitted from the argument list of
+          calculate_support , a single random addition Wagner tree per
+          pseudoreplicate is built by default. This is equivalent to
           build (trees:1, randomized) . See build(see help (build)) for a
           detailed discussion of arguments of the command build . 
         
           swap 
-          Specifies the method and parameters for local tree search. If the
-          argument swap is omitted, the search is performed under the default
-          settings of the command  swap(see help (swap)) . 
+          Specifies the method and parameters for local tree search. If
+          searching parameters are not specified, the search is performed
+          under the default settings of  swap(see help (swap)) . 
         
       
     
@@ -243,15 +242,15 @@ calculate_support :
       
       bremer, build (trees:1, randomized ), swap (trees:1) 
       By default POY will calculate the bremer support for each tree in
-      memory node by node. However, if no trees loaded in memory, executing
+      memory node by node. However, if no trees stored in memory, executing
       the command calculate_support () does not have any effect. 
     
     Examples
       
       calculate_support (bremer) 
         Calculates Bremer support values by performing independent searches
-        for every node. This is equivalent to executing 
-         calculate_support () (the default setting .) 
+        for every node. This is equivalent to executing
+        calculate_support () (the default setting .) 
       
       calculate_support (bremer, build (trees:0 ), swap (trees:2 )) 
         Calculates Bremer support values by performing swapping on each tree
@@ -272,10 +271,10 @@ calculate_support :
       
       calculate_support (bootstrap:100, build (trees:5 ), 
        swap (trees:1 )) 
-        Calculates Bootstrap support values performing 1 random resampling
+        Calculates Bootstrap support values performing one random resampling
         with replacement, followed by 5 Wagner tree builds (by random
         addition sequence) and swapping these trees under the default
-        settings of the command swap, and keeping 1 minimum-cost tree. The
+        settings of the command swap, and keeping one minimum-cost tree. The
         procedure is repeated 100 times. 
       
       calculate_support (jackknife: (resample:1000 ), 
@@ -284,7 +283,8 @@ calculate_support :
         the characters (the default of jackknife ), building 10 Wagner trees
         by random addition sequence (the default of build ), swapping these
         trees using tbr, and keeping up to 5 minimum-cost tree in the final
-        swap. The procedure is repeated 1000 times. 
+        swap per swap (totaling up to 50 stored trees per replicate ). The
+        procedure is repeated 1000 times. 
       
       
     
@@ -340,9 +340,9 @@ cd :
       
       Changes the working directory of the program. This command is useful
       when datafiles are contained in different directories. It also
-      eliminates the need to enter to the working directory before beginning
-      a POY session. To display the path of the current directory, use the
-      command  pwd(see help (pwd)) . 
+      eliminates the need to navigate into the working directory before
+      beginning a POY session. To display the path of the current directory,
+      use the command  pwd(see help (pwd)) . 
     
     
     Arguments
@@ -370,11 +370,11 @@ echo :
   
     Description
       
-      Prints a the content of the string argument into a specified type of
+      Prints the content of the string argument into a specified type of
       output. Several types of output are generated by POY which are
       specified by the ``output class'' of arguments (see below ). If no
-      output-class arguments are specified, the commands does not generate
-      any output. 
+      output-class arguments are specified, the command does not generate any
+      output. 
     
     
     Arguments
@@ -383,17 +383,17 @@ echo :
       Output class 
         
           error 
-          Outputs the specified string as an error message (stder in the flat
-          interface ). 
+          Outputs the specified string as an error message (stderr in the
+          flat interface ). 
         
           info 
-          Outputs the specified string as an information message (stder in
+          Outputs the specified string as an information message (stderr in
           the flat interface ). 
         
           output [: STRING ]
-          Reports a specified string on screen or to a file, if the filename
-          string (enclosed in parentheses) is specified following output and
-          separated from it by a colon, ``:''. 
+          Reports a specified string (stdout in the flat interface) to screen
+          or file, if the filename string (enclosed in parentheses) is
+          specified following output and separated from it by a colon, ``:''. 
         
       
     
@@ -409,7 +409,8 @@ echo :
       
       echo ("Initial trees", output) 
         Prints the string Initial trees to the output window in the ncurses
-        interface, and to the standard output in the flat interface. 
+        interface, and to the standard output (stdout in the flat interface
+        ). 
       
       
     
@@ -423,7 +424,7 @@ exit :
   
     Description
       
-      Exits a POY session. This command does not have any arguments. 
+      Exits a POY session. This command does not accept any argument. 
       exit is equivalent to the command quit . 
       To interrupt a process without quitting a POY session, use Control-C.
       It aborts a currently running operation but keeps all the previously
@@ -447,19 +448,19 @@ fuse :
   
     Description
       
-      Performs Tree Fusing on the trees in memory. Tree Fusing is a genetic
-      algorithm technique that allows the escaping the local optimum by
+      Performs Tree Fusing  on the trees in memory. Tree Fusing is a genetic
+      algorithm technique for avoiding being trapped at a local optimum by
       exchanging clades with identical composition of terminals between pairs
       of trees. Only one pair of trees is evaluated during a single
-      iteration. The size of the clades being exchanged is not determined. 
+      iteration. The size of the clades being exchanged is not specified. 
     
     
     Arguments
       
       
         keep : INTEGER 
-        Specifies the maximum number of trees to be kept between iterations.
-        By default, the number of trees retained is the same as the number of
+        Specifies the maximum number of trees to keep between iterations. By
+        default, the number of trees retained is the same as the number of
         starting trees. 
       
         iterations : INTEGER 
@@ -479,7 +480,7 @@ fuse :
         swap 
         Specifies tree swapping strategy to follow each iteration of tree
         fusing. No swapping is performed under default settings. See the
-        command  swap(see help (swap)) . 
+        description of the command  swap(see help (swap)) . 
       
     
     
@@ -508,7 +509,7 @@ fuse :
         This command performs tree fusing with modified settings for swapping
         that follows each iteration. Once a given iteration is completed, a
         consensus tree of the files in memory is computed and used as
-        constraint file for subsequent swapping (see the argument
+        constraint file for subsequent rounds of swapping (see the argument
         constraint(see help (constraint)) of the command swap ). 
       
       
@@ -530,18 +531,19 @@ help :
       
       
         LIDENT 
-        Specifies a command name, the help for which is requested. 
+        Reports the description of the command, the name of which is
+        specified by the lident value. 
       
         STRING 
-        Specified the expression (treated as an emacs regular expression ),
-        every occurrence of which in the help file is reported on screen. 
+        Reports every occurrence in the help file of the expression specified
+        by the string value. 
       
     
     
     Defaults
       
       
-      By default POY displays the entire content of the help file on screen 
+      By default POY displays the entire content of the help file on screen. 
     
     Examples
       
@@ -566,9 +568,9 @@ inspect :
       Retrieves the description of a POY file. If the description was not
       specified by the user, inspect reports that the description is not
       available. If the file is not a proper POY file format, a message is
-      printed out in the POY Output window of the ncurses interface or the
+      printed in the POY Output window of the ncurses interface or to the
       standard error of the flat interface. POY files are not intended for
-      permanent storage: they are recommended for temporary storage of a POY
+      permanent storage. They are recommended for temporary storage of a POY
       session, checkpointing the current state of the search (to avoid losing
       data in case the computer or the program fails ), or reporting bugs.
       POY also automatically generates POY files in cases of terminating
@@ -577,10 +579,10 @@ inspect :
     Examples
       
       inspect ("initial_search . poy") 
-        Prints the description of the POY file initial_search. poy (located
-        in the current working directory) in the POY Output window of the
-        ncurses interface or to the standard error in the flat interface ).
-        If the file was saved using the command
+        Prints the description of the POY file initial_search. poy located in
+        the current working directory in the POY Output window of the ncurses
+        interface or to the standard error in the flat interface ). If the
+        file was saved using the command
         save ("initial_search . poy", "Results of Total Analysis") , then the
         output message is: Results of Total Analysis. 
       
@@ -596,26 +598,25 @@ load :
   
     Description
       
-      Reads and imports a POY file, the name of which (or its path if the
-      file is not located in the current working directory) is included in
-      the string argument. All the information of the current POY session
-      will be replaced with the contents of the POY file. If the file is not
-      in proper POY file format, an error message is printed in the POY
-      Output window of the ncurses interface, or the standard error in the
-      flat interface. See the description of the command save(see help
-      (save)) on the POY file and its usage. POY files are not intended for
-      permanent storage: they are recommended for temporary storage of a POY
-      session, checkpointing the current state of the search (to avoid losing
-      data in case the computer or the program fails ), or reporting bugs.
-      POY also automatically generates POY files in cases of terminating
-      errors (important exceptions are out-of-memory errors ). 
+      Reads and imports a POY file, the name of which (specified by the
+      command save ) is included in the string argument. All the information
+      of the current POY session will be replaced with the contents of the
+      POY file. If the file is not in proper POY file format, an error
+      message is printed in the POY Output window of the ncurses interface,
+      or the standard error in the flat interface. See the description of the
+      command save(see help (save)) on the POY file and its usage. POY files
+      are not intended for permanent storage: they are recommended for
+      temporary storage of a POY session, checkpointing the current state of
+      the search (to avoid losing data in case the computer or the program
+      fails ), or reporting bugs. POY also automatically generates POY files
+      in cases of terminating errors (an important exception is out-of-memory
+      error ). 
     
     Examples
       
       load ("initial_search . poy") 
         Reads and imports the contents of the POY file initial_search. poy,
-        located in the current working directory (as printed by the pwd )
-        command. 
+        located in the current working directory. 
       
       load ("/Users/andres/test/initial. poy") 
         Reads and imports the contents of the POY file initial. poy in the
@@ -633,18 +634,18 @@ perturb :
   
     Description
       
-      Performs a search using a temporarily modified (``perturbed'')
-      characters starting with the trees currently in memory. Once a local
-      optimum is found for the perturbed characters, a new round of search
-      using the original (non-modified) characters is performed.
-      Subsequently, the costs of the initial and final trees are compared and
-      the best trees are selected. If there are $n$ trees in memory prior to
-      searching using perturb , then the $n$ best trees are selected at the
-      end. For example, if there are 20 trees currently in memory, 20
-      individual perturb procedures will be performed (each procedure
-      starting with one of the 20 initial trees ), and 20 final trees are
-      produced. This command allows the escape from a local optimum in the
-      tree space by perturbing the character space (hence the name ). The
+      Performs branch swapping on the trees currently in memory using a
+      temporarily modified (``perturbed'') characters. Once a local optimum
+      is found for the perturbed characters, a new round of swapping using
+      the original (non-modified) characters is performed. Subsequently, the
+      costs of the initial and final trees are compared and the best trees
+      are selected. If there are $n$ trees in memory prior to searching using
+      perturb , then the $n$ best trees are selected at the end. For example,
+      if there are 20 trees currently in memory, 20 individual
+      perturb procedures will be performed (each procedure starting with one
+      of the 20 initial trees ), and 20 final trees are produced. This
+      command allows for movement from a local search optimum in the tree
+      space by perturbing the character space (hence the name ). The
       arguments specify the type of perturbation (ratchet, resample, and
       transform ), the parameters of the subsequent search (swap ), and the
       number of iterations of the perturb operation (iterations ). No new
@@ -672,7 +673,7 @@ perturb :
         integer value (severity ). For static matrices, such as those
         obtained using the command  transform(see help (transform)) ,
         ratchet randomly selects and reweights individual nucleotide
-        positions (column vectors ), as in Nixon's original implementation.
+        positions (column vectors ), as in Nixon's original implementation  .
         Under default settings, ratchet selects 25 percent of characters and
         upweights them by a factor of 2. Unless ratchet is performed under
         default settings (that does not require the specification of the
@@ -706,29 +707,30 @@ perturb :
     Defaults
       
       ratchet, swap (trees:1) 
-      By default, POY performs the ratchet procedure under default settings. 
+      When no arguments specified, POY performs the ratchet procedure under
+      default settings. 
     
     Examples
       
       perturb (resample: (50, terminals ), iterations:10) 
         Performs 10 successive repetitions of random resampling of 50
-        terminals with replacement. Branch swapping is performed using
-        alternating SPR and TBR, and and keeping 1 minimum-cost tree (the
-        default of swap ). 
+        percents of terminals with replacement. Branch swapping is performed
+        using alternating SPR and TBR, and and keeping one minimum-cost tree
+        (the default of swap ). 
       
       perturb (iterations:20, ratchet: (0. 18, 3 )) 
         Performs 20 successive repetitions of a variant of the ratchet (see
         above) by randomly selecting 18 percent of the characters (sequence
         fragments) and upweighting them by a factor of 3. Branch swapping is
-        performed using alternating SPR and TBR, and keeping 1 optimal tree
+        performed using alternating SPR and TBR, and keeping one optimal tree
         (the default of swap ). 
       
       perturb (iterations:1, transform (tcm: (4, 3 ))) 
         Transforms the cost regime of all applicable characters (i. e.
         molecular sequence data) to the new cost regime specified by
-        transform (cost of substitution 4 and cost of indel 3. Subsequently a
-        single round of branch swapping is performed using alternating SPR
-        and TBR, and and keeping 1 optimal tree (the default of swap ). 
+        transform (cost of substitution 4 and cost of indel 3 ). Subsequently
+        a single round of branch swapping is performed using alternating SPR
+        and TBR, and and keeping one optimal tree (the default of swap ). 
       
       perturb (ratchet: (0. 2, 5 ), iterations:25, swap (tbr, trees:5 )) 
         Performs 25 successive repetitions of a variant of the ratchet (see
@@ -761,15 +763,15 @@ pwd :
     Description
       
       Prints the current working directory in the POY Output window of the
-      ncurses interface and the standard error of the flat interface. The
-      command pwd does not have arguments; the default working directory is
-      the shell's directory when POY started. 
+      ncurses interface and the standard error (stderr) of the flat
+      interface. The command pwd does not have arguments. The default working
+      directory is the shell's directory when POY started. 
     
     Examples
       
       pwd () 
-        This command will generate the following message: ``The current
-        working directory is /Users/myname/datafiles/''. The reported actual
+        This command generates the following message: ``The current working
+        directory is /Users/myname/datafiles/''. The actual reported
         directory will vary depending on the directory of the shell when POY
         started, or if it has been changed using the command cd () . 
       
@@ -791,7 +793,7 @@ quit :
     To interrupt a process without quitting a POY session, use Control-C. It
     aborts a currently running operation but keeps all the previously
     accumulated data in memory. It does not abort the current session
-    permitting entering new command and continuing the session. 
+    permitting entering new commands and continuing the session. 
     
     Examples
       
@@ -812,14 +814,14 @@ read :
       
       Imports data files and tree files. Supported formats are ASN1, Clustal,
       FASTA, GBSeq, Genbank, Hennig86, Newick, NewSeq, Nexus, PHYLIP, POY3,
-      TinySeq, and XML. Filenames should be enclosed in quotes and if
+      TinySeq, and XML. Filenames should be enclosed in quotes and, if
       multiple filenames are specified, they must be separated by commas.
       read automatically detects the type of the input file. read can use
       wildcard expressions (such as *) to refer to multiple files in a single
-      step: for example, read ("biv*") imports all data files the names of
+      step. For example, read ("biv*") imports all data files the names of
       which start with biv or read ("*. ss") imports all files with the
       extension . ss (given that the data files are in the current directory
-      ). Specifying filename (s) is obligatory; an empty argument string,
+      ). Specifying filename (s) is obligatory: an empty argument string,
       read () , results in no data being read by POY. The list of imported
       files and their content can be reported on screen or to a file using
       report (data) . If a file is loaded twice, POY issues an error message
@@ -840,17 +842,17 @@ read :
       Unlike many phylogenetic programs, POY does not clear the memory buffer
       upon reading a second file. Instead, any subsequently read files will
       be added to the total data being analyzed. If a new taxon appears in a
-      file, then it will be assigned missing data for all previously loaded
-      characters. If a taxon does not appear in a file, it will be assigned
-      missing data for the characters appearing on it. If the user wants to
-      eliminate any data read, and then read a new file to be analyzed alone,
-      the wipe () command must be issued first. 
+      file, then it is be assigned missing data for all previously loaded
+      characters. If a taxon does not appear in a file, missing data are
+      assigned for the characters that appearing in it. To eliminate the
+      imported data and then to input a new data the wipe () command must be
+      issued first. 
       If one of the terminal names in an imported molecular file contains a
-      space, `` '', POY will issue a warning. This will also happen if a
-      taxon name appears to match a nucleotide sequence. If one of the
-      terminal names in an imported molecular file contains an or a
-      percentage symbol, the file will not be loaded as it may cause the
-      program to crash when reporting results. 
+      space, `` '', POY issues a warning. This also occurs if a taxon name
+      appears to match a nucleotide sequence. If one of the terminal names in
+      an imported molecular file contains an or a percentage symbol, the file
+      will not be loaded because it may cause the program to crash when
+      reporting results. 
     
     
     Arguments
@@ -861,19 +863,19 @@ read :
         the list of read arguments, enclosed in quotes, and separated by
         commas. If no data file types are specified, the types of the
         imported files are recognized automatically. To specify the data
-        type, an additional argument that explicitly denotes the data type,
-        is included; it is followed by a colon (``:'') and then enclosed in
-        parentheses, the list of data file names, separated by commas and
-        enclosed in quotes. This format prevents any ambiguity in importing
-        multiple data file types simultaneously (i. e. included in an
-        argument list of a single read ) command.
+        type, an additional argument explicitly denoting the data type, is
+        included; it is followed by a colon (``:'') and the list of data file
+        names (enclosed in parentheses ), separated by commas and enclosed in
+        quotes. This format prevents any ambiguity in importing multiple data
+        file types simultaneously (i. e. included in an argument list of a
+        single read ) command.
         
           STRING 
           Reads the file specified in the path included in the string
           argument. A path can be absolute or relative to the current working
           directory (as printed by pwd () ). The file type is recognized
           automatically. Molecular files are assumed to contain nucleotide
-          sequences; valid files to read using this command are: tree files
+          sequences. Valid files to read using this command are: tree files
           using parenthetical notation (newick, POY trees ), Hennig86 files,
           Nona files, Sankoff character files as used in POY 3, FASTA files
           (and virtually any file generated by Genbank ), and NEXUS files.
@@ -982,13 +984,15 @@ read :
         
           prealigned : (read argument, tcm: STRING) 
           Specifies that the input sequences are prealigned and should be
-          assigned the transformation cost matrix from the input file
-          specified by the string argument. (See tcm .) 
+          assigned the transformation cost matrix from the input file defined
+          by the string argument. (See the argument  tcm(see help (tcm)) of
+          the command transform .) 
         
           prealigned : (read argument, tcm: (INTEGER, INTEGER )) 
           Specifies that the input sequences are prealigned and should be
           assigned substitution and indel costs as defined by the tcm
-          argument. (See tcm .) 
+          argument. (See the argument  tcm(see help (tcm)) of the command
+          transform .) 
         
       
     
@@ -1024,8 +1028,8 @@ read :
       
       read ("hennig1. ss", "chel2. FASTA", aminoacids: ("a. FASTA" )) 
         Reads the Hennig86 file hennig1. ss, the FASTA file chel2. FASTA
-        containing nucleotide sequences (the default ), and the amino acid
-        sequence file a. FASTA. 
+        containing nucleotide sequences, and the amino acid sequence file a.
+        FASTA. 
       
       read (custom_alphabet: ("my_data" , "alphabet" ,)) 
         Reads the first file, my_data, containing data in the format of a
@@ -1044,7 +1048,7 @@ read :
       read (genome: ("mt_genomes" , "nu_genomes" ). 
         Reads two files containing genomic (multi-chromosomal) sequence data. 
       
-      read (prealigned: ("18s. aln", tcm: (1, 2 )) 
+      read (prealigned: ("18s. aln", tcm: (1, 2 ))) 
         Reads the prealigned data file 18s. aln generated from the nucleotide
         file 18s. FASTA using the the transformation costs 1 for
         substitutions and 2 for indels. 
@@ -1061,7 +1065,7 @@ rediagnose :
   
     Description
       
-      Performs a reoptimization of the trees currently in memory. This
+      Performs a re-optimization of the trees currently in memory. This
       function is only useful for sanity checks of the consistency of the
       data. Its main usage is for the POY developers. This command does not
       have arguments. 
@@ -1080,12 +1084,12 @@ recover :
     Description
       
       Recovers the best trees found during swapping, even if the swap was
-      cancelled. This command functions only if a previously executed (in the
-      current POY session) command swap included the argument recover(see
-      help (recover)) . Otherwise, it has no effect. The trees imported by
-      recover are appended to those currently stored in memory. Note that
-      using recovered trees is not intended for temporary storage of trees;
-      it is useful only as an intermediary operation in a given part of a POY
+      cancelled. This command functions only if the argument recover(see help
+      (recover)) was included in a previously executed (in the current POY
+      session) command swap . Otherwise, it has no effect. The trees imported
+      by recover are appended to those currently stored in memory. Note that
+      using recovered trees is not intended for temporary storage of trees.
+      It is useful only as an intermediary operation in a given part of a POY
       session. When other commands that require clearing memory are executed
       (such as build , calculate_support , or another swap ), the trees
       stored by recover can no longer be retrieved. 
@@ -1110,7 +1114,7 @@ redraw :
     Description
       
       Redraws the screen of the terminal. This command is only used in the
-      ncurses interface, other interfaces will ignore it. redraw clears the
+      ncurses interface, other interfaces ignore it. redraw clears the
       contents of the Interactive Console window but retains the contents of
       the other windows. It does not affect the state of the search and the
       data currently in memory. 
@@ -1132,7 +1136,7 @@ rename :
       This command allows for substituting taxon names and helps merging
       multiple datasets without modifying the original datafiles. More
       specifically, it can be used, for example, (1) for housekeeping
-      purposes when it is desirable to maintain long verbose taxon names
+      purposes, when it is desirable to maintain long verbose taxon names
       (such as catalog or GenBank accession numbers) associated with the
       original datafiles but avoid reporting these names on the trees; (2) to
       provide a single name for a terminal in cases where the corresponding
@@ -1145,6 +1149,11 @@ rename :
     In order to change taxon names, the command rename must be executed
     before importing the datafiles (see command read(see help (read)) ) that
     contain character data the taxa to be renamed. 
+    
+    Once the command rename is applied, subsequent commands must refer to the
+    terminals using the new, substitute names. This is critical, for example,
+    when importing a terminals file using the command  select(see help
+    (select)) or specifying a root using the command  set(see help (set)) . 
     
     
     Arguments
@@ -1185,22 +1194,25 @@ rename :
         
           (STRING, STRING) 
           Specifies the names of individual items to be renamed. The first
-          item will be renamed as the second item: specifying ("alpha",
-          "beta") would rename the character or taxon alpha to beta. To
-          specify multiple pairwise name substitution, several name pairs can
-          be listed: ("alpha", "beta" ),( "gamma", "delta" ). 
-        
+          item is renamed as the second item: specifying ("alpha", "beta")
+          would rename the character or taxon alpha to beta. To specify
+          multiple pairwise name substitution, several name pairs can be
+          listed: ("alpha", "beta" ),( "gamma", "delta" ). 
+        Note that when rename is applied by specifying pairs of synonyms in
+        the command's argument, the substitute name is listed second.
+        However, the substitute name appears first in a synonymy file,
+        followed by one or more synonyms. 
       
     
     Examples
       
       rename (terminals, "synfile") 
-        This command will rename terminal names contained in the synonymy
-        file synfile in all subsequently imported datafiles. 
+        This command renames terminal names contained in the synonymy file
+        synfile in all subsequently imported datafiles. 
       
       rename (terminals ,( "Mytilus_sp" , "Mytilus_edulis" )) 
-        This command will rename terminal file Mytilus_sp as Mytilus_edulis
-        in all subsequently imported datafiles. 
+        This command renames terminal file Mytilus_sp as Mytilus_edulis in
+        all subsequently imported datafiles. 
       
       
     
@@ -1231,7 +1243,7 @@ report :
           "/Users/andres/text" represents the file text in the directory
           /Users/andres (in Windows C:$ ). If no path is given, the path is
           relative to the current working directory as printed by pwd () .
-          See the examples for the file outputting usage. 
+          usage. 
         
       
       Terminals and characters 
@@ -1262,10 +1274,10 @@ report :
           command cross_references:names: ("file1") is executed, the output
           is produced only for file1. The argument cross_references:all
           generates a table that shows presence and absence of fragments
-          contained within each file. (If each datafile contains a single
+          contained within each file. If each datafile contains a single
           fragment, executing cross_references:all is equivalent to executing
-          cross_references .) By default, the cross-reference table is
-          printed on screen or to an output file if specified. 
+          cross_references. By default, the cross-reference table is printed
+          on screen or to an output file, if specified. 
         
           data 
           Outputs a summary of the input data. More specifically, POY will
@@ -1284,11 +1296,16 @@ report :
         
           terminals 
           Reports a list and number of terminals included and excluded for
-          each input file. For information on including and excluding
-          terminals use the command  select(see help (select)) . 
+          each input file. Use the command  select(see help (select)) for
+          including and excluding terminals. 
         
           treestats 
           Reports the number of hits per cost found by POY in a table format. 
+        
+          treescosts 
+          Reports the cost of each tree separated by colons. The output
+          contains no formatting for easy processing by any scripting
+          language. 
         
       
       Trees 
@@ -1306,9 +1323,9 @@ report :
         
           all_roots 
           In a tree with $n$ vertices (and therefore $n - 1$ edges ),
-          calculate the cost of the $n - 1$ rooted trees as implied by a root
-          located in the subdivision vertex each edge in the unrooted tree in
-          memory. 
+          calculates the cost of the $n - 1$ rooted trees as implied by a
+          root located in the subdivision vertex each edge in the unrooted
+          tree in memory. 
         
           asciitrees [: collapse [: BOOL ]]
           Draws textual representations of trees stored in memory. The
@@ -1317,8 +1334,8 @@ report :
           zero length branches are not collapsed. 
         
           clades 
-          Output a set of Hennig86 files. Each file (named file. hen, where
-          ``file'' is whatever string you pass to this function) contains
+          Output a set of Hennig86 files. Each file, named file. hen, where
+          ``file'' is whatever string you pass to this function contains
           information on each clade for one of the trees currently stored.
           This is similar to the utility jack2hen of POY3. 
         
@@ -1328,7 +1345,7 @@ report :
           ; if integer value is specified, a majority rule consensus is
           computed, collapsing nodes with occurrence frequencies less than
           the specified integer  . If a value less than 51 is specified, POY
-          will report an error. 
+          reports an error. 
         
           graphconsensus [: INTEGER ]
           Same as consensus except for consensus trees are reported in
@@ -1354,8 +1371,8 @@ report :
           supports [: argument ]
           Outputs a parenthetical representation of a tree with the support
           values has previously been calculated using the command 
-          calculate_support(see help (calculate_support)) (however see bremer
-          ), either to the screen or to a file (if specified ). If no
+          calculate_support(see help (calculate_support)) (however, see
+          bremer ), either to the screen or to a file (if specified ). If no
           argument is given, all calculated support values are printed. The
           arguments bremer, jackknife, and bootstrap specify which type of
           support tree to report. bremer accepts an optional string argument
@@ -1372,7 +1389,7 @@ report :
           memory, for each one, the support values for each tree are
           reported. consensus generates a ``consensus'' tree, with the clades
           that have support higher than 50 percent. The default behavior,
-          when no individual or consensus value is provided, is individual 
+          when no individual or consensus value is provided, is individual. 
         
           trees : (argument list) 
           Outputs the trees in memory in parenthetical notation. The argument
@@ -1383,15 +1400,15 @@ report :
             
               total 
               Includes the total cost of a tree in square brackets after each
-              tree 
+              tree. 
             
               _cost
-              Include the cost of every subtree in the tree in square
-              brackets. 
+              Include the cost in square brackets for every subtree in the
+              tree. 
             
               hennig 
               Prepends the tread command to the list of trees and separates
-              them with a star; this format is suitable for hennig86, NONA,
+              them with a star; this format is suitable for Hennig86, NONA,
               and TNT files. 
             
               newick 
@@ -1408,15 +1425,21 @@ report :
             
               collapse [: BOOL ]
               If true , zero length branches are collapsed (the default ),
-              but if false then no branches are collapsed. 
+              but if false --no branches are collapsed. 
             
       
       Implied alignments 
-        This set of arguments will output implied alignment  .
+        This set of arguments outputs implied alignments  .
         
-          implied_alignments [: STRING ]
+          fasta : identifiers 
+          The same as implied_alignments(see help (implied_alignments)) but
+          no additional headers are added, producing a valid FASTA file.
+          Intended for easy automation, by producing a file that other
+          programs can read immediately. 
+        
+          implied_alignments [: identifiers ]
           Outputs the implied alignments of the specified set of characters
-          in FASTA format. The (optional) value of the argument specifies the
+          in FASTA format. The optional value of the argument specifies the
           characters included in the output, using the same identifiers
           described for the character specification in the entry for the
           command  select(see help (select)) . If no characters are
@@ -1426,7 +1449,7 @@ report :
           command name and separated from it by a comma. This argument is
           synonymous with the argument ia. 
         
-          ia [: STRING ]
+          ia [: identifiers ]
           Synonym of implied_alignments. 
         
       
@@ -1459,7 +1482,9 @@ report :
         
           diagnosis 
           Outputs the diagnosis of each tree on screen or redirects it to a
-          file, if specified. 
+          file, if specified. If the extension . xml is appended to the name
+          of the output file, the diagnosis is reported in XML format, rather
+          than in simple text format. 
         
       
       Other arguments 
@@ -1489,7 +1514,7 @@ report :
         
           script_analysis : STRING 
           Reports the order in which commands listed of the imported script
-          (listed in the string argument) are going to be executed. Unlike
+          (specified by the string argument) are going to be executed. Unlike
           executing commands sequentially (when entering commands
           interactively through the Interactive Console of the ncurses
           interface or the flat interface ), when commands are submitted in a
@@ -1500,10 +1525,10 @@ report :
           colored output in the POY Output window of ncurses interface
           facilitates reading the output of script_analysis : red lines mark
           hard constraints that allow neither parallelization nor memory
-          optimizations, blue lines mark nice constraints that allow the
-          program to pipeline commands in parallel, and green lines mark
-          fully parallelizable commands. When POY is compiled with parallel
-          off, all the operations are sequential, therefore, each potentially
+          optimizations, blue lines mark constraints that allow the program
+          to pipeline commands in parallel, and green lines mark fully
+          parallelizable commands. When POY is compiled with parallel off,
+          all the operations are sequential, therefore, each potentially
           parallel operation is done as sequential repetitions of the
           subscripts described in the output of the command, reducing memory
           consumption. 
@@ -1518,10 +1543,19 @@ report :
           monitoring the execution time of specific tasks. 
         
           xslt : (STRING, STRING) 
-          Applies a user-defined stylesheet to the xml output. The first
+          Applies a user-defined xslt stylesheet to the XML output. The first
           string is the filename of the output, the second string is the name
           of the stylesheet requested to generate it. 
-        
+        Extensible Stylesheet Language Transformations (XSLT) stylesheets are
+        used for the transformation of XML output into other XML or
+        human-readable documents. Thus, the original XML output of POY is not
+        changed but a new document is created based on its content. Because
+        XML output contains all the information regarding data and trees,
+        using XSLT stylesheets greatly expand the capabilities of POY to use
+        and display this information. Examples of potential applications
+        includes graphical display of trees with proportional branch lengths,
+        integration of tree topologies with geographical coordinate data for
+        spatial mapping, and generating input files for other programs. 
       
     
     
@@ -1591,27 +1625,27 @@ report :
         in postscript format. 
       
       report ("hennig. ss", phastwinclad, trees: (hennig, total )) 
-        Output all the static homology characters, including their cost
-        regime, in the file hennig. ss ; then append to the same file the
-        trees currently in memory using the Hennig format, including the
-        total cost of each tree in square brackets. The generated
+        This command outputs all the static homology characters, including
+        their cost regime, in the file hennig. ss ; then append to the same
+        file the trees currently in memory using the Hennig format, including
+        the total cost of each tree in square brackets. The generated
         hennig. ss is compatible with NONA, TNT, and Hennig86. 
       
       report ("my_results" , data, diagnosis, consensus, consensus:75,
       "consensus", graphconsensus) 
-        This commands reports the requested types of outputs (emph i. e.
-        reports on the data, diagnosis, and strict consensus and 75 percent
+        This command reports the requested types of outputs (i. e. reports on
+        the data, diagnosis, and strict consensus and 75 percent
         majority-rule consensus trees in parenthetical notation) to the file
         my_results. In also outputs a strict consensus tree to the file
         consensus. 
       
       report (graphsupports, "bremertree", graphsupports:bremer) 
-        This commands reports on screen all previously calculated support
+        This command reports on screen all previously calculated support
         values placed at the nodes of ascii trees and outputs to file the
         bremertree only the tree (s) with bremer support values. 
       
       report (implied_alignments ) 
-        This command reports the implied alignment of all dynamic homology
+        This command reports the implied alignments for all dynamic homology
         characters on screen. 
       
       report ("align_file" , ia:names: ("SSU", "LSU" )) 
@@ -1633,6 +1667,10 @@ report :
         swap end followed by the number of seconds (in decimals) elapsed
         since the execution of the previous timer argument. 
       
+      report ("new_tree _diagnosis. xml", diagnosis) 
+        This command reports the diagnosis to the new_tree_diagnosis . xml
+        file in XML format. 
+      
       
     
     See Also
@@ -1651,7 +1689,7 @@ run :
       listed in the string argument. Executing scripts using run is useful in
       cases when operations take take long time or many scripts need to be
       executed automatically, for example, when conducting sensitivity
-      analysis. There are no default settings of run . 
+      analysis . There are no default settings of run . 
     
     Note that if any of the scripts contain commands exit or quit , POY will
     quit after executing that file. Therefore, if multiple files are
@@ -1679,7 +1717,8 @@ save :
       Saves the current POY state to a file (POY file ). The first,
       obligatory string argument specified the name of the POY file. The
       second, optional string argument specifies a string included in the POY
-      file. POY files are not intended for permanent storage: they are
+      file, that can be retrieved using the command inspect(see help
+      (inspect)) . POY files are not intended for permanent storage: they are
       recommended for temporary storing of a POY session by a user,
       checkpointing the current state of a search to avoid loss work in case
       the computer or the program itself fails, or to report bugs. POY will
@@ -1696,11 +1735,11 @@ save :
       save ("alldata. poy", "My total evidence data") 
         This command performs the same operation as described in the example
         above, but, in addition, it includes the string My total evidence
-        data to the file alldata. poy, which can later be retrieved using the
-        command inspect(see help (inspect)) . 
+        data with the file alldata. poy, which can later be retrieved using
+        the command inspect(see help (inspect)) . 
       
       save ("/Users/andres/test/alldata. poy", "My total evidence data") 
-        This command performs the same operation is the command described
+        This command performs the same operation as the command described
         above with the important difference that the file alldata. poy
         generated in the directory /Users/andres/test/ instead of the current
         working directory. 
@@ -1717,7 +1756,7 @@ search :
   
     Description
       
-      The command search implements a default strategy for a driven search.
+      The command search implements a default strategy for a thorough search.
       The command integrates build , transform , and swap commands for an
       efficient initial search. Tree building and swapping are executed under
       default settings; the transform provides an option of making sequential
@@ -1737,7 +1776,7 @@ search :
         Specifies either to build new trees (boolean value true) or to use
         the trees stored in memory (that is do not build new trees; boolean
         value false ). The default for build is false. Therefore, executing
-        search under default settings will produce no result if there are no
+        search under default settings produces no result if there are no
         trees in memory. 
       
         transform [: BOOL ]
@@ -1763,18 +1802,18 @@ search :
       
       search (build:true, transform:false) 
         This command builds 10 Wagner trees by random addition sequence (the
-        default of build ), performs alternating SPR and TBR branch swapping
-        and keeping one tree per swap (the default of swap ), and does not
-        transform characters. Because the default of the argument
+        default of build ), performs alternating SPR and TBR branch swapping,
+        and keeps one tree per swap (the default of swap ). No characters are
+        transformed during the search. Because the default of the argument
         transform is false, it can be omitted from the list of argument.
         Therefore this command is equivalent to search (build:true) . Note
-        that if currently there are trees in memory, the new trees generated
-        by search will replace them. 
+        that if there are trees in memory, the new trees generated by
+        search replace them. 
       
       search (transform:true) 
         This command performs branch swapping on the existing trees in memory
-        under default parameters of swap as shown in the examples above. The
-        searches are performed on characters transformed using sequential
+        under default parameters of swap , as shown in the examples above.
+        The searches are performed on characters transformed using sequential
         application of transform arguments auto_sequence_partition and
         auto_static_approx to speed up the swapping procedure. 
       
@@ -1790,7 +1829,7 @@ select :
   
     Description
       
-      Specifies a subset of terminals, characters, and/or trees from those
+      Specifies a subset of terminals, characters, and trees from those
       currently loaded in memory to use in subsequent analysis. 
     
     
@@ -1798,24 +1837,23 @@ select :
       
       
       Select terminals and characters 
-        Specifies terminals and/or characters to be used in subsequent
-        analysis. The selection is based on terminal and character names and
-        the naming conventions are shared between both classes. The arguments
-        in this group specify whether terminals or characters are being
-        selected. Identifiers are used to specify which specific characters
-        or terminals are being selected, either by listing their names or
-        importing a file containing a list of terminals or characters (see
-        the Character and terminal identifiers argument group below for the
-        description of methods for selecting specific terminals or characters
-        ). By default, POY assumes that the specification refers to
-        terminals. For example, to analyze only those terminals listed in the
-        file opiliones using the character data currently loaded in memory,
-        use the command 
+        Specifies terminals and characters to use in subsequent analysis. The
+        selection is based on terminal and character names, and the naming
+        conventions are shared between both classes. The arguments in this
+        group specify whether terminals or characters are being selected.
+        Identifiers are used to specify which characters or terminals are
+        being selected, either by listing their names or importing a file
+        containing a list of terminals or characters (see the Character and
+        terminal identifiers argument group below for the description of
+        methods for selecting specific terminals or characters ). By default,
+        POY assumes that the specification refers to terminals. For example,
+        to analyze only those terminals listed in the file opiliones using
+        the character data currently loaded in memory, use the command 
          select (files: ("opiliones" )) . This command is equivalent to 
          select (terminals, files: ("opiliones" )) . When the command is
         executed, the list of selected terminals is printed on screen.
         terminals is only valid as an argument of commands select and
-        rename . 
+        rename(see help (rename)) . 
         Note that once specific terminals and/or characters are selected, the
         excluded data cannot be restored. To be able to reconstitute the
         original data set or to experiment with various character and
@@ -1823,12 +1861,12 @@ select :
         use(see help (use)) . 
         
           terminals 
-          Specifies that subsequently listed identifier (s) refer to
-          terminals to be selected. 
+          Specifies that subsequently listed identifiers refer to terminals
+          to be selected. 
         
           characters 
-          Specifies that subsequently listed identifier (s) refer to
-          characters to be selected. 
+          Specifies that subsequently listed identifiers refer to characters
+          to be selected. 
         
           STRING 
           Selects terminals listed in the file specified by string argument. 
@@ -1856,14 +1894,14 @@ select :
         
           missing : INTEGER 
           Selects terminals or characters to be included in the analysis
-          based on the level of missing data. The integer value sets the
+          based on the proportion of missing data. The integer value sets the
           minimum percentage of missing data. Terminals or characters that
           have more missing data than defined by the value are included in
           the analysis. 
         
           not_missing : INTEGER 
           Selects terminals or characters to be included from the analysis
-          based on the relative of missing data. The integer value sets the
+          based on the proportion of missing data. The integer value sets the
           minimum percentage of missing data. Terminals or characters that
           have less missing data than defined by the value are included in
           the analysis. In effect, this selects a complement of data to the
@@ -1872,8 +1910,8 @@ select :
         fragments, whereas for static characters it refers to individual
         nucleotide positions. Therefore, when excluding terminals with
         missing data, the resulting set of selected terminals depends on the
-        character type might, or might not, be identical. For example, if a
-        data file (containing sequences corresponding to a single fragment)
+        character type and might, or might not, be identical. For example, if
+        a data file (containing sequences corresponding to a single fragment)
         includes a very short sequence, this sequence is not treated as
         missing data regardless of its length. This is because in the context
         of dynamic homology a fragment, rather than an individual nucleotide
@@ -1906,11 +1944,10 @@ select :
           best : INTEGER 
           Selects the number of best trees specified by the integer value.
           Best trees are not equivalent to optimal trees because best trees
-          can include suboptimal trees within in case the value of best
-          exceeds the number of optimal (minimal-cost) trees. If the number
-          of optimal trees exceeds the value of best, only a subset of
-          optimal trees (equal to the value of best is selected in
-          unspecified order ). 
+          can include suboptimal trees in case the value of best exceeds the
+          number of optimal (minimal-cost) trees. If the number of optimal
+          trees exceeds the value of best, only a subset of optimal trees
+          (equal to the value of best is selected in unspecified order ). 
         There is no special command in POY to clear trees from memory.
         However, selecting zero best trees using the command
         select (best:0) effectively removes all trees currently stored in
@@ -1943,13 +1980,13 @@ select :
       
       select (terminals, names: ("t1", "t2", "t3", "t4", "t5" ), 
        characters, names: ("chel. aln:0" )) 
-        This commands selects only on terminals t1, t2, t3, t4, and t5 and
-        use data only from the fragment 0 contained in the file chel. aln. 
+        This command selects only terminals t1, t2, t3, t4, and t5 and use
+        data only from the fragment 0 contained in the file chel. aln. 
       
       select (terminals, missing:50) 
-        This commands excludes from subsequent analysis all the terminals
-        that have more than 50 percent of characters missing. The lists of
-        included and excluded terminals is automatically reported on screen. 
+        This command excludes from subsequent analysis all the terminals that
+        have more than 50 percent of characters missing. The list of included
+        and excluded terminals is automatically reported on screen. 
       
       select (optimal) 
         Selects all optimal (best cost) trees and discards suboptimal trees
@@ -1999,43 +2036,44 @@ set :
           string argument. The output includes the information in the POY
           Output, Interactive Console, and State of Stored Search windows of
           ncurses interface. Timers and current state of the search are not
-          included in the log. If the file already exists, POY will append
-          the text to it; if the file does not exist, then POY creates a new
-          file. If the user would like to delete the contents of a
-          preexisting file, then the argument log:new:"logfile" creates a new
-          initially empty file named logfile. 
+          included in the log. If the log file already exists, POY will
+          append the text to it; if the log file does not exist, then POY
+          creates a new file. If the user would like to delete the contents
+          of a pre-existing file, then the argument log:new:"logfile" creates
+          a new initially empty file named logfile. 
         
           nolog 
-          Stops outputting the log to any previously selected file. See log. 
+          Stops outputting the log to any previously selected file. See the
+          description of the argument log above. 
         
           root : LIDENT 
-          Specifies the terminal with with the the output trees are rooted.
-          The terminal can either be indicated as a taxon name (a STRING,
-          which must appear in quotes, such as "Genus_species") or the code,
-          that is automatically assigned to the taxon by POY at the beginning
-          of each POY session (for example, set (root:45) . The codes can be
-          obtained using the command report (data) ). The terminal codes,
-          however, are unique only within a current session. 
+          Specifies the terminal to root output trees. The terminal can
+          either be indicated as a taxon name (a STRING, which must appear in
+          quotes, such as "Genus_species") or the code, that is automatically
+          assigned to the taxon by POY at the beginning of each POY session
+          (for example, set (root:45) . The codes can be obtained using the
+          command report (data) ). The terminal codes, however, are unique
+          only within a current session. 
         
       
-      Cost Calculation 
+      Cost calculation 
         Intensity of the tree cost estimation routines. All these arguments
-        are mutually exclusive: only the last to appear in a set command will
-        be used.
+        are mutually exclusive: only the argument of set specified last is
+        used.
         
           normal_do 
           Applies a standard Direct Optimization algorithm for the tree cost
           estimation. This is the default and fastest technique. 
         
           exhaustive_do 
-          Applies a starndard Direct Optimization algorithm for the tree cost
+          Applies a standard Direct Optimization algorithm for the tree cost
           estimation. The difference with normal_do is that the calculation
-          of the tree costs during a search are much more intense, always
+          of the tree costs during a search is much more intense, always
           looking for the best possible alignment for every single topology
           (instead of a lazy and greedy strategy used by the normal_do ). 
         
           iterative 
-          Applies the iterative pass optimization in the tree cost
+          Applies the Iterative Pass optimization for the tree cost
           calculations. This improves the tree cost estimation but at the
           expense of a tremendous execution time. Use at the very end to
           polish the final set of trees and perform a final search. 
@@ -2043,19 +2081,18 @@ set :
         optimization, there is no guarantee that the tree cost recovered from
         the search would be exactly the same as produced by the diagnosis of
         the same tree. However, the cost of the tree found during the search
-        can be verified by outputting the medians from the diagnosis
-        (diagnosis(see help (diagnosis)) ) (see and determining edge costs by
-        hand. The cost of the tree found during the search might differ from
-        that obtained by the rediagnosing the same tree (see rediagnose(see
-        help (rediagnose)) ), but will recover the same tree costs in
-        subsequent rediagnoses. cost. 
+        can be verified by outputting the medians from the diagnosis (see the
+        description of the argument diagnosis(see help (diagnosis)) ) of the
+        command report and determining edge costs by hand. The cost of the
+        tree found during the search might differ from that obtained by the
+        rediagnosing the same tree (see rediagnose(see help (rediagnose)) ),
+        but will recover the same tree cost in subsequent rediagnoses. 
       
       Randomized routines 
         
           seed : INTEGER 
-          Sets the seed of the random number generator to the argument's
-          value. If unspecified, POY uses the system's time as seed. It is
-          reported when the program starts. 
+          Sets the seed for the random number generator using the integer
+          value. If unspecified, POY uses the system's time as seed. 
         It is critical to set a seed value to insure reproducibility of the
         results of the analyses that require randomization routines (such as
         tree building ). 
@@ -2064,20 +2101,22 @@ set :
     
     Defaults
       
-      
-      If no argument are given, the command does nothing. 
+      history:1000, normal_do 
+      Under default settings the size of the history buffer is limited to 1,
+      000 lines, the Direct Optimization is used for tree cost calculation,
+      and the current time is used to specify the seed. 
     
     Examples
       
       set (history:1500, seed:45, log:"mylog. txt") 
         This command increases the size of the history in the ncurses
-        interface to 1500 lines, sets the random number generator to 45, and
-        initiates a log file mylog. txt, located in the current working
-        directory, as printed by the command pwd () . 
+        interface to 1, 500 lines, sets the random number generator to 45,
+        and initiates a log file mylog. txt, located in the current working
+        directory. 
       
       set (root:"Mytilus_edulis" ) 
-        This commands selects terminal Mytilus_edulis as a root for output
-        trees. 
+        This commands selects terminal Mytilus_edulis as a root for the
+        output trees. 
       
       
     
@@ -2137,8 +2176,8 @@ swap :
       systematics and as hill climbing in combinatorial optimization. They
       proceed by clipping parts of a given tree and attaching them in
       different positions of the same tree. It can be used to perform a local
-      search in the set of trees loaded in memory. Swapping is performed on
-      all trees in memory. During search, swap collects information about the
+      search on a set of trees loaded in memory. Swapping is performed on all
+      trees in memory. During a search, swap collects information about the
       visited trees and perform various kinds of checkpoints to reduce
       information loss in case if POY crashes. swap is also used as an
       argument for other commands to specify a local search strategy in other
@@ -2167,7 +2206,7 @@ swap :
           This argument performs spr swapping, starting from the current
           trees in memory and subsequently repeating the SPR procedure until
           a local optimum is found. If the optional value once is specified,
-          spr will stop once the first tree with better cost is found. 
+          spr stops once the first tree with better cost is found. 
         
           tbr [: once ]
           This argument performs tbr swapping, starting from the current
@@ -2182,24 +2221,24 @@ swap :
         
           around 
           Similar to current_neighborhood, this argument changes the
-          trajectory of a search, by completely exploring the neighborhood of
-          the current tree in memory, and choosing the best swap position
-          among in this neighborhood first before continuing. The default in
-          POY is to choose the first one available that shows a better cost
-          than the current best. 
+          trajectory of a search by completely exploring the neighborhood of
+          the current tree in memory and choosing the best swap position in
+          its neighborhood first before continuing. The default in POY is to
+          choose the first one available that shows a better cost than the
+          current best cost. 
         
           annealing : (FLOAT, FLOAT) 
           Uses simmulated annealing  . If the argument's value is $ (a, b) $,
           POY accepts a tree with cost $c$ when the best known tree has cost
-          $d$ with probability $ $, where $t = a $, and $i$ is the number of
+          $d$ with probability $ $, where $t = a $ and $i$ is the number of
           tree evaluated in the local search. 
         
           drifting : (FLOAT, FLOAT) 
           Uses POY drifting function  . If the argument's value is $ (a, b)
           $, then POY always accepts a tree with better cost than the current
-          best, with probability $a$ a tree with equal cost, and with
+          best cost, with probability $a$ a tree with equal cost, and with
           probability $1 / b + d$ a tree with cost $d$ greater than the
-          current best. 
+          current best cost. 
         
       
       Branch break order 
@@ -2207,7 +2246,7 @@ swap :
         is performed (see Neighborhood group of arguments ), the precise
         choice of which branches should be broken first can affect both the
         speed and the local optimum found by the program. The following
-        commands select among the different strategies available in POY.
+        arguments select among the different strategies available in POY.
         
           once 
           Breaks each edge only once during a local search; that is, if a
@@ -2218,7 +2257,7 @@ swap :
           Chooses edges uniformly at random for breakages. 
         
           distance 
-          Gives higher priority to those edges with biggest length. 
+          Gives higher priority to those edges with the greatest length. 
         
       
       Join method 
@@ -2227,17 +2266,16 @@ swap :
         
           constraint [: INTEGER | (depth: INTEGER, file: STRING) ]
           The constraint argument for the swap command sets constraints on
-          the join locations during the search using an input tree using both
-          a tree and an optional maximum distance from the break branch. Only
-          sets defined either in the input file, or in the strict consensus
-          of the files in memory will be attempted to produce during
-          swapping. An integer value of depth specifies the maximum distance
-          from the break branch to attempt joins. A string value of file
-          specifies an input file containing a singe tree that defines
-          topological constraints. Under default settings, constraint will
-          use a consensus tree from the files in memory and perform swapping
-          with the value of depth set to 0 (no maximum distance is specified
-          ). 
+          the join locations during the search using both a tree and an
+          optional maximum distance from the break branch. Only sets defined
+          either in the input file, or in the strict consensus of the files
+          in memory to consider during swapping. An integer value of depth
+          specifies the maximum distance from the break branch to attempt
+          joins. The string value for file specifies an input file containing
+          a singe tree that defines topological constraints. Under default
+          settings, constraint will use a consensus tree from the files in
+          memory and perform swapping with the value of depth set to 0 (no
+          maximum distance is specified ). 
         
           all [: INTEGER ]
           Turn off all preference strategies to make a join, simply try all
@@ -2268,11 +2306,11 @@ swap :
         the state of a search (in an unlikely crash ), or to examine the
         characteristics of the alignments. The difference from the
         swap arguments is that the user can choose any combination of
-        trajectory samples, and they will all can be used during the search.
-        None of the trajectory samples is used by default.
+        trajectory samples, and that can be used during the search. None of
+        the trajectory samples is used by default.
         
           recover 
-          Stores the current best tree in memory that can be recovered it
+          Stores the current best tree in memory that can be recovered in
           case of failure. If it is necessary to recover such trees after an
           aborted command, use the command  recover(see help (recover)) . If
           the program terminates normally, the stored trees are exactly those
@@ -2280,11 +2318,11 @@ swap :
           twice as much memory compared to swapping without it. 
         
           timeout : INTEGER 
-          Specifies the number of seconds after which branch swapping isl
+          Specifies the number of seconds after which branch swapping is
           stopped. Use this argument in association with recover to keep the
           best trees found up to n seconds after starting the search. 
         
-          timedprint : (INTEGER, STRING) 
+          timedprint : INTEGER, STRING 
           timedprint: (n, "trees. txt") will print the current best tree in
           memory to the file trees. txt, at least every n seconds. However,
           POY typically underestimates the amount of time and, therefore, the
@@ -2472,6 +2510,10 @@ transform :
           according to the specified transformation cost matrix. All other
           cost parameters are ignored (including affine gap costs ). 
         
+          sequence_partition : INTEGER 
+          Partition the sequences in the argument's value number of
+          fragments. 
+        
           static_approx [: LIDENT ]
           Transforms the sequences to the static homology characters
           corresponding to their implied alignments and their transformation
@@ -2569,35 +2611,22 @@ transform :
           Transforms breakinv character type into custom_alphabet character
           type. This transformation prevents the use of rearrangement
           operations. 
-        
-          seq_to _breakinv: ([ argument list ]) 
-          Transforms custom_alphabet character type into breakinv character
-          type to allow for rearrangement operations (translocations and
-          inversions; duplications are not currently supported ). This
-          argument is useful, for example, when custom_alphabet characters
-          are used to define a sequence of individual genes and once is
-          interested in detecting potential change in their order on a
-          chromosome. See the command  read(see help (read)) for the
-          description on how to load a custom alphabet and breakinv character
-          types. The optional list of arguments includes the arguments of the
-          dynamic_pam that can also be specified subsequently, as a separate
-          step, using the argument dynamic_pam. 
-        
-          seq_to _chrom: ([ argument list ]) 
-          Transforms nucleotide type data into 
-           chromosome type data to allow rearrangements, inversions, and
-          locus-level indel operations. The chromosome-specific options (e.
-          g. breakpoint, locus--insertion, and locus-deletion costs) can be
-          specified by the argument dynamic_pam. If no dynamic_pam values are
-          specified, its default values are applied. The optional list of
-          arguments includes the arguments of the dynamic_pam that can also
-          be specified subsequently, as a separate step, using the argument
-          dynamic_pam. 
+        This argument is useful, for example, when custom_alphabet characters
+        are used to define a sequence of individual genes and one is
+        interested in detecting potential change in their order on a
+        chromosome. See the command  read(see help (read)) for the
+        description on how to load custom alphabet and breakinv character
+        types. The optional list of arguments includes the arguments of the
+        dynamic_pam that can also be specified subsequently, as a separate
+        step. The chromosome-specific options (e. g. breakpoint,
+        locus--insertion, and locus-deletion costs) can be specified by the
+        argument dynamic_pam. If no dynamic_pam values are specified, its
+        default values are applied.
         
           dynamic_pam : ([ argument list ]) 
           Specifies parameters for creating chromosome- and genome-level HTUs
-          (medians ). The argument values of dynamic_pam specify the method
-          if calculating distance between pairs of chromosomes (inversion and
+          (medians ). The arguments of dynamic_pam specify the method of
+          calculating distance between pairs of chromosomes (inversion and
           breakpoint ), costs of locus-level events (inversion, breakpoint,
           locus_indel ), take into account whether the chromosome is linear
           or circular (circular ), and implement a number of heuristic
@@ -2651,8 +2680,8 @@ transform :
             analysis of multiple chromosomes. The integer value sets gap
             opening cost ($o$ ), whereas the float value sets gap extension
             cost ($e$ ). The indel cost for a fragment of length $l$ is
-            specified by the following formula: $o + (l-1) e$. The default
-            values are $o=10, e=1. 0$. 
+            specified by the following formula: $o + l e$. The default values
+            are $o=10, e=1. 0$. 
           
             inversion : INTEGER 
             Calculates the inversion distance  between two chromosomes given
@@ -2663,10 +2692,11 @@ transform :
           
             locus_indel : (INTEGER, FLOAT) 
             Specifies the cost for insertion/deletion of a chromosome
-            segment. The integer value sets gap opening cost ($o$ ), whereas
-            the float value sets gap extension cost ($e$ ). The indel cost
-            for a fragment of length $l$ is specified by the following
-            formula: $o + (l-1) e$. The default values are $o=10, e=1. 0$. 
+            segment. The integer value sets the gap opening cost ($o$ ),
+            whereas the float value sets the gap extension cost ($e$ ). The
+            indel cost for a fragment of length $l$ is specified by the
+            following formula: $o + l e$. The default values are $o=10, e=1.
+            0$. 
           
             median : INTEGER 
             Specifies the number alternative locus- and chromosome-level
@@ -2705,11 +2735,11 @@ transform :
             is 100. 
           
             rearranged_len : INTEGER 
-            Two seeds are said to be non-rearranged, if their distance is not
-            greater than a predefined threshold $rearranged_len$ . In other
-            words, it is unlikely that rearrangement operations can occur
-            between two non-rearranged seeds if they are connected. The
-            default value is 100 
+            Two seeds are said to be non-rearranged, if their distance is
+            less than the predefined threshold value set for $rearranged_len$
+            . In other words, it is unlikely that rearrangement operations
+            can occur between two non-rearranged seeds if they are connected.
+            The default value is 100 
           
             swap_med : INTEGER 
             Specifies the maximum number of swapping iterations to search for
@@ -2816,12 +2846,12 @@ use :
     Description
       
       Restores from memory the state of a POY session (that includes
-      character data, selections, trees, and all other data and
-      specifications) that had previously been saved during the session using
-      the command  . The recalled session replaces the current session. The
-      string argument specifies the name of the stored state. In combination
-      with  , the command use is very useful for exploring alternative cost
-      regimes and terminal sets within a single POY session. 
+      character data, selections, trees, all other data and specifications)
+      that had previously been saved during the session using the command  .
+      The recalled session replaces the current session. The string argument
+      specifies the name of the stored state. In combination with  , the
+      command use is very useful for exploring alternative cost regimes and
+      terminal sets within a single POY session. 
     
     Examples
       
@@ -2880,28 +2910,28 @@ build :
   
     Description
       
-      Builds Wagner trees  . The arguments of the command build specify the
-      number of trees to be generated and the order in which terminals are
-      added during a singe tree building procedure. The sequence of taxon
-      addition can either be random or correspond to the order of terminals
-      as they are listed in the first imported datafile. During tree
-      building, POY reports in the Current Job window of the ncurses
-      interface which of the terminal addition strategies is currently used.
-      Building multiple trees with a randomized addition of terminals allows
-      for the evaluation of many more possible tree topologies and generates
-      a diversity of trees for subsequent analysis. By default POY replaces
-      the trees stored in memory with those generated in a subsequent build.
-      For example, executing build (10) followed by build (20) will replace
+      Builds Wagner trees  . Building multiple trees with a randomized
+      addition of terminals allows for the evaluation of many more possible
+      tree topologies and generates a diversity of trees for subsequent
+      analysis. The arguments of the command build specify the number of
+      trees to be generated and the order in which terminals are added during
+      a singe tree building procedure. During tree building, POY reports in
+      the Current Job window of the ncurses interface which of the terminal
+      addition strategies is currently used. By default POY replaces the
+      trees stored in memory with those generated in a subsequent build. For
+      example, executing build (10) followed by build (20) will replace the
       10 trees generated during the first build with 20 new trees. However,
       it might be desirable (for example, if computer memory were limited) to
       generate a large number of trees by appending trees from multiple
       separate builds. To keep trees from consecutive builds, a tree output
-      file must be specified using  report(see help (report)) that must
-      precede the subsequent build command. This will produce a file
-      containing the trees appended from all builds. Alternatively, trees
-      from different builds can be redirected to separate files if different
-      file names are specified. The command build is also used as an argument
-      for the command calculate_support . 
+      file must be specified using the command  report(see help (report))
+      that must precede the build command. This will produce a file
+      containing the trees appended from all builds. If the same file name is
+      used for reporting trees for other analysis, the new trees are going to
+      be appended. Alternatively, trees from different builds can be
+      redirected to separate files if different file names are specified. The
+      command build is also used as an argument for the command
+      calculate_support . 
     
     
     Arguments
@@ -2913,36 +2943,35 @@ build :
         datafile, and all others are built using a random addition sequence. 
       
         branch_and _bound[: FLOAT ]
-        Calculates the exact solution using the branch and bound algorithm  .
+        Calculates the exact solution using the Branch and Bound algorithm  .
         By default only one optimal tree is kept but the number of optimal
         trees to be retained can be specified by the argument trees. The
         optional float value specifies the bound (either tree cost or
-        likelihood score. Instead of building a tree the default heuristic
-        method, 
+        likelihood score ). 
       
         constraint [: STRING ]
-        Builds trees using the set of constraints contained in the input
-        file. If no input file is provided, the constraint is calculated as
-        the strict consensus of the trees held in memory. Every tree built
-        using this method is subjected to the same randomization as wagner
-        builds within each constraint. 
+        Builds trees using the set of constraints specified by the consensus
+        tree input file. If no input file is provided, the constraint is
+        calculated as the strict consensus of the trees in memory. Every tree
+        built using this method is subjected to the same randomization as
+        wagner builds within each constraint. 
       
         random 
-        Generate a tree at random. All possible trees have equal probability. 
+        Generates a tree at random. All possible trees have equal
+        probability. 
       
         randomized 
         Indicates that terminals are added in random order on every Wagner
-        tree built. 
+        tree built. This is a default tree-building strategy. 
       
         trees : INTEGER 
         The integer value specifies the number of independent, individual
         Wagner tree builds. The label trees is optional: it is sufficient to
-        specify only the integer without the trees label. Therefore,
-        build (5) is equivalent to build (trees:5) . Note that trees is also
-        used as an argument of the command  swap(see help (swap)) but with
-        different meaning. The value 0 generates no trees, but, unlike other
-        values, it retains all trees in memory instead of eliminating them.
-        This is useful, for example, in the bremer(see help (bremer)) support
+        specify only the integer value. Therefore, build (5) is equivalent to
+        build (trees:5) . Note that trees is also used as an argument of the
+        command  swap(see help (swap)) but with different meaning. The value
+        0 generates no trees but it retains all trees in memory. This is
+        useful, for example, in the bremer(see help (bremer)) support
         calculation, where instead of generating new trees per each node, the
         searches are performed on the trees in the neighborhood of the
         current trees in memory. 
@@ -2961,8 +2990,8 @@ build :
         This is a shortcut of the argument of_file. 
       
         all 
-        Turns off all preference strategies to make a join, simply try all
-        possible join positions for all terminals added. 
+        Turns off all preference strategies for adding branches and simply
+        tries all possible addition positions for all terminals. 
       
     
     
@@ -2976,22 +3005,23 @@ build :
       
       build (20) 
         Builds 20 Wagner trees randomizing the order of terminal addition
-        (note that since random is the default, it is not written ). 
+        (note that because the argument random is specified by default, it
+        can be omitted ). 
       
       build (trees:20, randomized) 
         A more verbose version of the previous example. By default a build is
         randomized, but in this case the addition sequence is explicitly set.
-        For the total number of trees, instead of simply specifying 20, we
-        use the label trees (this might be desirable to improve a script's
-        readability ). 
+        For the total number of trees, rather than simply specifying 20, the
+        label trees is used. The verbose version might be desirable to
+        improve the readability of the script. 
       
       build (15, as_is ) 
-        Builds the first Wagner tree using tree using the order of terminals
-        in as they are listed in the first imported datafile and generates
-        the remaining 14 trees using a random addition sequence. 
+        Builds the first Wagner tree using the order of terminals in the
+        first imported datafile and generates the remaining 14 trees using
+        random addition sequences. 
       
       build (branch_and _bound, trees:5) 
-        Builds trees using branch_and _boundmethod and keeps up to 5 optimal
+        Builds trees using branch and bound method and keeps up to 5 optimal
         trees in memory. 
       
       
@@ -3005,19 +3035,19 @@ fuse :
   
     Description
       
-      Performs Tree Fusing on the trees in memory. Tree Fusing is a genetic
-      algorithm technique that allows the escaping the local optimum by
+      Performs Tree Fusing  on the trees in memory. Tree Fusing is a genetic
+      algorithm technique for avoiding being trapped at a local optimum by
       exchanging clades with identical composition of terminals between pairs
       of trees. Only one pair of trees is evaluated during a single
-      iteration. The size of the clades being exchanged is not determined. 
+      iteration. The size of the clades being exchanged is not specified. 
     
     
     Arguments
       
       
         keep : INTEGER 
-        Specifies the maximum number of trees to be kept between iterations.
-        By default, the number of trees retained is the same as the number of
+        Specifies the maximum number of trees to keep between iterations. By
+        default, the number of trees retained is the same as the number of
         starting trees. 
       
         iterations : INTEGER 
@@ -3037,7 +3067,7 @@ fuse :
         swap 
         Specifies tree swapping strategy to follow each iteration of tree
         fusing. No swapping is performed under default settings. See the
-        command  swap(see help (swap)) . 
+        description of the command  swap(see help (swap)) . 
       
     
     
@@ -3066,7 +3096,7 @@ fuse :
         This command performs tree fusing with modified settings for swapping
         that follows each iteration. Once a given iteration is completed, a
         consensus tree of the files in memory is computed and used as
-        constraint file for subsequent swapping (see the argument
+        constraint file for subsequent rounds of swapping (see the argument
         constraint(see help (constraint)) of the command swap ). 
       
       

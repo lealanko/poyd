@@ -1,5 +1,6 @@
 (* Running 'swap' with 'alternate' under 'bfs' *)
 read ("FILENAME1", "FILENAME2", aminoacids:("FILENAME3"))
 set(seed:1)
+select (terminals, _random:50)
 build (2)
 swap(bfs:8, alternate, timeout:300)

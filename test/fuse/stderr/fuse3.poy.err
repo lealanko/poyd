@@ -1,1 +1,14 @@
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Reading file 2.fas.1.tree of type Tree@ List
+
+Information : The file 2.fas.1.tree contains 1 trees.
+Status : Loading terminals Finished
+Status : Loading Trees : 1 of 1 -- 
+Error : Could not find data loaded for taxon Pauroctonus in a loaded tree.
 FAILED
+Fatal error: exception Not_found

@@ -92,9 +92,10 @@ let move_temp_to_report () =
     in
     ()
 
-let default_stderr = "tmp_line.err"
-let default_stdout = "tmp_line.out"
-let default_report = "test.xml"
+let pid = string_of_int (Unix.getpid ())
+let default_stderr = "tmp_line" ^ pid ^ ".err"
+let default_stdout = "tmp_line" ^ pid ^ ".out"
+let default_report = "test" ^ pid ^ ".xml"
 
 let append_all_output filename_fixer command =
     let append_output command (filename, redirector, default) =
@@ -157,6 +158,10 @@ let rec all_files_execution executer acc lst =
             executer (append_all_output filename_fixer) command message
             check_cost cost_less filename_fixer
 
+let test_program =
+    match Sys.os_type with
+    | "Win32" -> " | poy_test.exe "
+    | _ -> " | ./poy_test "
 let () =
     let executer append_output command message check_cost check_cost_less
     filename_fixer =
@@ -173,7 +178,7 @@ let () =
                     | Unix.WEXITED 0 -> true
                     | _ -> false
         in
-        let prefix = command ^ " | ./poy_test " in
+        let prefix = command ^ test_program in
         let execution_line =
             match check_cost, check_cost_less with
             | None, None -> prefix 
@@ -192,7 +197,7 @@ let () =
                         | None -> ()
                         | Some x -> 
                                 let x = filename_fixer x in
-                                match Unix.system ("mv " ^ default_report ^ " " ^ x)
+                                match Unix.system ("mv -f " ^ default_report ^ " " ^ x)
                                 with
                                 | Unix.WEXITED 0 -> ()
                                 | _ ->
@@ -216,5 +221,6 @@ let () =
         | Unix.WSTOPPED x ->
                 Printf.printf "FAILED: stopped with signal %d -- %s\n%!" x message
     in
-    all_files_execution executer ("cat " ^ !command, !message, (fun x -> x), 1)
+    all_files_execution executer ("cat " ^ !command ^
+    " | sed -e s,test.xml," ^ default_report ^ ",", !message, (fun x -> x), 1)
     files

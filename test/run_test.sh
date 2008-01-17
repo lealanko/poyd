@@ -3,18 +3,27 @@
 # This script compiles POY, copies the config.test as the new config, runs the
 # battery of tests and emails us if there is some error.
 
-test_program="poy_test"
+# System dependent options
+case `../gnu/config.guess` in
+    *-cygwin*)
+        test_program="poy_test.exe"
+        ;;
+    *)
+        test_program="poy_test"
+        ;;
+esac
 list_of_tests=$3
+number_of_processors=$4
 test_execution_script="ocaml unix.cma str.cma test_line.ml"
 
-report_bug_to="ilya@amnh.org"
+report_bug_to="avaron@amnh.org, megan@amnh.org, ilya@amnh.org, vle@amnh.org"
 
 temp="tmp_mail"
 
 # We start by checking that everything is good, we need to ensure that we have a
 # reasonable configuration, and that we have a completely up to date setup.
 cd ../
-if ./configure --enable-interface=readline $1;
+if ./configure --enable-interface=flat $1;
 then 
     echo "Finished configuring the system."
 else
@@ -28,17 +37,17 @@ Subject: Test Failure
 The test $2 in `hostname` falied because I couldn't find a suitable config.test
 to compile and run the tests.
 EOF
-    sendmail < ${temp}
+    sendmail -t < ${temp}
     exit 1
 fi
 
 # Now we can make the test program and proceed to run the test suite in this
 # computer 
-echo "Making poy_test"
+echo "Making ${test_program}"
 cd ./src
 if make clean &> ../test/make.log && make depend &>../test/make.log && make poy_test &> ../test/make.log
 then
-    echo "Finished making poy_test"
+    echo "Finished making ${test_program}"
 else
     echo "There was an error while attempting to build the poy_test in `hostname`."
     echo "The following is the log from the make attempt:"
@@ -52,17 +61,19 @@ The test $2 in `hostname` failed to make the ${test_program} executable. The log
 the attempt to make is:
 `cat ../test/make.log`
 EOF
-    sendmail < ${temp}
+    sendmail -t < ${temp}
     cd ../test
     exit 1
 fi
-mv ./poy_test ../test/
+mv ./${test_program} ../test/
 cd ../test/
-rm -f test_all.log
+# We cleanup all of the test log files.
+rm -f test_al*.log
+rm -f test*.xml
 
 # Now we run all the tests we have on list
 echo "Running tests in `hostname`"
-if cat ${list_of_tests} | xargs -L 1 ${test_execution_script} >> test_all.log
+if ocaml unix.cma concurrent_test.ml -scriptsfile ${list_of_tests} -p $4
 then
     grep FAILED test_all.log > test.log
 else
@@ -95,7 +106,7 @@ The test $2 execution in `hostname` failed to pass all the unit tests. The log o
 the failures is:
 `cat ./test.log`
 EOF
-    sendmail < ${temp}
+    sendmail -t < ${temp}
     cd ../test
     exit 1
 else

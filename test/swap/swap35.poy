@@ -2,4 +2,4 @@
 read ("1.fas")
 set(seed:1)
 build(2)
-swap(recover,timedprint:(5, "./swap/tre/swap35.tre"), timeout:120)
+swap(recover,timedprint:(5,"ignore.txt"), timeout:120)
