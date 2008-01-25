@@ -25,13 +25,15 @@ let prepare_line line pid =
     ".log"
 
 let fork_and_execute line =
-    let execute () = 
+    let execute pid = 
         let pid = Unix.getpid () in
         let line = prepare_line line pid in
         let _ = Unix.system line in
         ()
     in
-    if !max_processes = 1 then execute () 
+    if !max_processes = 1 then 
+        let () = incr running_counter in
+        execute () 
     else
         let code = Unix.fork () in
         if code = 0 then (* We are the child, we proceed to execute the line *)
@@ -41,8 +43,13 @@ let fork_and_execute line =
             incr running_counter
 
 let collect_results () =
-    let pid, _ = Unix.wait () in
-    decr running_counter;
+    let () = decr running_counter in
+    let pid = 
+        if !max_processes > 1 then
+            let pid, _ = Unix.wait () in
+            pid
+        else Unix.getpid () 
+    in
     concatenate pid
 
 
@@ -52,6 +59,7 @@ let rec process_list_of_tasks lst =
     match lst with
     | h :: t when !running_counter < !max_processes-> 
             if not_empty h then fork_and_execute h;
+            collect_results ();
             process_list_of_tasks t
     | h :: t -> 
             collect_results ();
