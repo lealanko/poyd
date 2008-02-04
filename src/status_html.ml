@@ -23,7 +23,7 @@ type formatter_output = StatusCommon.formatter_output
 
 
 
-type c = SearchReport | Status | Error | Information 
+type c = SearchReport | Status | Warning | Error | Information 
          | Output of (string option * bool * formatter_output list)
 
 let are_we_parallel = ref false
@@ -249,8 +249,9 @@ let full_report ?msg ?adv status =
         status#print
     else ()
 
-let is_parallel x = 
+let is_parallel rank x = 
     are_we_parallel := true;
+    my_rank := rank;
     match x with
     | None -> ()
     | Some f -> 
@@ -287,6 +288,11 @@ let user_message ty t =
                 output#print !close_output;
                 close_output := "";
                 output#print ("@[<v>" ^^ t ^^  "@]@\n%!")
+        | Warning ->
+                output#print !close_output;
+                close_output := "";
+                output#print ("@[<v 4>@{<c:red>@{<b>Warning: @}@}@,@[" ^^ t ^^
+                "@]@]@.%!")
         | Error -> 
                 output#print !close_output;
                 close_output := "";
@@ -302,6 +308,7 @@ let do_output_table t v =
                     (StatusCommon.Files.openf filename fo_ls),
                     do_close,
                     (StatusCommon.Files.closef filename)
+            | Warning
             | Error
             | Information
             | Output (None, _, _) -> 
@@ -348,6 +355,7 @@ let send_output _ = ()
 let type_io msg rank t =
     match t with
     | SearchReport | Information -> `Information (msg, rank)
+    | Warning -> `Warning (msg, rank)
     | Error -> `Error (msg, rank)
     | Status -> `Status (msg, rank)
     | Output _ -> `Output (msg, rank)
