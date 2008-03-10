@@ -1,0 +1,55 @@
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Setting random seed value to 1
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Reading file 1.fas of type input@ sequences
+
+Information :
+The file 1.fas contains sequences of 49 taxa, each sequence holding 5
+fragments.
+Status : Diagnosis Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : all_data.poy is a POY file: 
+                the test data
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Loading file all_data.poy
+                the test data
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Status : Diagnosis Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Status : Transforming : 1 of 1 --  of transformations applied
+Status : Transforming Finished
+Status : Diagnosis Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+PASSED

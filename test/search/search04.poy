@@ -1,4 +1,0 @@
-(* 'search' without specifying 'transform' argument *)
-read ("1.fas", "30.ss", aminoacids:("40.aa"))
-set(seed:1)
-search(transform)

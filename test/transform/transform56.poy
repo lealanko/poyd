@@ -1,3 +1,0 @@
-(* Read unannotated chromosome using dynamic pam approx true *)
-read (chromosome:("ua.fas"))
-transform ((all, dynamic_pam:(approx:true)))

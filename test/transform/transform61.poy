@@ -1,3 +1,0 @@
-(* Read unannotated chromosome using dynamic pam seed_length 15 *)
-read (chromosome:("ua.fas"))
-transform ((all, dynamic_pam:(seed_length:15)))

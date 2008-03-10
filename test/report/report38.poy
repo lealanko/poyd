@@ -1,4 +1,0 @@
-(* Build and report swap timer *)
-read ("1.fas")
-build (1)
-report ("report38", timer: "swap end")

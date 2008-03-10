@@ -1,6 +1,0 @@
-(* Running 'swap' and specifying the number of trees to retain *)
-read ("1.fas")
-set(seed:1)
-build(2)
-swap(trees:10)
-report("test.xml", data, diagnosis)

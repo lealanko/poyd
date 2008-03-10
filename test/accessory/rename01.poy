@@ -1,0 +1,5 @@
+(* 'rename' using synonymy file *)
+set(seed:1)
+rename(terminals,"synfile.txt")
+read ("1.fas")
+report(data)

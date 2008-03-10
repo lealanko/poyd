@@ -2792,12 +2792,7 @@ let to_faswincladfile data filename =
                                 failwith 
                                 "Fastwinclad files do not support sequences"
             with
-            | Not_found ->
-                    Status.user_message Status.Error
-                    ("@[I@ could@ not@ find@ the@ character@ with@ code@ " ^ 
-                    string_of_int code ^ ".@ This@ is@ a@ bug,@ so@ please@ " ^
-                    "report@ it@ to@ Andres...");
-                    fo "?%!"
+            | Not_found -> fo "?%!"
         in
         fo sep
     in
@@ -3253,7 +3248,16 @@ let process_prealigned analyze_tcm data code : (string * Parser.SC.file_output) 
                                 [] v.seq
                             in
                             let seq = Array.of_list seq in
-                            assert (Array.length seq = Array.length enc);
+                            if Array.length seq <> Array.length enc then begin
+                                Status.user_message Status.Error
+                                ("The@ prealigned@ sequences@ in@ " ^
+                                code_character code data ^ "@ do@ not@ have@ \
+                                the@ same@ length.@ The@ taxon@ " ^ name ^ "@ \
+                                has@ a@ sequence@ of@ length@ " ^ string_of_int 
+                                (Array.length seq) ^ "@ while@ the@ expected@ \
+                                length@ is@ " ^ string_of_int (Array.length enc));
+                                failwith "Illegal prealigned molecular sequences."
+                            end;
                             enc, (Some name) :: names, seq :: acc
                     | _ -> 
                             failwith 

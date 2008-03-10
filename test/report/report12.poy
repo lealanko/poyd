@@ -1,4 +1,0 @@
-(* Build 3 tress and report consensus with integer 44 Expect under 50 Error  *)
-read ("1.fas")
-build (3)
-report (consensus:44)

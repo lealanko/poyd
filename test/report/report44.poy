@@ -1,5 +1,0 @@
-(* Build, transform to static characters, and report memory *)
-read ("1.fas")
-build (1)
-transform ((all, static_approx))
-report (memory)

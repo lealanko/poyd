@@ -1,8 +1,0 @@
-(* Read and transform trailing_insertion *)
-read ("2.fas")
-transform (ti:(2,2,2,2,0))
-build (1)
-
-
-
-

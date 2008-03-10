@@ -1,6 +1,0 @@
-(* Read and transform fixedstates *)
-read ("2.fas")
-set(seed:50)
-build (1)
-transform ((all, fixed_states))
-

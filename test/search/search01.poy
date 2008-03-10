@@ -1,3 +1,0 @@
-(* 'search' under defaults without reading data files; NEEDS a WARNING! *)
-set(seed:1)
-search()

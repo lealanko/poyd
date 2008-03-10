@@ -1,8 +1,0 @@
-(* Read and transform tcm *)
-read ("2.fas")
-transform (tcm:(4,4))
-
-
-
-
-

@@ -1,7 +1,0 @@
-(* Build 3 trees and report graphsupports for jackknife to screen *)
-read ("1.fas", "30.ss")
-set(seed:50)
-build (3)
-transform ((all, static_approx))
-calculate_support (jackknife)
-report (graphsupports)

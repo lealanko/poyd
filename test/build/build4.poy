@@ -1,3 +1,0 @@
-(* Build specifying a negative number Expect Error *)
-read ("1.fas")
-build (-2)

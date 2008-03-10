@@ -1,9 +1,0 @@
-(* Read and transform weightfactor float *)
-read ("2.fas")
-transform (weightfactor:0.4)
-
-
-
-
-
-

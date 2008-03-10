@@ -1,0 +1,75 @@
+-command perturb_static/perturb_static01.poy -message "simple "build" and 'perturb' with static homology characters" -stderr "perturb_static/stderr/perturb_static01.poy.err" -error
+-command perturb_static/perturb_static02.poy -message "'perturb' defaults, no builds, warning expected" -stderr "perturb_static/stderr/perturb_static02.poy.err" -error
+-command perturb_static/perturb_static03.poy -message "default 'perturb' with 'build' and default 'swap' for static homology characters" -stderr "perturb_static/stderr/perturb_static03.poy.err"
+-command perturb_static/perturb_static04.poy -message "'perturb' with integer argument and 'build'; ERROR expected" -stderr "perturb_static/stderr/perturb_static04.poy.err" -error
+-command perturb_static/perturb_static05.poy -message "'perturb' with specified iterations and 'build' for static homology characters" -stderr "perturb_static/stderr/perturb_static05.poy.err"
+-command perturb_static/perturb_static06.poy -message "'perturb' with negative number of iterations; ERROR expected" -stderr "perturb_static/stderr/perturb_static06.poy.err" -error
+-command perturb_static/perturb_static07.poy -message "'perturb' with decimal number of iterations; ERROR expected" -stderr "perturb_static/stderr/perturb_static07.poy.err" -error
+-command perturb_static/perturb_static08.poy -message "'perturb' with default 'ratchet' for static homology characters" -stderr "perturb_static/stderr/perturb_static08.poy.err"
+-command perturb_static/perturb_static09.poy -message "'perturb' with default 'ratchet'; ERROR expected" -stderr "perturb_static/stderr/perturb_static09.poy.err" -error
+-command perturb_static/perturb_static10.poy -message "default 'perturb' with 'build' and 'swap' under 'static_approx' using fas and aa" -stderr "perturb_static/stderr/perturb_static10.poy.err"
+-command perturb_static/perturb_static11.poy -message "default 'perturb' with 'build' and multiple 'swap' arguments for static homology characters" -stderr "perturb_static/stderr/perturb_static11.poy.err"
+-command perturb_static/perturb_static12.poy -message "'perturb' using 'ratchet' with specified values for static homology characters" -stderr "perturb_static/stderr/perturb_static12.poy.err"
+-command perturb_static/perturb_static13.poy -message "'perturb' using 'ratchet' with reversed order of float and integer values; ERROR expected" -stderr "perturb_static/stderr/perturb_static13.poy.err" -error
+-command perturb_static/perturb_static14.poy -message "'perturb' using 'ratchet' with integer values; ERROR detected" -stderr "perturb_static/stderr/perturb_static14.poy.err" -error
+-command perturb_static/perturb_static15.poy -message "'perturb' using 'ratchet' with float values, ERROR expected" -stderr "perturb_static/stderr/perturb_static15.poy.err" -error
+-command perturb_static/perturb_static16.poy -message "'perturb' using 'ratchet' with negative float value, ERROR expected" -stderr "perturb_static/stderr/perturb_static16.poy.err" -error
+-command perturb_static/perturb_static17.poy -message "'perturb' using 'ratchet' with negative integer value, ERROR expected" -stderr "perturb_static/stderr/perturb_static17.poy.err" -error
+-command perturb_static/perturb_static18.poy -message "'perturb' using 'resample' under default, ERROR expected" -stderr "perturb_static/stderr/perturb_static18.poy.err" -error
+-command perturb_static/perturb_static19.poy -message "'perturb' using 'resample' under default, ERROR expected" -stderr "perturb_static/stderr/perturb_static19.poy.err" -error
+-command perturb_static/perturb_static20.poy -message "default 'perturb' with specified values and multiple 'swap' arguments for static homology characters" -stderr "perturb_static/stderr/perturb_static20.poy.err"
+-command perturb_static/perturb_static21.poy -message "default 'perturb' with specified swap, ratchet and iterations values and multiple 'swap' arguments for fas, ss, and aa" -stderr "perturb_static/stderr/perturb_static21.poy.err"
+-command perturb_static/perturb_static23.poy -message "'perturb' using 'resample' under default, ERROR expected" -stderr "perturb_static/stderr/perturb_static23.poy.err" -error
+-command perturb_static/perturb_static24.poy -message "'perturb' using 'resample' without specifying lident value, ERROR expected" -stderr "perturb_static/stderr/perturb_static24.poy.err" -error
+-command perturb_static/perturb_static26.poy -message "'perturb' using 'resample' with specifying values for static homology characters" -stderr "perturb_static/stderr/perturb_static26.poy.err"
+-command perturb_static/perturb_static27.poy -message "'perturb' using 'resample' with values in reverse order, ERROR expected" -stderr "perturb_static/stderr/perturb_static27.poy.err" -error
+-command perturb_static/perturb_static31.poy -message "simple "build" and 'perturb' with multiple static homology characters" -stderr "perturb_static/stderr/perturb_static31.poy.err"
+-command search_static/search_static01.poy -message "'search' under defaults without reading data files, WARNING expected" -stderr "search_static/stderr/search_static01.poy.err" -error
+-command search_static/search_static02.poy -message "'search' under defaults for static homology characters" -stderr "search_static/stderr/search_static02.poy.err"
+-command search_static/search_static03.poy -message "'search' without specifying 'build' argument for static homology characters" -stderr "search_static/stderr/search_static03.poy.err"
+-command search_static/search_static04.poy -message "'search' without specifying 'transform' argument for static homology characters" -stderr "search_static/stderr/search_static04.poy.err"
+-command search_static/search_static05.poy -message "'search' without specifying 'build' and 'transform' arguments for static homology characters" -stderr "search_static/stderr/search_static05.poy.err"
+-command search_static/search_static06.poy -message "'search' with 'build' for static homology characters" -stderr "search_static/stderr/search_static06.poy.err"
+-command search_static/search_static07.poy -message "'search' with 'transform' but without building for static homology characters" -stderr "search_static/stderr/search_static07.poy.err"
+-command search_static/search_static08.poy -message "'search' with 'transform' based on existing trees" -diff "search_static/xml/search_static08.poy.xml"
+-command search_static/search_static09.poy -message "'search' with 'bild' and 'transform' 1" -diff "search_static/xml/search_static09.poy.xml"
+-command search_static/search_static10.poy -message "'search' with 'bild' and 'transform' 2" -diff "search_static/xml/search_static10.poy.xml"
+-command swap_static/swap_static01.poy -message "'swap' under defaults without build, ERROR expected" -stderr "swap_static/stderr/swap_static01.poy.err" -error
+-command swap_static/swap_static02.poy -message "'swap' under defaults for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static02.poy.err"
+-command swap_static/swap_static03.poy -message "'swap' with 'alternate' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static03.poy.err"
+-command swap_static/swap_static04.poy -message "'swap' with 'spr' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static04.poy.err"
+-command swap_static/swap_static05.poy -message "'swap' with 'tbr' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static05.poy.err"
+-command swap_static/swap_static06.poy -message "'swap' with 'tbr' and 'spr' under 'once' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static06.poy.err"
+-command swap_static/swap_static07.poy -message "'swap' default under 'around' trajectory for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static07.poy.err"
+-command swap_static/swap_static08.poy -message "alternate 'swap' under 'around' trajectory for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static08.poy.err"
+-command swap_static/swap_static09.poy -message "simulated annealing without specifying values; ERROR expected" -stderr "swap_static/stderr/swap_static09.poy.err" -error
+-command swap_static/swap_static10.poy -message "simulated annealing without specifying values; ERROR expected" -stderr "swap_static/stderr/swap_static10.poy.err" -error
+-command swap_static/swap_static11.poy -message "alternate 'swap' under 'around' trajectory for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static11.poy.err"
+-command swap_static/swap_static13.poy -message "tree drifting without specifying values, ERROR expected" -stderr "swap_static/stderr/swap_static13.poy.err" -error
+-command swap_static/swap_static14.poy -message "tree drifting without specifying values, ERROR expected" -stderr "swap_static/stderr/swap_static14.poy.err" -error
+-command swap_static/swap_static15.poy -message "'swap' with 'alternate' and braking edge once for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static15.poy.err"
+-command swap_static/swap_static16.poy -message "'swap' with 'tbr' and random braking edge for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static16.poy.err"
+-command swap_static/swap_static17.poy -message "'swap' with 'spr' and length-dependent edge braking for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static17.poy.err"
+-command swap_static/swap_static18.poy -message "'swap' under default constraint for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static18.poy.err"
+-command swap_static/swap_static21.poy -message "'swap' under under default with specified 'depth' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static21.poy.err"
+-command swap_static/swap_static22.poy -message "'swap' using all join positions for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static22.poy.err"
+-command swap_static/swap_static23.poy -message "sectorial search without specifying value for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static23.poy.err"
+-command swap_static/swap_static24.poy -message "sectorial search for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static24.poy.err"
+-command swap_static/swap_static25.poy -message "sectorial search with float value, ERROR expected" -stderr "swap_static/stderr/swap_static25.poy.err"  -error
+-command swap_static/swap_static26.poy -message "sectorial search with float value, ERROR expected" -stderr "swap_static/stderr/swap_static26.poy.err" -error
+-command swap_static/swap_static27.poy -message "'swap' under default 'bfs' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static27.poy.err"
+-command swap_static/swap_static28.poy -message "'swap' under 'bfs' with integer value for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static28.poy.err"
+-command swap_static/swap_static29.poy -message "'swap' under 'bfs' with negative integer value; ERROR expected" -stderr "swap_static/stderr/swap_static29.poy.err" -error
+-command swap_static/swap_static30.poy -message "'swap' under 'bfs' with float value; ERROR expected" -stderr "swap_static/stderr/swap_static30.poy.err" -error
+-command swap_static/swap_static31.poy -message "'swap' with 'alternate' under 'bfs' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static31.poy.err"
+-command swap_static/swap_static32.poy -message "'swap' under defaults with timeout"
+-command swap_static/swap_static33.poy -message "'swap' under defaults with timeout but not specifying seconds, ERROR expected" -stderr "swap_static/stderr/swap_static33.poy.err" -error
+-command swap_static/swap_static34.poy -message "'swap' under defaults with timeout but negative seconds, ERROR expected" -stderr "swap_static/stderr/swap_static34.poy.err" -error
+-command swap_static/swap_static35.poy -message "'swap' and printing intermediate trees"
+-command swap_static/swap_static36.poy -message "'swap' evaluating suboptimal trees specified by integer for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static36.poy.err"
+-command swap_static/swap_static37.poy -message "'swap' evaluating suboptimal trees specified by float for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static37.poy.err"
+-command swap_static/swap_static38.poy -message "'swap' evaluating suboptimal trees specified by negative number, ERROR expected" -stderr "swap_static/stderr/swap_static38.poy.err" -error
+-command swap_static/swap_static39.poy -message "'swap' with  number number of trees to retain" -stderr "swap_static/stderr/swap_static39.poy.err"
+-command swap_static/swap_static40.poy -message "'swap' with  number of trees to retain by float; ERROR expected" -stderr "swap_static/stderr/swap_static40.poy.err" -error
+-command swap_static/swap_static41.poy -message "'swap' with  number of trees to retain by negative integer; ERROR expected" -stderr "swap_static/stderr/swap_static41.poy.err" -error
+-command swap_static/swap_static43.poy -message "'swap' and outputting visited trees" -stdout "swap_static/stdout/swap_static43.poy.out"

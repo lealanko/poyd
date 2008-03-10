@@ -1,0 +1,124 @@
+Data
+        
+        
+         Taxa
+             
+             Total 49
+                                                         
+                      Name         Code          
+                     gamma        5             
+                     t1           1             
+                     t10          10            
+                     t11          11            
+                     t12          12            
+                     t13          13            
+                     t14          14            
+                     t15          15            
+                     t16          16            
+                     t17          17            
+                     t18          18            
+                     t19          19            
+                     t2           2             
+                     t20          20            
+                     t21          21            
+                     t22          22            
+                     t23          23            
+                     t24          24            
+                     t25          25            
+                     t26          26            
+                     t27          27            
+                     t28          28            
+                     t29          29            
+                     t3           3             
+                     t30          30            
+                     t31          31            
+                     t32          32            
+                     t33          33            
+                     t34          34            
+                     t35          35            
+                     t36          36            
+                     t37          37            
+                     t38          38            
+                     t39          39            
+                     t4           4             
+                     t40          40            
+                     t41          41            
+                     t42          42            
+                     t43          43            
+                     t44          44            
+                     t45          45            
+                     t46          46            
+                     t47          47            
+                     t48          48            
+                     t49          49            
+                     t6           6             
+                     t7           7             
+                     t8           8             
+                     t9           9             
+         Synonyms
+                     
+                     
+                      Synonym
+                                 
+                                 
+                                  Value 
+                                        
+                                         t5
+                                       
+                             Value 
+                                   
+                                    gamma
+                                  
+                 
+    
+
+
+Ignored taxa
+    
+Characters
+    Non Additive
+        
+        Total 0
+               
+        
+    Additive
+        
+        Total 0
+               
+        
+    Sankoff
+        
+        Total 0
+               
+        
+    Molecular
+        
+        Total 5
+                                                                                                                                               
+                Name         Fixed States         Transformation Cost Matrix         Gap Opening         Weight         class          
+               1.fas:0                           tcm:(1,2)                          0                   1.             sequence      {}
+               1.fas:1                           tcm:(1,2)                          0                   1.             sequence      {}
+               1.fas:2                           tcm:(1,2)                          0                   1.             sequence      {}
+               1.fas:3                           tcm:(1,2)                          0                   1.             sequence      {}
+               1.fas:4                           tcm:(1,2)                          0                   1.             sequence      {}
+        
+    
+Ignored characters
+    
+Files
+         
+         
+          File
+                  
+                  
+                  File Name : 1.fas
+                   File Contents 
+                                 
+                                  Characters
+                                
+              
+     
+
+
+
+

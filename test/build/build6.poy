@@ -1,3 +1,0 @@
-(* Build with of_file *)
-read ("2.fas")
-build (of_file: "2.fas.2.tree")

@@ -1,6 +1,0 @@
-(* Build 3 trees and report graphsupports for bremer on screen * )
-read ("1.fas", "30.ss")
-set(seed:50)
-build (3)
-calculate_support (bremer)
-report (graphsupports)

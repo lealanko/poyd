@@ -1,0 +1,5 @@
+(* 'rename' specifying a pair of synonyms *)
+set(seed:1)
+rename(terminals, ("t5", "gamma"))
+read ("1.fas")
+report(data)

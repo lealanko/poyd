@@ -1,1 +1,0 @@
--message "Check analyzer results for FILENAME1" -command "analyzer/ana.poy" -inputfile analyzer/ana_scripts -stdout "FILENAME1_stdout_ref"

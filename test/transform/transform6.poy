@@ -1,5 +1,0 @@
-(* Read and transform auto_sequence_partition and build *)
-read ("1.fas")
-build (2)
-transform ((all, auto_sequence_partition))
-

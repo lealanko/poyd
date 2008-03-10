@@ -1,0 +1,706 @@
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Setting random seed value to 1
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Reading file 1.fas of type input@ sequences
+
+Information :
+The file 1.fas contains sequences of 49 taxa, each sequence holding 5
+fragments.
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Diagnosis Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+Information : Reading file 30.ss of type hennig86/Nona
+
+Information : The file 30.ss defines 144 characters in 49 taxa.
+Status : Loading Characters : 0 of 49 -- Storing the character specifications
+Status : Loading Characters : 1 of 49 -- Storing the character specifications
+Status : Loading Characters : 2 of 49 -- Storing the character specifications
+Status : Loading Characters : 3 of 49 -- Storing the character specifications
+Status : Loading Characters : 4 of 49 -- Storing the character specifications
+Status : Loading Characters : 5 of 49 -- Storing the character specifications
+Status : Loading Characters : 6 of 49 -- Storing the character specifications
+Status : Loading Characters : 7 of 49 -- Storing the character specifications
+Status : Loading Characters : 8 of 49 -- Storing the character specifications
+Status : Loading Characters : 9 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 10 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 11 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 12 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 13 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 14 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 15 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 16 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 17 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 18 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 19 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 20 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 21 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 22 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 23 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 24 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 25 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 26 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 27 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 28 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 29 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 30 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 31 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 32 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 33 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 34 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 35 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 36 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 37 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 38 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 39 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 40 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 41 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 42 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 43 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 44 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 45 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 46 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 47 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 48 of 49 -- Storing the character specifications
+Status :
+Loading Characters : 49 of 49 -- Storing the character specifications
+Status : Loading Characters Finished
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Diagnosis Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+Status : Calculating Three Dimansional Aminoacid Cost Matrix Finished
+Information :
+The file 40.aa contains sequences of 42 taxa, each sequence holding 1
+fragment.
+
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Diagnosis Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Diagnosis Finished
+Status : Wagner : 2 of 49 -- Wagner tree with cost 82.
+Status : Wagner : 3 of 49 -- Wagner tree with cost 161.
+Status : Wagner : 4 of 49 -- Wagner tree with cost 241.
+Status : Wagner : 5 of 49 -- Wagner tree with cost 295.
+Status : Wagner : 6 of 49 -- Wagner tree with cost 358.
+Status : Wagner : 7 of 49 -- Wagner tree with cost 411.
+Status : Wagner : 8 of 49 -- Wagner tree with cost 425.
+Status : Wagner : 9 of 49 -- Wagner tree with cost 482.
+Status : Wagner : 10 of 49 -- Wagner tree with cost 536.
+Status : Wagner : 11 of 49 -- Wagner tree with cost 570.
+Status : Wagner : 12 of 49 -- Wagner tree with cost 627.
+Status : Wagner : 13 of 49 -- Wagner tree with cost 643.
+Status : Wagner : 14 of 49 -- Wagner tree with cost 680.
+Status : Wagner : 15 of 49 -- Wagner tree with cost 784.
+Status : Wagner : 16 of 49 -- Wagner tree with cost 851.
+Status : Wagner : 17 of 49 -- Wagner tree with cost 924.
+Status : Wagner : 18 of 49 -- Wagner tree with cost 1049.
+Status : Wagner : 19 of 49 -- Wagner tree with cost 1301.
+Status : Wagner : 20 of 49 -- Wagner tree with cost 1321.
+Status : Wagner : 21 of 49 -- Wagner tree with cost 1341.
+Status : Wagner : 22 of 49 -- Wagner tree with cost 1371.
+Status : Wagner : 23 of 49 -- Wagner tree with cost 1433.
+Status : Wagner : 24 of 49 -- Wagner tree with cost 1496.
+Status : Wagner : 25 of 49 -- Wagner tree with cost 1602.
+Status : Wagner : 26 of 49 -- Wagner tree with cost 1625.
+Status : Wagner : 27 of 49 -- Wagner tree with cost 1649.
+Status : Wagner : 28 of 49 -- Wagner tree with cost 1675.
+Status : Wagner : 29 of 49 -- Wagner tree with cost 1732.
+Status : Wagner : 30 of 49 -- Wagner tree with cost 1862.
+Status : Wagner : 31 of 49 -- Wagner tree with cost 1889.
+Status : Wagner : 32 of 49 -- Wagner tree with cost 1945.
+Status : Wagner : 33 of 49 -- Wagner tree with cost 2069.
+Status : Wagner : 34 of 49 -- Wagner tree with cost 2129.
+Status : Wagner : 35 of 49 -- Wagner tree with cost 2203.
+Status : Wagner : 36 of 49 -- Wagner tree with cost 2232.
+Status : Wagner : 37 of 49 -- Wagner tree with cost 2260.
+Status : Wagner : 38 of 49 -- Wagner tree with cost 2345.
+Status : Wagner : 39 of 49 -- Wagner tree with cost 2434.
+Status : Wagner : 40 of 49 -- Wagner tree with cost 2471.
+Status : Wagner : 41 of 49 -- Wagner tree with cost 2612.
+Status : Wagner : 42 of 49 -- Wagner tree with cost 2649.
+Status : Wagner : 43 of 49 -- Wagner tree with cost 2686.
+Status : Wagner : 44 of 49 -- Wagner tree with cost 2744.
+Status : Wagner : 45 of 49 -- Wagner tree with cost 2766.
+Status : Wagner : 46 of 49 -- Wagner tree with cost 2781.
+Status : Wagner : 47 of 49 -- Wagner tree with cost 2797.
+Status : Wagner : 48 of 49 -- Wagner tree with cost 2854.
+Status : Wagner Finished
+Status : Building Wagner Tree Finished
+Status : Alternate : 0 Beginning search
+Status : Alternate : 0 SPR search
+Status : SPR : 2817 Searching
+Status : SPR Finished
+Status : Alternate : 0 Performing TBR swapping
+Status : Single TBR Finished
+Status : Alternate Finished
+Status : Running Pipeline : 1 of 2 -- times
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Diagnosis Finished
+Status : Wagner : 2 of 49 -- Wagner tree with cost 171.
+Status : Wagner : 3 of 49 -- Wagner tree with cost 249.
+Status : Wagner : 4 of 49 -- Wagner tree with cost 320.
+Status : Wagner : 5 of 49 -- Wagner tree with cost 356.
+Status : Wagner : 6 of 49 -- Wagner tree with cost 429.
+Status : Wagner : 7 of 49 -- Wagner tree with cost 501.
+Status : Wagner : 8 of 49 -- Wagner tree with cost 657.
+Status : Wagner : 9 of 49 -- Wagner tree with cost 724.
+Status : Wagner : 10 of 49 -- Wagner tree with cost 834.
+Status : Wagner : 11 of 49 -- Wagner tree with cost 878.
+Status : Wagner : 12 of 49 -- Wagner tree with cost 927.
+Status : Wagner : 13 of 49 -- Wagner tree with cost 979.
+Status : Wagner : 14 of 49 -- Wagner tree with cost 1020.
+Status : Wagner : 15 of 49 -- Wagner tree with cost 1108.
+Status : Wagner : 16 of 49 -- Wagner tree with cost 1131.
+Status : Wagner : 17 of 49 -- Wagner tree with cost 1189.
+Status : Wagner : 18 of 49 -- Wagner tree with cost 1266.
+Status : Wagner : 19 of 49 -- Wagner tree with cost 1280.
+Status : Wagner : 20 of 49 -- Wagner tree with cost 1306.
+Status : Wagner : 21 of 49 -- Wagner tree with cost 1370.
+Status : Wagner : 22 of 49 -- Wagner tree with cost 1427.
+Status : Wagner : 23 of 49 -- Wagner tree with cost 1454.
+Status : Wagner : 24 of 49 -- Wagner tree with cost 1510.
+Status : Wagner : 25 of 49 -- Wagner tree with cost 1521.
+Status : Wagner : 26 of 49 -- Wagner tree with cost 1540.
+Status : Wagner : 27 of 49 -- Wagner tree with cost 1569.
+Status : Wagner : 28 of 49 -- Wagner tree with cost 1680.
+Status : Wagner : 29 of 49 -- Wagner tree with cost 1697.
+Status : Wagner : 30 of 49 -- Wagner tree with cost 1932.
+Status : Wagner : 31 of 49 -- Wagner tree with cost 1947.
+Status : Wagner : 32 of 49 -- Wagner tree with cost 1984.
+Status : Wagner : 33 of 49 -- Wagner tree with cost 2082.
+Status : Wagner : 34 of 49 -- Wagner tree with cost 2150.
+Status : Wagner : 35 of 49 -- Wagner tree with cost 2217.
+Status : Wagner : 36 of 49 -- Wagner tree with cost 2268.
+Status : Wagner : 37 of 49 -- Wagner tree with cost 2337.
+Status : Wagner : 38 of 49 -- Wagner tree with cost 2379.
+Status : Wagner : 39 of 49 -- Wagner tree with cost 2442.
+Status : Wagner : 40 of 49 -- Wagner tree with cost 2491.
+Status : Wagner : 41 of 49 -- Wagner tree with cost 2503.
+Status : Wagner : 42 of 49 -- Wagner tree with cost 2515.
+Status : Wagner : 43 of 49 -- Wagner tree with cost 2535.
+Status : Wagner : 44 of 49 -- Wagner tree with cost 2587.
+Status : Wagner : 45 of 49 -- Wagner tree with cost 2683.
+Status : Wagner : 46 of 49 -- Wagner tree with cost 2693.
+Status : Wagner : 47 of 49 -- Wagner tree with cost 2768.
+Status : Wagner : 48 of 49 -- Wagner tree with cost 2780.
+Status : Wagner Finished
+Status : Building Wagner Tree Finished
+Status : Alternate : 0 Beginning search
+Status : Alternate : 0 SPR search
+Status : SPR : 2781 Searching
+Status : SPR Finished
+Status : Alternate : 0 Performing TBR swapping
+Status : Single TBR Finished
+Status : Alternate Finished
+Status : Running Pipeline : 2 of 2 -- times
+Status : Running Pipeline Finished
+Status : Loading terminals : 1 of 49 -- terminals loaded
+Status : Loading terminals : 2 of 49 -- terminals loaded
+Status : Loading terminals : 3 of 49 -- terminals loaded
+Status : Loading terminals : 4 of 49 -- terminals loaded
+Status : Loading terminals : 5 of 49 -- terminals loaded
+Status : Loading terminals : 6 of 49 -- terminals loaded
+Status : Loading terminals : 7 of 49 -- terminals loaded
+Status : Loading terminals : 8 of 49 -- terminals loaded
+Status : Loading terminals : 9 of 49 -- terminals loaded
+Status : Loading terminals : 10 of 49 -- terminals loaded
+Status : Loading terminals : 11 of 49 -- terminals loaded
+Status : Loading terminals : 12 of 49 -- terminals loaded
+Status : Loading terminals : 13 of 49 -- terminals loaded
+Status : Loading terminals : 14 of 49 -- terminals loaded
+Status : Loading terminals : 15 of 49 -- terminals loaded
+Status : Loading terminals : 16 of 49 -- terminals loaded
+Status : Loading terminals : 17 of 49 -- terminals loaded
+Status : Loading terminals : 18 of 49 -- terminals loaded
+Status : Loading terminals : 19 of 49 -- terminals loaded
+Status : Loading terminals : 20 of 49 -- terminals loaded
+Status : Loading terminals : 21 of 49 -- terminals loaded
+Status : Loading terminals : 22 of 49 -- terminals loaded
+Status : Loading terminals : 23 of 49 -- terminals loaded
+Status : Loading terminals : 24 of 49 -- terminals loaded
+Status : Loading terminals : 25 of 49 -- terminals loaded
+Status : Loading terminals : 26 of 49 -- terminals loaded
+Status : Loading terminals : 27 of 49 -- terminals loaded
+Status : Loading terminals : 28 of 49 -- terminals loaded
+Status : Loading terminals : 29 of 49 -- terminals loaded
+Status : Loading terminals : 30 of 49 -- terminals loaded
+Status : Loading terminals : 31 of 49 -- terminals loaded
+Status : Loading terminals : 32 of 49 -- terminals loaded
+Status : Loading terminals : 33 of 49 -- terminals loaded
+Status : Loading terminals : 34 of 49 -- terminals loaded
+Status : Loading terminals : 35 of 49 -- terminals loaded
+Status : Loading terminals : 36 of 49 -- terminals loaded
+Status : Loading terminals : 37 of 49 -- terminals loaded
+Status : Loading terminals : 38 of 49 -- terminals loaded
+Status : Loading terminals : 39 of 49 -- terminals loaded
+Status : Loading terminals : 40 of 49 -- terminals loaded
+Status : Loading terminals : 41 of 49 -- terminals loaded
+Status : Loading terminals : 42 of 49 -- terminals loaded
+Status : Loading terminals : 43 of 49 -- terminals loaded
+Status : Loading terminals : 44 of 49 -- terminals loaded
+Status : Loading terminals : 45 of 49 -- terminals loaded
+Status : Loading terminals : 46 of 49 -- terminals loaded
+Status : Loading terminals : 47 of 49 -- terminals loaded
+Status : Loading terminals : 48 of 49 -- terminals loaded
+Status : Loading terminals : 49 of 49 -- terminals loaded
+Status : Loading terminals Finished
+Status : Diagnosis : 0 Recalculating original tree
+Status : Diagnosis Finished
+Status : Diagnosis : 1 of 2 -- Recalculating trees
+Status : Diagnosis : 0 Recalculating original tree
+Status : Diagnosis Finished
+Status : Diagnosis : 2 of 2 -- Recalculating trees
+Status : Diagnosis Finished
+Information :
+
+  Trees:
+    Storing 2 trees with costs 2781. to 2817.
+    Best cost was found once 
+PASSED

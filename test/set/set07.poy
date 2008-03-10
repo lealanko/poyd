@@ -1,8 +1,0 @@
-(* test 'normal_do' and 'exhaustive_do' ran together; VERIFY COST *)
-set(exhaustive_do)
-set(seed:1)
-read("1.fas")
-build(1)
-set(normal_do)
-build(1)
-report("test.xml", diagnosis)

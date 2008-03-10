@@ -1,5 +1,0 @@
-(* Build, transform to static characters, and report timer (Molecular data, Morphological data) *)
- read ("1.fas")
-build (1)
-transform ((all, static_approx))
-report (timer: "start_time")

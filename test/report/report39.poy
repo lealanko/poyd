@@ -1,5 +1,0 @@
-(* Build,transform using static_approx, and report as a phatwinclad file *)
-read ("1.fas")
-build (1)
-transform ((all,static_approx))
-report ("report39", phastwinclad)
