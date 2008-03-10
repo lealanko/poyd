@@ -44,7 +44,7 @@ OCAMLDEP := @OCAMLDEP@
 OCAMLTOP := @OCAMLTOP@
 OCAMLLEX := @OCAMLLEX@
 OCAMLYACC := @OCAMLYACC@
-SVNVERSION := @SVNVERSION@
+SVNVERSION := echo -n 2633
 EXTRAS := @EXTRAS@
 
 INCLUDE = `$(OCAMLC) -where`
@@ -284,7 +284,7 @@ ctags: *.c
 
 # Runtime options
 buildNumber.ml: 
-	echo "let build = \" " `$(SVNVERSION) -n ./` "\"" > $@
+	echo "let build = \" " `$(SVNVERSION)` "\"" > $@
 
 compileFlags.ml: ./config.log
 	echo "(** automatically generated description of compile-time flags *)" \
@@ -455,7 +455,7 @@ ifeq ($(USEPARALLEL), true)
 else 
 	$(OCAMLOPT) $(OCAML_INCLUDES) $(CCOPT) -o latex_helper \
 	unix.cmxa str.cmxa compileFlags.cmx \
-	sadmanOutput.cmx statusCommon.cmx fileStream.cmx latex.ml
+	sadmanOutput.cmx statusCommon.cmx fileStream.cmx latex.ml $(LIBS)
 endif
 ifeq ($(USEWIN32), true)
 	./latex_helper.exe > help.txt 

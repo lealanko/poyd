@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.61)
+AC_PREREQ(2.60)
 AC_INIT([POY], [4.0 Beta], poy4@groups.google.com)
 
 # Checks for programs.
@@ -14,9 +14,9 @@ AC_SUBST(USEGRAPHICS)
 AC_SUBST(USEPARALLEL)
 AC_SUBST(DOCSTRING)
 AC_SUBST(OCAMLFLAGS)
-AC_SUBST(SVNVERSION)
 
-AC_CHECK_PROGS([SVNVERSION], [svnversion])
+
+
 
 AC_ARG_ENABLE([graphics], [AS_HELP_STRING([--enable-graphics],
               [Force POY to support graphical trees on screen. Valid options are none, ocaml, and tk. The default is none.])], [USEGRAPHICS=$enableval], [USEGRAPHICS=none])
