@@ -244,6 +244,8 @@ module type SEARCH = sig
     val features : Methods.local_optimum -> (string
     * string) list -> (string * string) list
 
+    val recode : (a, b) p_tree -> int -> (a, b) p_tree
+
   val make_wagner_tree :
       ?sequence:(int list) ->
     (a, b) p_tree ->
@@ -377,7 +379,6 @@ module type SEARCH = sig
 
     end
     
-val set_avail_start : ('a, 'b) p_tree -> ('a, 'b) p_tree
 val int_of_id : Tree.id -> int
 val get_id : Tree.node -> int
 val is_handle : int -> ('a, 'b) p_tree -> bool
