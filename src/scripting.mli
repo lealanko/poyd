@@ -40,6 +40,7 @@ type ('a, 'b, 'c) run = {
     tree_store : ('a, 'b) Ptree.p_tree Sexpr.t str_htbl;
     queue : Sampler.ft_queue;
     stored_trees : ('a, 'b) Ptree.p_tree Sexpr.t;
+    original_trees : ('a, 'b) Ptree.p_tree Sexpr.t;
 }
 
 val build_has : Methods.cost_calculation -> Methods.build -> bool
@@ -86,6 +87,8 @@ val channel_run : in_channel -> unit
 val get_console_run : unit -> r
 
 val update_trees_to_data : bool -> r -> r
+
+val set_console_run : r -> unit
 
     module PhyloTree : sig
         type phylogeny = (a, b) Ptree.p_tree
@@ -140,7 +143,7 @@ val update_trees_to_data : bool -> r -> r
 end
 
 module Make 
-    (Node : NodeSig.S) 
+    (Node : NodeSig.S with type other_n = Node.Standard.n) 
     (Edge : Edge.EdgeSig with type n = Node.n)
     (TreeOps : 
         Ptree.Tree_Operations with type a = Node.n with type b = Edge.e)

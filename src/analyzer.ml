@@ -153,8 +153,9 @@ let dependency_relations (init : Methods.script) =
                         let files = filename_to_list filename in
                         [([Data; Trees; JackBoot; Bremer], files, init,
                         NonComposable)]
+                | `TimerInterval _
                 | `HistorySize _
-                | `Redraw -> [([], [], init, Linnearizable)]
+                | `Redraw -> [([Data], [Data], init, Linnearizable)]
                 | `Echo _ 
                 | `Help _ -> 
                         let output_files = all !input_files !output_files in
@@ -389,6 +390,7 @@ let dependency_relations (init : Methods.script) =
                         [(fn, [Data; Trees; JackBoot; Bremer], init,
                         NonComposable)], 
                         Some filename, true
+                | `TimerInterval _
                 | `RootName _
                 | `Root _ -> 
                         [([Data; Trees], all !input_files !output_files, init,
@@ -1442,6 +1444,8 @@ let script_to_string (init : Methods.script) =
                         "@[print my working directory@]"
                 | `Memory _ ->
                         "@[print my memory statistics@]"
+                | `TimerInterval _ ->
+                        "@[change the timer interval@]"
                 | `HistorySize _ ->
                         "@[change my history size@]"
                 | `Redraw -> 
@@ -1815,6 +1819,7 @@ let is_master_only (init : Methods.script) =
     | #Methods.runtime_store 
     | `ReadScript _ 
     | `Repeat _ 
+    | `TimerInterval _
     | #Methods.taxa_handling -> false
     | `Graph (_, _)
     | `Ascii (_, _)

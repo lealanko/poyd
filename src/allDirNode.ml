@@ -85,16 +85,23 @@ let not_with code n =
             string_of_int (List.length x) ^ " matching values.")
 
 module OneDirF : 
-    NodeSig.S with type e = exclude with type n = a_node with type
-    nad8 = Node.Standard.nad8 = struct
+    NodeSig.S with type e = exclude with type n = a_node with type other_n =
+        Node.Standard.n with type nad8 = Node.Standard.nad8 = struct
 
     type n = a_node
+    type other_n = Node.Standard.n
+
+    let to_other x = Lazy.force_val x
+
     type e = exclude
 
     let recode f n = 
         Lazy.lazy_from_fun (fun () -> 
             let n = Lazy.force_val n in
             (Node.Standard.recode f n))
+
+    let compare a b = 
+        Node.Standard.compare (Lazy.force_val a) (Lazy.force_val b)
 
     let load_data ?(silent=true) ?taxa ?codes ?(classify=true) data = 
         let data, nodes = 
@@ -300,9 +307,17 @@ module OneDirF :
 end
 
 module AllDirF : NodeSig.S with type e = exclude with type n = node_data with
+type other_n = Node.Standard.n with
 type nad8 = Node.Standard.nad8 = struct
 
     type n = node_data
+    type other_n = Node.Standard.n
+
+    let to_other x = 
+        match x.unadjusted with
+        | [x] -> OneDirF.to_other x.lazy_node
+        | _ -> failwith "illegal argument"
+
     type e = exclude 
 
     let to_n node = 
@@ -313,6 +328,26 @@ type nad8 = Node.Standard.nad8 = struct
         }
         in
         { unadjusted = [node_dir]; adjusted = [node_dir]}
+
+    let compare a b =
+        let rec dir_compare lst1 lst2 =
+            match lst1, lst2 with
+            | h1 :: t1, h2 :: t2 ->
+                    if 0 = compare h1.dir h2.dir then
+                        if 0 = compare h1.code h2.code then
+                            let r =
+                                OneDirF.compare h1.lazy_node h2.lazy_node
+                            in
+                            if 0 = r then dir_compare t1 t2
+                            else r
+                        else compare h1.code h2.code
+                    else compare h1.dir h2.dir
+            | [], [] -> 0
+            | [], _ -> -1
+            | _, [] -> 1
+        in
+        dir_compare a.unadjusted b.unadjusted
+        
 
     let recode_anode f n = 
         { 

@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "Scripting" "$Revision: 2668 $"
+let () = SadmanOutput.register "Scripting" "$Revision: 2713 $"
 
 module IntSet = All_sets.Integers
 
@@ -43,6 +43,7 @@ type ('a, 'b, 'c) run = {
     tree_store : ('a, 'b) Ptree.p_tree Sexpr.t str_htbl;
     queue : Sampler.ft_queue;
     stored_trees : ('a, 'b) Ptree.p_tree Sexpr.t;
+    original_trees : ('a, 'b) Ptree.p_tree Sexpr.t;
 }
 
 let is_forest = function
@@ -102,6 +103,8 @@ module type S = sig
 
     val update_trees_to_data : bool -> r -> r
 
+    val set_console_run : r -> unit
+
     module PhyloTree : sig
         type phylogeny = (a, b) Ptree.p_tree
         val get_cost : phylogeny -> float
@@ -146,7 +149,7 @@ module type S = sig
 end
 
 
-module Make (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) 
+module Make (Node : NodeSig.S with type other_n = Node.Standard.n) (Edge : Edge.EdgeSig with type n = Node.n) 
     (TreeOps : 
         Ptree.Tree_Operations with type a =
             Node.n with type b = Edge.e)
@@ -244,29 +247,38 @@ let update_trees_to_data load_data run =
     in
     let run = { run with nodes = nodes; data = data } in
     let len = Sexpr.length run.trees in
-    let st = Status.create "Diagnosis"  (Some len) "Recalculating trees" in
-    let nodes = 
-        List.fold_left (fun acc nd -> 
-            let code = Node.taxon_code nd in
-            All_sets.IntegerMap.add code nd acc) All_sets.IntegerMap.empty run.nodes
-    in
-    let trees = 
-        Sexpr.map (fun x -> { x with Ptree.node_data = nodes })
-        run.trees
-    in
-    let replacer nd = 
-        List.find (fun x -> Node.taxon_code x = Node.taxon_code nd) run.nodes
-    in
-    let doit replacer tree = 
-        let res = CT.transform_tree replacer tree in
-        let ach = Status.get_achieved st in
-        Data.flush run.data;
-        Status.full_report ~adv:(ach + 1) st;
-        res
-    in
-    let trees = Sexpr.map (doit replacer) trees in
-    Status.finished st;
-    { run with trees = trees }
+    if len > 0 then
+        let st = Status.create "Diagnosis"  (Some len) "Recalculating trees" in
+        let nodes = 
+            List.fold_left (fun acc nd -> 
+                let code = Node.taxon_code nd in
+                All_sets.IntegerMap.add code nd acc) All_sets.IntegerMap.empty run.nodes
+        in
+        let replacer nd = All_sets.IntegerMap.find (Node.taxon_code nd) nodes in
+        let doit replacer tree = 
+            let are_leaves_different =
+                0 <> 
+                All_sets.IntegerMap.fold (fun code node acc ->
+                    if acc <> 0 then acc
+                    else
+                        let n = Ptree.get_node_data code tree in
+                        Node.compare node n)
+                    nodes 0
+            in
+            let ach = Status.get_achieved st in
+            if are_leaves_different then
+                let tree = { tree with Ptree.node_data = nodes } in
+                let res = CT.transform_tree replacer tree in
+                let () = Status.full_report ~adv:(ach + 1) st in
+                res
+            else 
+                let () = Status.full_report ~adv:(ach + 1) st in
+                tree
+        in
+        let trees = Sexpr.map (doit replacer) run.trees in
+        Status.finished st;
+        { run with trees = trees }
+    else run
 
 let process_transform (run : r) (meth : Methods.transform) =
     match meth with
@@ -584,19 +596,20 @@ let runtime_store rediagnose run meth =
         | `Jackknife -> Hashtbl.remove run.jackknife_store name
         | `Bootstrap -> Hashtbl.remove run.bootstrap_store name
     in
-    let set name run clas =
+    let set name (changed, run) clas =
         let find hstb = Hashtbl.find hstb name in
         match clas with
         | `Data -> 
-                { run with data = find run.data_store }
+                let d = find run.data_store in
+                (changed || (run.data <> d)), { run with data = find run.data_store }
         | `Trees ->
-                { run with trees = find run.tree_store }
+                true, { run with trees = find run.tree_store }
         | `Bremer ->
-                { run with bremer_support = find run.bremer_store }
+                true, { run with bremer_support = find run.bremer_store }
         | `Jackknife ->
-                { run with jackknife_support = find run.jackknife_store }
+                true, { run with jackknife_support = find run.jackknife_store }
         | `Bootstrap ->
-                { run with bootstrap_support = find run.bootstrap_store }
+                true, { run with bootstrap_support = find run.bootstrap_store }
     in
     let do_rediagnose = function
         | `Data
@@ -607,17 +620,17 @@ let runtime_store rediagnose run meth =
     | `Store (clas, name) -> 
             List.iter (store name run) clas ; run
     | `Set (clas, name) ->
-            let run = 
-                try List.fold_left (set name) run clas with
+            let changed, nrun = 
+                try List.fold_left (set name) (false, run) clas with
                 | Not_found -> 
                         Status.user_message Status.Error ("The@ state@ of@ " ^
                         "search@ " ^ name ^ "@ has@ not@ been@ defined.@ " ^
                         "I@ will@ continue@ with@ the@ current@ state.");
-                        run
+                        false, run
             in
-            if List.exists do_rediagnose clas then
-                rediagnose run
-            else run
+            if changed && List.exists do_rediagnose clas then
+                rediagnose nrun
+            else nrun
     | `Discard (clas, name) -> 
             List.iter (remove name run) clas ; run
     | `Keep_only (num, meth) ->
@@ -655,6 +668,7 @@ let empty () = {
     tree_store = create_hstb ();
     queue = Sampler.create ();
     stored_trees = `Empty;
+    original_trees = `Empty;
 }
 
 let process_random_seed_set run v =
@@ -689,132 +703,6 @@ let do_recovery run =
     in
     stackadder ();
     { run with trees = adder trees }
-
-let rec process_application run item = 
-    let run = reroot_at_outgroup run in
-    match item with
-    | `Interactive -> run
-    | `Normal | `Exact | `Iterative as meth -> 
-            if !Methods.cost <> meth then
-                let _ = Methods.cost := meth in
-                process_application run `ReDiagnose
-            else run
-    | `Exit -> exit 0
-    | `Version ->
-            Status.user_message Status.Information Version.string;
-            run
-    | `ChangeWDir dir ->
-            let dir = Str.global_replace (Str.regexp "\\\\ ") " " dir in
-            Sys.chdir dir;
-            run
-    | `PrintWDir ->
-            Status.user_message Status.Information 
-            ("The current working directory is " ^ (StatusCommon.escape
-            (Sys.getcwd ())));
-            run
-    | `Recover -> do_recovery run
-    | `ClearRecovered -> Queue.clear run.queue.Sampler.queue; run
-    | `ClearMemory items -> 
-            let has_item item = List.exists (fun x -> x = item) items in
-            Gc.full_major (); 
-            let _ = 
-                if has_item `Matrices then Matrix.flush ();
-                if has_item `SequencePool then Data.flush run.data;
-                ()
-            in
-            run
-    | `HistorySize len -> Status.resize_history len; run
-    | `Logfile file -> StatusCommon.set_information_output file; run
-    | `Redraw -> Status.redraw_screen (); run
-    | `SetSeed v -> process_random_seed_set run v
-    | `ReDiagnose -> update_trees_to_data true run
-    | `Help item -> HelpIndex.help item; run
-    | `Wipe -> empty ()
-    | `Echo (s, c) ->
-            let s = StatusCommon.escape s in
-            let c = 
-                match c with
-                | `Information -> Status.Information
-                | `Error -> Status.Error
-                | `Output str ->
-                        match str with
-                        | None -> Status.Output (None, false, [])
-                        | Some str -> Status.Output (Some str, false, [])
-            in
-            Status.user_message c (s ^ "@\n%!");
-            run
-     | `Graph (filename, collapse) ->
-             let run = reroot_at_outgroup run in
-             let trees = Sexpr.to_list run.trees in
-             let trees = Array.of_list trees in
-             if 0 = Array.length trees then run
-             else begin
-                 let trees = Array.map (fun x ->
-                     let cost = (Ptree.get_cost `Adjusted x) in
-                     cost, (TS.build_forest_as_tree collapse x
-                     run.data "")) trees
-                 in
-                 match filename with 
-                 | Some filename ->
-                         GraphicsPs.display "" filename trees;
-                         run
-                 | None ->
-
-                         (*
-#if (USEGRAPHICS==1)
-                GraphicsScreen.display trees;
-                run
-#elif (USEGRAPHICS==2)
-                GraphicTK.display trees;
-                run
-#else
-                         *)
-             Status.user_message Status.Information 
-             ("@[Interactive@ graphics@ are@ not@ supported@ in@ this@ " ^
-             "compiled@ version@ of@ POY.@ Here@ is@ the@ ascii@ art@ though:@]");
-             process_application run (`Ascii (None, collapse))
-             (*
-#endif
-             *)
-end
-
-     | `Ascii (filename, collapse) ->
-             let trees = Sexpr.map (fun x ->
-                     let cost = int_of_float (Ptree.get_cost `Adjusted x) in
-                     let str = string_of_int cost in
-                     cost, TS.build_forest_as_tree collapse x run.data str) 
-                    run.trees
-             in
-             Sexpr.leaf_iter (fun (cost, x) -> 
-                 let r = AsciiTree.to_string ~sep:2 ~bd:2 false x in
-                 Status.user_message (Status.Output (filename,false, [])) 
-                 ("@[@[<v>@[Tree@ with@ cost@ " ^ string_of_int cost ^ "@]@,@[");
-                 Status.user_message (Status.Output (filename,false, [])) r;
-              Status.user_message (Status.Output (filename, false, [])) "@]@]@]%!";) trees;
-             run
-
-     | `Memory filename ->
-             let memory_usage = report_memory () in
-             Status.user_message (Status.Output (filename, false,[])) memory_usage;
-             run
-     | `InspectFile str ->
-             try 
-                 let (desc, _, _, _, _, _, _) = PoyFile.read_file str in
-                let desc = 
-                     match desc with
-                     | None -> "No@ description@ available."
-                     | Some d -> d
-                 in
-                 Status.user_message Status.Information ("@[<v 2>" ^
-                 (StatusCommon.escape str) ^ " is a POY file: @,@[" ^ desc ^ "@]@]");
-                 run
-             with
-             | _ -> 
-                     let msg = "The@ file@ " ^ StatusCommon.escape str ^ "@ is@ not@ a@ valid"
-                     ^ "@ POY@ fileformat." in
-                     Status.user_message Status.Information msg;
-                     run
-
                      
 let process_characters_handling (run : r) meth = 
     let data, do_nodes = 
@@ -1283,6 +1171,132 @@ ELSE
     let args = Sys.argv
 END
 
+let rec process_application run item = 
+    let run = reroot_at_outgroup run in
+    match item with
+    | `Interactive -> run
+    | `Normal | `Exact | `Iterative as meth -> 
+            if !Methods.cost <> meth then
+                let _ = Methods.cost := meth in
+                process_application run `ReDiagnose
+            else run
+    | `Exit -> exit 0
+    | `Version ->
+            Status.user_message Status.Information Version.string;
+            run
+    | `ChangeWDir dir ->
+            let dir = Str.global_replace (Str.regexp "\\\\ ") " " dir in
+            Sys.chdir dir;
+            run
+    | `PrintWDir ->
+            Status.user_message Status.Information 
+            ("The current working directory is " ^ (StatusCommon.escape
+            (Sys.getcwd ())));
+            run
+    | `Recover -> do_recovery run
+    | `ClearRecovered -> Queue.clear run.queue.Sampler.queue; run
+    | `ClearMemory items -> 
+            let has_item item = List.exists (fun x -> x = item) items in
+            Gc.full_major (); 
+            let _ = 
+                if has_item `Matrices then Matrix.flush ();
+                if has_item `SequencePool then Data.flush run.data;
+                ()
+            in
+            run
+    | `TimerInterval x -> Tabus.timer_interval := x; run
+    | `HistorySize len -> Status.resize_history len; run
+    | `Logfile file -> StatusCommon.set_information_output file; run
+    | `Redraw -> Status.redraw_screen (); run
+    | `SetSeed v -> process_random_seed_set run v
+    | `ReDiagnose -> update_trees_to_data true run
+    | `Help item -> HelpIndex.help item; run
+    | `Wipe -> empty ()
+    | `Echo (s, c) ->
+            let s = StatusCommon.escape s in
+            let c = 
+                match c with
+                | `Information -> Status.Information
+                | `Error -> Status.Error
+                | `Output str ->
+                        match str with
+                        | None -> Status.Output (None, false, [])
+                        | Some str -> Status.Output (Some str, false, [])
+            in
+            Status.user_message c (s ^ "@\n%!");
+            run
+     | `Graph (filename, collapse) ->
+             let run = reroot_at_outgroup run in
+             let trees = Sexpr.to_list run.trees in
+             let trees = Array.of_list trees in
+             if 0 = Array.length trees then run
+             else begin
+                 let trees = Array.map (fun x ->
+                     let cost = (Ptree.get_cost `Adjusted x) in
+                     cost, (TS.build_forest_as_tree collapse x
+                     run.data "")) trees
+                 in
+                 match filename with 
+                 | Some filename ->
+                         GraphicsPs.display "" filename trees;
+                         run
+                 | None ->
+
+                         (*
+#if (USEGRAPHICS==1)
+                GraphicsScreen.display trees;
+                run
+#elif (USEGRAPHICS==2)
+                GraphicTK.display trees;
+                run
+#else
+                         *)
+             Status.user_message Status.Information 
+             ("@[Interactive@ graphics@ are@ not@ supported@ in@ this@ " ^
+             "compiled@ version@ of@ POY.@ Here@ is@ the@ ascii@ art@ though:@]");
+             process_application run (`Ascii (None, collapse))
+             (*
+#endif
+             *)
+end
+
+     | `Ascii (filename, collapse) ->
+             let trees = Sexpr.map (fun x ->
+                     let cost = int_of_float (Ptree.get_cost `Adjusted x) in
+                     let str = string_of_int cost in
+                     cost, TS.build_forest_as_tree collapse x run.data str) 
+                    run.trees
+             in
+             Sexpr.leaf_iter (fun (cost, x) -> 
+                 let r = AsciiTree.to_string ~sep:2 ~bd:2 false x in
+                 Status.user_message (Status.Output (filename,false, [])) 
+                 ("@[@[<v>@[Tree@ with@ cost@ " ^ string_of_int cost ^ "@]@,@[");
+                 Status.user_message (Status.Output (filename,false, [])) r;
+              Status.user_message (Status.Output (filename, false, [])) "@]@]@]%!";) trees;
+             run
+
+     | `Memory filename ->
+             let memory_usage = report_memory () in
+             Status.user_message (Status.Output (filename, false,[])) memory_usage;
+             run
+     | `InspectFile str ->
+             try 
+                 let (desc, _, _, _, _, _, _) = PoyFile.read_file str in
+                let desc = 
+                     match desc with
+                     | None -> "No@ description@ available."
+                     | Some d -> d
+                 in
+                 Status.user_message Status.Information ("@[<v 2>" ^
+                 (StatusCommon.escape str) ^ " is a POY file: @,@[" ^ desc ^ "@]@]");
+                 run
+             with
+             | _ -> 
+                     let msg = "The@ file@ " ^ StatusCommon.escape str ^ "@ is@ not@ a@ valid"
+                     ^ "@ POY@ fileformat." in
+                     Status.user_message Status.Information msg;
+                     run
+
 let range_timer = ref (Timer.start ())
 
 let get_character_costs trees = 
@@ -1634,11 +1648,20 @@ END
             let name = emit_identifier () in
             let run = folder run (`Store ([`Data], name)) in
             let run = 
-                Sexpr.fold_left (on_each_tree folder (`Set ([`Data],
+                if not (List.exists (function #Methods.transform -> true | _ ->
+                    false) dosomething) then
+                    { run with original_trees = run.trees } 
+                else run
+            in
+            let run = 
+                let eta = true in
+                Sexpr.fold_status "Running pipeline on each tree" ~eta 
+                (on_each_tree folder (`Set ([`Data],
                 name)) dosomething mergingscript) run run.trees
             in
             let run = 
-                { run with trees = run.stored_trees; stored_trees = `Empty } 
+                { run with trees = run.stored_trees; original_trees = `Empty; 
+                stored_trees = `Empty } 
             in
             let run = folder run (`Discard ([`Data], name)) in
             run
@@ -1648,10 +1671,12 @@ END
             let st = Status.create "Running Pipeline" (Some times) "times" in
             let run = ref run in
             let for_each = todo @ composer in
-            for i = 1 to times do
+            let timer = Timer.start () in
+            for adv = 1 to times do
                 run := folder !run (`Set ([`Data], name));
                 run := List.fold_left folder !run for_each;
-                Status.full_report ~adv:i st;
+                let msg = Timer.status_msg (Timer.wall timer) adv times in
+                Status.full_report ~adv ~msg st;
             done;
             run := folder !run (`Discard ([`Data], name));
             Status.finished st;
@@ -1774,26 +1799,49 @@ END
             warn_if_no_trees_in_memory run.trees;
             let (`PerturbateNSearch (tr, _, search_meth, _)) = meth in
             let choose_best trees = 
-            (* A function to select the best between the
-            resulting trees and the previously existing trees *)
-            let merged = Sexpr.combine (run.trees, trees) in
-            let initialtrees, othertrees = 
-                Sexpr.fold_left
-                (fun (initialtrees, newtrees) (a, b) ->
-                    a :: initialtrees, 
-                    (Sexpr.to_list b) @ newtrees)
-                ([], []) merged
-            in
-            let othertrees = Sexpr.of_list othertrees in
-            let newres = 
-                folder { run with trees = othertrees } 
-                (search_meth :> script)
-            in
-            let ntrees = List.length initialtrees in
-            let all_trees = 
-                Sexpr.of_list (initialtrees @ (Sexpr.to_list newres.trees)) 
-            in
-            folder {run with trees = all_trees } (`BestN (Some ntrees))
+                (* A function to select the best between the
+                resulting trees and the previously existing trees *)
+                let initialtrees = Sexpr.to_list run.trees 
+                and othertrees = Sexpr.to_list trees in
+                let module TreeSet = Set.Make (Ptree.Fingerprint) in
+                let no_need, othertrees = 
+                    let initialtrees = 
+                        let add_elements acc x =
+                            TreeSet.add (Ptree.Fingerprint.fingerprint x) acc
+                        in
+                        let a = 
+                            Sexpr.fold_left add_elements TreeSet.empty run.trees
+                        in
+                        let a = 
+                            Sexpr.fold_left add_elements a run.stored_trees in
+                        Sexpr.fold_left add_elements a run.original_trees
+
+                    in
+                    List.partition (fun x ->
+                        let x = Ptree.Fingerprint.fingerprint x in
+                        TreeSet.mem x initialtrees) othertrees
+                in
+                let othertrees = 
+                    let _, acc =
+                        List.fold_left (fun ((set, acc) as pair) x ->
+                            let fp = Ptree.Fingerprint.fingerprint x in
+                            if TreeSet.mem fp set then pair
+                            else TreeSet.add fp set, x :: acc) 
+                        (TreeSet.empty, []) othertrees
+                    in
+                    Sexpr.of_list acc
+                in
+                if 0 <> Sexpr.length othertrees then
+                    let newres = 
+                        folder { run with trees = othertrees } 
+                        (search_meth :> script)
+                    in
+                    let ntrees = List.length initialtrees in
+                    let all_trees = 
+                        Sexpr.of_list (initialtrees @ no_need @ (Sexpr.to_list newres.trees)) 
+                    in
+                    folder {run with trees = all_trees } (`BestN (Some ntrees))
+                else run
             in
             (match tr with
             | [] ->
@@ -1821,14 +1869,14 @@ END
                     Sexpr.first run.trees
                 in
                 let runs = explode_trees run in
-                let runs =
+                let trees =
                     Sexpr.map_status 
-                    "Transforming each tree independently"
+                    "Transforming and searching each tree independently"
                     ~eta:true
-                    (temporary_transforms trans) 
+                    (fun x ->
+                        run_and_untransform (temporary_transforms trans x))
                     runs 
                 in
-                let trees = Sexpr.map run_and_untransform runs in
                 choose_best trees)
     | #Methods.runtime_store as meth -> 
             runtime_store (update_trees_to_data false) run meth 
@@ -2192,7 +2240,6 @@ END
             | #Methods.diagnosis as meth ->
                 warn_if_no_trees_in_memory run.trees;
                 let () = 
-                    let run = update_trees_to_data true run in
                     Sexpr.leaf_iter (fun x -> D.diagnosis run.data x meth) run.trees 
                 in
                 run
@@ -2321,6 +2368,8 @@ let channel_run ch =
     console_run_val := res
 
 let get_console_run () = !console_run_val
+
+let set_console_run r = console_run_val := r
 
 
     module PhyloTree  = struct
