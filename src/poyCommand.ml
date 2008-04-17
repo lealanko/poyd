@@ -313,6 +313,14 @@ type searcha = [
     | `Transform of bool
 ]
 
+type std_searcha = [
+    | `MaxRam of int
+    | `MinHits of int
+    | `MaxTime of float
+    | `MinTime of float
+    | `Target of float
+]
+
 type command = [
     | `Read of reada list 
     | build
@@ -324,6 +332,7 @@ type command = [
     | `Select of selecta list
     | `Rename of renamea list
     | `Search of searcha list
+    | `StandardSearch of std_searcha list
     | transform
     | `Perturb of perturba list
     | `Repeat of (int * command list)
@@ -561,14 +570,14 @@ let transform_build_arguments x =
     (x, y, List.rev z)
 
 (* Swapping *)
-let swap_default = (`Alternate (`Spr, `Tbr),
+let swap_default = (`ChainNeighborhoods `Tbr,
                     0.0,                (* threshold *)
                     1,                  (* trees to keep *)
                     `Last,              (* keep method *)
                     [],                 (* cost calc list *)
                     None,               (* forest search *)
                     `BestFirst,         (* traject. strategy *)
-                    `DistanceSorted,    (* Tabu break *)
+                    `DistanceSorted false,    (* Tabu break *)
                     `UnionBased None,     (* Tabu join *)
                     `Bfs None,          (* Tabu reroot *)
                     [])                 (* What should be sampled along the
@@ -580,7 +589,7 @@ let swap_default_none = (`None,
                          [],
                          None,
                          `BestFirst,
-                         `DistanceSorted,
+                         `DistanceSorted false,
                          `UnionBased None, 
                          `Bfs None,
                          [])               
@@ -967,6 +976,15 @@ let transform_search items =
             else default_search
     | _ -> failwith "Forgot to update the list of options of search?"
 
+let transform_stdsearch items = 
+    `StandardSearch (List.fold_left (fun (a, e, b, c, d) x ->
+        match x with
+        | `MaxTime x -> (Some x, e, b, c, d)
+        | `MinTime x -> (a, Some x, b, c, d)
+        | `MaxRam x -> (a, e, b, Some x, d)
+        | `MinHits x -> (a, e, Some x, c, d)
+        | `Target x -> (a, e, b, c, Some x)) (None, None, None, None, None) items)
+
 
 let rec transform_command (acc : Methods.script list) (meth : command) : Methods.script list =
     match meth with
@@ -1002,6 +1020,8 @@ let rec transform_command (acc : Methods.script list) (meth : command) : Methods
             (transform_swap_arguments x) :: acc
     | `Search args ->
             (transform_search args) @ acc
+    | `StandardSearch args ->
+            (transform_stdsearch args) :: acc
     | `Fuse x ->
           (transform_fuse x) :: acc
     | `Support x ->
@@ -1444,9 +1464,37 @@ let create_expr () =
                 -> x] SEP ","; 
                     right_parenthesis -> (`Swap a :> swap) ]
             ];
+        time:
+            [
+                [ days = integer_or_float; ":"; hours = integer_or_float; ":";
+                minutes = integer_or_float ->
+                    (int_of_float (((float_of_string days) *. 60. *. 60. *. 24.) +.
+                    ((float_of_string hours) *. 60. *. 60.) +.
+                    ((float_of_string minutes) *. 60. ))) ] 
+            ];
+        memory:
+            [
+                [ "gb"; ":"; x = INT -> ((int_of_string x) * 
+                    1000 * 1000 * (1000 / (Sys.word_size / 8))) ] |
+                [ "mb"; ":"; x = INT ->((int_of_string x) * 
+                    1000 * 1000 / (Sys.word_size / 8)) ]
+            ];
+        std_search_argument:
+            [   
+                [ LIDENT "target_cost"; ":"; x = integer_or_float -> `Target
+                (float_of_string x) ] |
+                [ LIDENT "memory"; ":"; x = memory -> `MaxRam x ] |
+                [ LIDENT "hits"; ":"; x = INT -> `MinHits (int_of_string x) ] |
+                [ LIDENT "max_time"; ":"; x = time -> `MaxTime (float_of_int x)
+                ] |
+                [ LIDENT "min_time"; ":"; x = time -> `MinTime (float_of_int x) ]
+            ];
         search:
             [
-                [ LIDENT "search"; left_parenthesis; a = LIST0 [x =
+                [ LIDENT "search"; left_parenthesis; a = LIST0 [ x =
+                    std_search_argument -> x ] SEP ",";  right_parenthesis ->
+                    `StandardSearch a] |
+                [ LIDENT "_search"; left_parenthesis; a = LIST0 [x =
                     search_argument -> x]  SEP
                 ","; right_parenthesis -> `Search a ]
             ];
@@ -1716,7 +1764,10 @@ let create_expr () =
         break_method:
             [
                 [ LIDENT "randomized" -> `Randomized ] |
-                [ LIDENT "distance" -> `DistanceSorted ] |
+                [ LIDENT "distance"; x = OPT optional_boolean -> 
+                    match x with
+                    | None -> `DistanceSorted false
+                    | Some x -> `DistanceSorted x] |
                 [ LIDENT "once" -> `OnlyOnce ]
             ];
         constraint_options:

@@ -8,7 +8,7 @@ The tutorials use sample datasets that are provided with \poy installation but c
 \end{center}
 The minimal required items to run the tutorial analyses are the \poy application and the sample datafiles. Running these analyses requires some familiarity with \poy interface and command structure that can be found in the preceding chapters.
 
-\section{Combining  search strategies}{\label{tutorial1}}
+\section{Combining  search strategies}{\label{tutorial4.1}}
 The following script implements a strategy for a thorough search. This is accomplished by generating a large number of independent initial trees by random addition sequence and combining different search strategies that aim at thoroughly exploring local tree space and escape the effect of composite optima by effectively traversing the tree space. In addition, this script shows how to output the status of the search to a log file and calculate the duration of the search. 
 
 \begin{verbatim}
@@ -50,7 +50,7 @@ This command imports all the nucleotide sequence datafiles (all files with the e
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Searching under iterative pass}{\label{tutorial2}}
+\section{Searching under iterative pass}{\label{tutorial4.2}}
 The following script implements a strategy for a thorough search under iterative pass optimization. The iterative pass optimization is a very time consuming procedure that makes it impractical to conduct under this kind of optimization (save for very small datasets that can be analyzed within reasonable time). The iterative pass, however, can be used for the most advanced stages of the analysis for the final refinement, when a potential global optimum has been reached through searches under other kinds of optimization (such as direct optimization). Therefore, this tutorial begins with importing an existing tree (rather than performing tree building from scratch) and subjecting it to local branch swapping under iterative pass.
 
 \begin{verbatim}
@@ -63,6 +63,8 @@ swap()
 select()
 report("all_trees",trees:(total),"constree", graphconsensus,
 "diagnosis",diagnosis)
+transform ((all, static_approx))
+report ("phastwinclad.ss", phastwinclad)
 exit()
 \end{verbatim}
 
@@ -75,17 +77,19 @@ exit()
 \item \texttt{swap(around)} This commands specifies that the the imported tree is subjected to alternating SPR and TBR branch swapping routine (the default of \poy) following the trajectory of search that completely evaluates the neighborhood of the tree (by using \poyargument{around}).
 \item \texttt{select()} Upon completion of branch swapping, this command retains only optimal and topologically unique trees; all other trees are discarded from memory.
 \item \texttt{report("all\_trees",trees:(total),"constree",\\graphconsensus,"diagnosis",diagnosis)} This command produces a series of outputs of the results of the search. It includes a file containing best trees in parenthetical notation and their costs (\texttt{all\_trees}), a graphical representation (in PostScript format) of the strict consensus (\texttt{constree}), and the diagnoses for all best trees (\texttt{diagnosis}).
+\item \texttt{transform ((all, "static\_approx"))} This command transforming all data into static homology characters corresponding to their implied alignments is necessary before reporting the data in the Hennig86 format.
+\item \texttt{report ("phastwinclad.ss", phastwinclad)}  This command produces a file in the Hennig86 format which can be imported into other programs, such as WinClada.
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Bremer support}{\label{tutorial 3}}
+\section{Bremer support}{\label{tutorial4.3}}
 
 This tutorial builds on the previous tutorials to illustrate Bremer support 
 calculation on trees constructed using dynamic homology characters
     
    \begin{verbatim}
 (* Bremer support part 1: generating trees *)
-read("18s.fas",28s.fas")
+read("18s.fas","28s.fas")
 set(root:"Americhernus")
 build(200)
 swap(all,visited:"tmp.trees", timeout:3600)
@@ -94,7 +98,7 @@ report("my.tree",trees)
 exit()
 
 (* Bremer support part 2: Bremer calculations *)
-read("18s.fas",28s.fas","my.tree")
+read("18s.fas","28s.fas","my.tree")
 report("support_tree.ps",graphsupports:bremer:"tmp.trees")
 exit()
 \end{verbatim}
@@ -115,7 +119,7 @@ exit()
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Jackknife support}{\label{tutorial 4}}
+\section{Jackknife support}{\label{tutorial4.4}}
 
 This tutorial illustrates calculating Jackknife support values for trees constructed with static homology characters.  Although it is possible to calculate both Jackknife and Bootstrap support values 
 for trees constructed using dynamic homology characters, it is not recommended because resampling of dynamic characters occurs at the fragment (rather than nucleotide) level. Alternately dynamic homology characters can be converted to static characters using the transform argument \poyargument{static\_approx}.  Character transformation, however, may result in a discrepancy between tree costs generated using dyanmic homology characters and those generated using static homology characters. Therefore after such a data transformation is performed, an extra round of swapping is recommended to insure that the local minimum tree length is reached for the static homology characters prior to calculating support values  support values.
@@ -145,7 +149,7 @@ exit()
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Sensitivity analysis}{\label{tutorial 5}}
+\section{Sensitivity analysis}{\label{tutorial4.5}}
 
 This tutorial demonstrates how data for parameter sensitivity analysis is generated. Sensitivity analysis \cite{wheeler1995} is a method of exploring the effect of relative costs of substitutions (transitions and transversions) and indels (insertions and deletions), either with or without taking gap extension cost into account. The approach consists of multiple iterations of the same search strategy under different parameters, (\emph{i.e} combinations of substitution and indel costs. Obviously, such analysis might become time consuming and certain methods are shown here how to achieve the results in reasonable time. This tutorial also shows the utility of the command \poycommand{store} and how transformation cost matrixes are imported and used.
 
@@ -193,7 +197,7 @@ exit()
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Chromosome analysis: unannotated sequences}{\label{tutorial 6}}
+\section{Chromosome analysis: unannotated sequences}{\label{tutorial4.6}}
 
 This tutorial illustrates the analysis of chromosome-level transformations using 
 unannotated sequences, i.e., contiguous strings of sequences without prior 
@@ -227,7 +231,7 @@ exit()
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Chromosome analysis: annotated sequences}{\label{tutorial 7}}
+\section{Chromosome analysis: annotated sequences}{\label{tutorial4.7}}
 
 This tutorial illustrates the analysis of chromosome-level transformations using 
 annotated sequences, i.e., contiguous strings of sequences with prior 
@@ -257,7 +261,7 @@ exit()
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Custom alphabet break inversion characters}{\label{tutorial 8}}
+\section{Custom alphabet break inversion characters}{\label{tutorial4.8}}
 
 This tutorial illustrates the analysis of the break inversion character type.  Break inversion characters are generated by transforming user-defined \poyargument {custom\_alphabet} characters.  
 For example, observations of developmental stages could be represented in a corresponding array such that for each terminal taxon there is a sequence of observed developmental stages which are represented by a user-defined alphabet.  To allow rearrangement as well as indel events to be considered among alphabet elements, requires either reading in the data with the \poyargument {breakinv} argument or transforming the \poyargument {custom\_alphabet} sequences read to \poyargument {breakinv} characters. 
@@ -265,7 +269,7 @@ For example, observations of developmental stages could be represented in a corr
 \begin{verbatim}
 (* Custom Alphabet to Breakinv characters *)
 read(custom_alphabet:("ca1.fas","m1.fas"))
-transform(custom_to_breakinv:())
+transform((all,custom_to_breakinv:()))
 transform((all,dynamic_pam:(locus_breakpoint:20,
 locus_indel:(10,1.5),median:1,swap_med:1)))
 build()
@@ -279,7 +283,7 @@ exit()
 \begin{itemize}
 \item \texttt{(* Custom Alphabet to Breakinv characters  *)} This first line of the script is a comment. While comments are optional and do not affect the analyses, they provide are useful for housekeeping purposes.
 \item \texttt{read(custom\_alphabet:("ca1.fas","m1.fas"))} This command imports the user-defined \poyargument {custom\_alphabet} character file \texttt{ca1.fas} and the accompanying transformation matrix \texttt{m1.fas}.
-\item \texttt{transform(custom\_to\_breakinv:())} This command transforms \poyargument {custom\_alphabet} characters to \poyargument {breakinv} characters which allow for rearrangement operations.
+\item \texttt{transform((all,custom\_to\_breakinv:()))} This command transforms \poyargument {custom\_alphabet} characters to \poyargument {breakinv} characters which allow for rearrangement operations.
 \item \texttt{transform((all,dynamic\_pam:(locus\_breakpoint:20,locus\_\\indel:(10,1.5),median:1,swap\_med:1)))}  The \poycommand{transform} follow\-ed by the argument \poyargument{dynamic\_pam} specifies the conditions to be applied when calculating medians. The argument \poyargument{locus\_breakpoint:20} applies a breakpoint distance calculation where the integer value specifies the rearrangement cost of \poyargument {breakinv} elements. The argument \poyargument{locus\_indel:10,1.5} specifies the indel costs for each \poyargument {breakinv} element, whereby the integer 10 sets the gap opening cost and the float 1.5 sets the gap extension cost.  The default values are applied to the \poyargument{median} and \poyargument{swap\_med} arguments to minimize the time require for these nested search options.   To more exhaustively perform these calculations trees generated from initial builds can be imported to the program and reevaluated with values greater than 1 designated for the \poyargument{median} and \poyargument{swap\_med} arguments
 \item \texttt{build()} This commands begins the tree-building step of the search that generates by default 10 random-addition trees.  It is highly recommended that a greater number of Wagner builds be implemented when analyzing data for purposes other than this demonstration.
 \item \texttt{swap()} The \poycommand{swap} command specifies that each of the trees be subjected to an alternating SPR and TBR branch swapping routine (the default of \poy).
@@ -288,7 +292,7 @@ exit()
 \item \texttt{exit()} This commands ends the \poy session.
 \end{itemize}
 
-\section{Genome analysis: multiple chromosomes}{\label{tutorial 9}}
+\section{Genome analysis: multiple chromosomes}{\label{tutorial4.9}}
 
 This tutorial illustrates the analysis of genome-level transformations using data from multiple chromosomes. 
 Prior to attempting an analysis of unannotated chromosomes it is necessary to enable the \texttt {"long sequences"}

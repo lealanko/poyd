@@ -84,6 +84,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                     | a = application_command -> `S a 
                     | x = read -> `S x 
                     | x = rename -> `S x
+                    | x = search -> `S x
                     | x = cur_expr -> `L x ]
         -> x] ];
         (* Application commands *)
@@ -537,12 +538,42 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ LIDENT "annchrom_to_breakinv"; ":"; left_parenthesis; x = LIST0
                         [x = chromosome_argument -> x] SEP ","; right_parenthesis -> 
                             <:expr<`AnnchromToBreakinv $exSem_of_list x$>> ] | 
-
                 [ LIDENT "dynamic_pam"; ":"; left_parenthesis; x = LIST0 
                         [ x = chromosome_argument -> x] SEP ","; right_parenthesis -> 
                             <:expr<`ChangeDynPam $exSem_of_list x$>> ] | 
                 [ LIDENT "chrom_to_seq" -> <:expr<`ChromToSeq []>> ] |
                 [ LIDENT "breakinv_to_custom" -> <:expr<`BreakinvToSeq []>> ] 
+            ];
+        time:
+            [
+                [ days = flex_float; ":"; hours = flex_float; ":";
+                minutes = flex_float ->
+                    <:expr<(int_of_float ((($days$) *. 60. *. 60. *. 24.) +.
+                    ((float_of_string $hours$) *. 60. *. 60.) +.
+                    ((float_of_string $minutes$) *. 60. )))>> ] 
+            ];
+        memory:
+            [
+                [ "gb"; ":"; x = flex_float -> 
+                    <:expr<int_of_float ($x$ *. 1000. *. 1000. *. 1000. /. (float_of_int
+                    (Sys.word_size / 8)))>> ] |
+                [ "mb"; ":"; x = flex_float ->
+                    <:expr<int_of_float ($x$ *. 1000. *. 1000. /. (float_of_int
+                    (Sys.word_size / 8)))>> ]
+            ];
+        std_search_argument:
+            [   
+                [ LIDENT "memory"; ":"; x = memory -> <:expr<`MaxRam $x$>> ] |
+                [ LIDENT "hits"; ":"; x = flex_float -> <:expr<`MinHits $x$>> ] |
+                [ LIDENT "target_cost"; ":"; x = flex_float -> <:expr<`Target $x$>> ] |
+                [ LIDENT "max_time"; ":"; x = time -> <:expr<`MaxTime $x$>> ] |
+                [ LIDENT "min_time"; ":"; x = time -> <:expr<`MinTime $x$>> ]
+            ];
+        search:
+            [
+                [ LIDENT "search"; left_parenthesis; a = LIST0 [ x =
+                    std_search_argument -> x ] SEP ",";  right_parenthesis ->
+                    <:expr<`StandardSearch $exSem_of_list a$>>] 
             ];
         neg_integer_or_float:
             [
