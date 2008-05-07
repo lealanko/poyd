@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-(* $Id: charTransform.ml 2712 2008-04-14 20:33:02Z andres $ *)
+(* $Id: charTransform.ml 2803 2008-05-04 22:34:57Z andres $ *)
 (* Created Fri Jan 13 11:22:18 2006 (Illya Bomash) *)
 
 (** CharTransform implements functions for transforming the set of OTU
@@ -25,7 +25,7 @@
     transformations, and applying a transformation or reverse-transformation to
     a tree. *)
 
-let () = SadmanOutput.register "CharTransform" "$Revision: 2712 $"
+let () = SadmanOutput.register "CharTransform" "$Revision: 2803 $"
 
 let check_assertion_two_nbrs a b c =
     if a <> Tree.get_id b then true
@@ -359,7 +359,8 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n)
                     let prepared_trees = Sexpr.map mapper !trees in
                     let set = 
                         let prepared_trees = Sexpr.map snd prepared_trees in
-                        TreeSearch.sets search_method data prepared_trees 
+                        let tabu = TreeSearch.get_join_tabu search_method in
+                        TreeSearch.sets tabu data prepared_trees 
                     in
                     let new_optimal = 
                         let f = TS.find_local_optimum in
@@ -523,12 +524,17 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n)
 
 
     let insert_union parent union_node (a, b, c, d, e) =
-        (a, b, Node.Union.get_sequence parent a union_node, c, d, e)
+        try 
+            Some (a, b, Node.Union.get_sequence parent a union_node, c, d, e)
+        with
+        | Failure "Node.get_sequence: could not find code" -> None
 
     let get_sequence parent code (normal_node, union_node) = 
         let tmp = Node.get_sequences parent normal_node in
         let tmp = List.find (fun (c, _, _, _, _) -> (code = c)) tmp in
-        insert_union parent union_node tmp
+        match insert_union parent union_node tmp with
+        | Some x -> x
+        | None -> failwith "Node.get_sequence: could not find code"
 
     let ever_increasing lst =
         let res, _ = 
@@ -683,6 +689,8 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n)
         --> Node.get_sequences None
         --> List.filter (fun (c, _, _, _, _) -> All_sets.Integers.mem c codes)
         --> List.map (insert_union None root_union)
+        --> List.filter (function Some _ -> true | _ -> false)
+        --> List.map (function Some x -> x | _ -> assert false)
         --> List.map (get_positions mode)
         --> List.map (produce_partitions data tree)
         --> List.fold_left process_partitions data
@@ -695,10 +703,14 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n)
                 --> List.map (fun (x, un) -> List.map (fun x -> (x, un)) x) 
                 --> List.flatten
                 --> List.map (fun (x, un) -> insert_union None un x) 
+                --> List.filter (function Some _ -> true | _ -> false)
+                --> List.map (function Some x -> x | _ -> assert false)
             and sequences = 
                 node 
                 --> Node.get_sequences None
                 --> List.map (insert_union None node_union)
+                --> List.filter (function Some _ -> true | _ -> false)
+                --> List.map (function Some x -> x | _ -> assert false)
             in
             List.fold_left (fun acc (code, _, s, _, _, alph) ->
                 if 0.85 < Sequence.poly_saturation s.Sequence.Unions.seq 1 
@@ -859,13 +871,12 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n)
                 (match analyze_sequences sensible data trees with
                 | [] -> data, nodes
                 | chars ->
-                      Status.user_message (Status.Output (None, false, []))
-                    "@.@[I@ will@ make@ static@ the@ characters@[<v 2>@,";
+                      Status.user_message Status.Information 
+                    "I@ will@ make@ static@ the@ characters@,";
                     List.iter (fun x -> 
                         let name = Data.code_character x data in
                         let name = StatusCommon.escape name in
                         Status.user_message Status.Information ("@[" ^ name ^ "@]@,")) chars;
-                    Status.user_message (Status.Output (None, false, [])) "@]@]@.";
                     transform_node_characters trees (data, nodes) (`Static_Aprox (`Some
                     (true, chars), true)))
         | `Prealigned_Transform chars ->
@@ -968,7 +979,11 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n)
                 --> Data.make_fixed_states chars
                 --> Data.categorize
                 --> Node.load_data ~taxa:nc
-             
+        | `Direct_Optimization chars ->
+                data 
+                --> Data.make_direct_optimization chars
+                --> Data.categorize
+                --> Node.load_data ~taxa:nc
         | #Methods.dynamic_char_transform as meth -> begin
               let status = 
                   Status.create "Tranform" None 

@@ -41,14 +41,23 @@ type dependency_class =
 let thread_table = Hashtbl.create 13
 
 let get_dependencies list =
+    let has_it = Hashtbl.create 13 in
+    let not_has_it x = not (Hashtbl.mem has_it x) 
+    and add_it x = Hashtbl.add has_it x 1 in
     let dep_relations_to_storage_class (a, parent) =
-        let dependency_to_storage_class = function
-            | Channel _ -> []
-            | Data -> [`Data]
-            | Trees -> [`Trees]
-            | JackBoot -> [`Jackknife; `Bootstrap]
-            | Bremer -> [`Bremer]
-            | EntryPoint -> []
+        let dependency_to_storage_class x = 
+            let res = 
+                match x with
+                | Channel _ -> []
+                | Data when not_has_it `Data -> [`Data]
+                | Trees when not_has_it `Trees -> [`Trees]
+                | JackBoot when not_has_it `Jackknife -> [`Jackknife; `Bootstrap]
+                | Bremer when not_has_it `Bremer -> [`Bremer]
+                | EntryPoint -> []
+                | _ -> [] 
+            in
+            List.iter add_it res;
+            res
         in
         `Set ((List.flatten (List.map dependency_to_storage_class a)), 
             try Hashtbl.find thread_table parent with
@@ -174,8 +183,10 @@ let dependency_relations (init : Methods.script) =
                         [([Data; Trees; JackBoot; Bremer], [Data; Trees; JackBoot; Bremer], init, NonComposable)]
                 | `Wipe ->
                         [([EntryPoint], [Data; Trees; JackBoot; Bremer], init, NonComposable)]
-                | `Exact
+                | `Exhaustive_Weak
+                | `Exhaustive_Strong
                 | `Iterative
+                | `Normal_plus_Vitamines
                 | `Normal ->
                         [([Data; Trees], [Trees], init, Linnearizable)]
                 | `ReDiagnose ->
@@ -229,6 +240,7 @@ let dependency_relations (init : Methods.script) =
                 | `Change_Dyn_Pam _
                 | `Breakinv_to_Custom _
                 | `Fixed_States _
+                | `Direct_Optimization _
                 | `Prioritize
                 | `ReWeight _
                 | `WeightFactor _
@@ -1001,6 +1013,9 @@ let simplify_store_set script =
                 `OnEachTree (script1, script2) :: result, used_items, 
                 modified
         | `ParallelPipeline (c, l1, l2, l3) ->
+                let stores = 
+                    List.find_all (function `Store _ -> true | _ -> false) l2
+                in
                 let l3, used_items, modified =
                     List.fold_right simplify_one l3
                     ([], used_items, modified)
@@ -1015,8 +1030,9 @@ let simplify_store_set script =
                 in
                 let l3 =
                     match l3 with
-                    | `GetStored :: `Set _ :: t -> `GetStored :: t
-                    | t -> t
+                    | `GetStored :: `Set _ :: t -> `GetStored :: (stores @ t)
+                    | `GetStored :: t -> `GetStored :: (stores @ t)
+                    | t -> stores @ t
                 and l2 = List.filter (function `Set _ -> false | _ -> true) l2 
                 and l1 = 
                     match List.rev l1 with
@@ -1468,10 +1484,13 @@ let script_to_string (init : Methods.script) =
                         "@[eliminate the trees I recovered in a swap@]"
                 | `Wipe ->
                         "@[get rid of all trees and data@]"
-                | `Exact -> 
-                        "@[set the cost calculation to exact DO@]"
+                | `Exhaustive_Strong
+                | `Exhaustive_Weak -> 
+                        "@[set the cost calculation to Exhaustive Weak DO@]"
                 | `Iterative ->
                         "@[set the cost calculation to iterative@]"
+                | `Normal_plus_Vitamines ->
+                        "@[set the cost calculation to normal+ DO@]"
                 | `Normal ->
                         "@[set the cost calculation to normal DO@]"
                 | `ReDiagnose ->
@@ -1494,6 +1513,7 @@ let script_to_string (init : Methods.script) =
                 | `Chrom_to_Seq _
                 | `Breakinv_to_Custom _
                 | `Fixed_States _
+                | `Direct_Optimization _
                 | `Prioritize
                 | `ReWeight _
                 | `WeightFactor _
@@ -1791,8 +1811,10 @@ let is_master_only (init : Methods.script) =
     | `Exit 
     | `Interactive
     | `ChangeWDir _ 
+    | `Normal_plus_Vitamines
     | `Normal
-    | `Exact
+    | `Exhaustive_Strong
+    | `Exhaustive_Weak
     | `Iterative
     | `ReDiagnose
     | `ClearMemory _ 

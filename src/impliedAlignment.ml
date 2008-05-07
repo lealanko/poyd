@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "ImpliedAlignment" "$Revision: 2704 $"
+let () = SadmanOutput.register "ImpliedAlignment" "$Revision: 2809 $"
 
 exception NotASequence of int
 
@@ -36,9 +36,15 @@ type ias = {
     seq : Sequence.s;
     codes : (int, int) Hashtbl.t; (* (key=pos -> code) Hashtble *)
     homologous: (int, int Sexpr.t) Hashtbl.t; (* (code, hom_code list) Hashtbl *)
-    indels: 
+    indels: (* The location and contents of an insertion block *)
         (int * string * int * [ `Insertion | `Deletion ] * int Sexpr.t) Sexpr.t; 
-        (* The location and contents of an insertion block *)
+        (* (p * s * l * t * c) Sexpr.t where
+         *  p: start indel position 
+         *  s: content of this indel block
+         *  l: indel block length 
+         *  t: block type either insertion or deletion
+         *  c: children indel blocks at children node of two subtrees
+         *)
     order : int list; (* codes list in reverse order *)
 }
 
@@ -74,12 +80,20 @@ type cg = (unit -> int)
 
 let fprintf = Printf.fprintf
 
+(** [code_generator] returns an unique code for a position in a
+* sequence. Thus, codes created by [code_genrator] function
+* are all different *)
 let code_generator () =
     let counter = ref (-1) in
     fun () ->
         incr counter;
         !counter
 
+(** [create_ias state s code cg] returns an initiated 
+* implied alignment for raw sequence [s] where [cg] is 
+* code generator function, [state] indicates if sequence [s] 
+* is a sequence or a chromosome character.
+* The parameter [code] is redundant for now *)
 let create_ias (state : dyna_state_t) s code cg =
     let add_codes ((code_acc, hom_acc, order_lst) as res) pos _ =
         if (pos = 0) && (state = `Seq) then res 
@@ -93,8 +107,6 @@ let create_ias (state : dyna_state_t) s code cg =
     let c = Hashtbl.create 1667
     and h = Hashtbl.create 1667 in
     let c, h, o = Sequence.foldi add_codes (c, h, []) s in
-(*    print_endline "Create IAS";
-    List.iter (fun code -> fprintf stdout "%i " code) o; print_newline ();*)
     { seq = s; codes = c; homologous = h; indels = `Empty; order = o }
 
 let rec prepend_until_shared tgt src it = 
@@ -146,7 +158,7 @@ let calculate_indels a b alph b_children =
     for i = 1 to len - 1 do
         let a_base = Sequence.get a i
         and b_base = Sequence.get b i in
-        let a_gap = a_base <> gap
+        let a_gap = a_base <> gap (* a_gap = true if a_base is not a gap, otherwise false *)
         and b_gap = b_base <> gap in
         match !in_indel_row with
         | `None -> assign_in_indel_row i a_gap b_gap;
@@ -239,7 +251,6 @@ codea codeb cm alph achld bchld =
     let lena = Sequence.length a.seq
     and lenb = Sequence.length b.seq 
     and gap = Cost_matrix.Two_D.gap cm in
-
     let create_gaps len = Sequence.init (fun _ -> gap) len 
     and aempty = (Sequence.is_empty a.seq gap) && (state = `Seq)
     and bempty = (Sequence.is_empty b.seq gap) && (state = `Seq) in
@@ -290,7 +301,7 @@ codea codeb cm alph achld bchld =
         * So we better clean that up when required *)
         match state with 
         | `Chromosome | `Annotated | `Breakinv | `Genome -> 
-                let gapless_seqa = UtlPoy.delete_gap ~gap_code:gap a.seq in 
+                let gapless_seqa = Sequence.delete_gap ~gap_code:gap a.seq in 
                 {a with seq = gapless_seqa}, Sequence.length gapless_seqa
         | _ -> a, Sequence.length a.seq
     in 
@@ -475,8 +486,10 @@ let ancestor_sequence prealigned calculate_median all_minus_gap
     [|res|]
 
 
-(* Merge the implied alignments of two clades and their respective roots into
-* one common ancestor *)
+(* [ancestor_chrom prealigned calculate_median all_minus_gap acode bcode 
+*  achld bchld a b cm alpha chrom_pam] merges the implied alignments of two clades and 
+* their respective roots into one common ancestor. This is similar to [ancestor]
+* function, but for chromosome characters  *)
 let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode 
         achld bchld a b cm alpha chrom_pam = 
     let a, b, min_can_code = 
@@ -544,8 +557,6 @@ let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode
              let enb = seg.ChromAli.en2 in 
              let sub_ordb_arr = get_suborder true stab enb b.codes orderb_arr act_ordb_arr in 
 
-(*             fprintf stdout "sta:%i -> (%i, %i), (%i, %i)\n" sta staa ena stab enb; flush stdout;*)
-
              let sub_codes_a = Hashtbl.create 1667 in
              (if staa != -1 then 
                   for p = staa to ena do
@@ -575,14 +586,10 @@ let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode
                  ancestor calculate_median `Chromosome prealigned all_minus_gap sub_a
                      sub_b acode bcode cm alpha achld bchld
              in 
-(*             UtlPoy.printDNA seg.ChromAli.alied_seq1;
-               UtlPoy.printDNA seg.ChromAli.alied_seq2; *)
              (if (sta != -1) then 
                   Hashtbl.iter (fun p code ->                                     
                                     Hashtbl.add nascent_ias.codes (p + sta - 1) code) ans.codes);
 
-(*             UtlPoy.printDNA ans.seq;
-             print_newline ();*)
 
              Hashtbl.iter (fun code hom -> 
                                Hashtbl.replace nascent_ias.homologous code hom) ans.homologous; 
@@ -595,8 +602,10 @@ let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode
 
 
 
-(* Merge the implied alignments of two clades and their respective roots into
-* one common ancestor *)
+(* [ancestor_annchrom prealigned calculate_median all_minus_gap acode bcode 
+*  achld bchld a b cm alpha annchrom_pam] merges the implied alignments of two clades and 
+* their respective roots into one common ancestor. This is similar to [ancestor]
+* function, but for annotated chromosome characters  *)
 let ancestor_annchrom prealigned calculate_median all_minus_gap acode bcode
         achld bchld a b cm alpha annchrom_pam  = 
 
@@ -651,8 +660,10 @@ let ancestor_annchrom prealigned calculate_median all_minus_gap acode bcode
     let new_ias_arr = Array.map merge_ias med.AnnchromAli.seq_arr in 
     new_ias_arr
 
-(* Merge the implied alignments of two clades and their respective roots into
-* one common ancestor *)
+(* [ancestor_breakinv prealigned calculate_median all_minus_gap acode bcode 
+*  achld bchld a b cm alpha breakinv_pam] merges the implied alignments of two clades and 
+* their respective roots into one common ancestor. This is similar to [ancestor]
+* function, but for breakinv characters  *)
 let ancestor_breakinv prealigned calculate_median all_minus_gap acode bcode
         achld bchld a b cm alpha breakinv_pam = 
 
@@ -672,7 +683,7 @@ let ancestor_breakinv prealigned calculate_median all_minus_gap acode bcode
 
     let seqb_arr = Sequence.to_array b.seq in 
     let gap_code = Cost_matrix.Two_D.gap cm in 
-    let re_seqb = UtlPoy.delete_gap ~gap_code:gap_code med.BreakinvAli.alied_seq2 in
+    let re_seqb = Sequence.delete_gap ~gap_code:gap_code med.BreakinvAli.alied_seq2 in
     let new_codes_b = Hashtbl.create 1667 in 
     Array.iteri 
     (fun re_pos re_base -> 
@@ -716,8 +727,10 @@ let ancestor_breakinv prealigned calculate_median all_minus_gap acode bcode
     [|{ans with seq = med.BreakinvAli.seq; codes = new_codes}|]
 
 
-(* Merge the implied alignments of two clades and their respective roots into
-* one common ancestor *)
+(* [ancestor_genome prealigned calculate_median all_minus_gap acode bcode 
+*  achld bchld a b cm alpha chrom_pam] merges the implied alignments of two clades and 
+* their respective roots into one common ancestor. This is similar to [ancestor]
+* function, but for genome characters  *)
 let ancestor_genome prealigned calculate_median all_minus_gap acode bcode achld
         bchld a b cm alpha chrom_pam = 
 
@@ -1051,19 +1064,29 @@ let analyze_tcm tcm alph =
                         (fun y -> 
                             Cost_matrix.Two_D.cost (1 lsl x) (1 lsl y) tcm)) 
                 | Alphabet.Sequential ->
-                      let tcm_size = Cost_matrix.Two_D.alphabet_size tcm in                          
+                      let tcm_size = Cost_matrix.Two_D.alphabet_size tcm in
+                      let all = 
+                          match Alphabet.get_all alph with
+                          | None -> (-1)
+                          | Some x -> x
+                      in
                       Array.init size 
                           (fun x -> 
                                Array.init size 
                                    (fun y -> 
                                         let x = min (x + 1) tcm_size in 
                                         let y = min (y + 1) tcm_size in
+                                        let x =
+                                            if x = all then x + 1
+                                            else x
+                                        and y =
+                                            if y = all then y + 1
+                                            else y
+                                        in
                                         Cost_matrix.Two_D.cost x y tcm))
                 | Alphabet.Extended_Bit_Flags -> 
                         failwith "Impliedalignment.make_tcm"
             in
-
-
             let enc = 
                 let alph = Alphabet.to_sequential alph in
                 let res = Parser.OldHennig.Encoding.default () in
@@ -1096,7 +1119,7 @@ let analyze_tcm tcm alph =
                             else match_bit v (pos + 1) (mask lsl 1) acc
                         in
                         match_bit x 1 1 []
-                | Alphabet.Sequential -> [x]
+                | Alphabet.Sequential -> [x - 1]
                 | Alphabet.Extended_Bit_Flags -> 
                         failwith "Impliedalignment.convert_to_list"
             in
@@ -1212,7 +1235,16 @@ module Make (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) = stru
                     | None -> Some (Ptree.get_parent taxon_id ptree)
                 in
                 if Tree.is_leaf id ptree.Ptree.tree then
-                    Node.get_dynamic_preliminary par data
+                    (* In a leaf we have to do something more complex, if we are
+                    * dealing with simplified alphabets, not bitsets, we must
+                    * pick the dynamic adjusted *)
+                    let pre = Node.get_dynamic_preliminary par data
+                    and adj = Node.get_dynamic_adjusted par data in
+                    List.map2 (fun pre adj ->
+                        if 0 = Cost_matrix.Two_D.combine (DynamicCS.c2 pre)
+                        then
+                            adj
+                        else pre) pre adj
                 else get_dynamic_data par data
             in
             let data = convert_data taxon_id data in
@@ -1395,8 +1427,10 @@ module Make (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) = stru
               let add_result ias =
                   Hashtbl.iter (fun pos code -> 
                       let base = Sequence.get ias.seq pos in
-                      let col = column code in
-                      let col = len - col in
+                      let col = 
+                          let col = column code in
+                          len - col 
+                      in
                       results.(col) <- base;
                       pos_results.(col) <- pos) 
                   ias.codes

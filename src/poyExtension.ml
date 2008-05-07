@@ -98,8 +98,9 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ LIDENT "nolog" -> <:expr<`Logfile None>> ] |
                 [ LIDENT "seed"; ":"; x = flex_integer -> <:expr<`SetSeed $x$>> ] |
                 [ LIDENT "root"; ":"; x = flex_string -> <:expr<`RootName $x$>> ] |
-                [ LIDENT "exhaustive_do" -> <:expr<`Exact>> ] |
+                [ LIDENT "exhaustive_do" -> <:expr<`Exhaustive_Weak>> ] |
                 [ LIDENT "iterative" -> <:expr<`Iterative>> ] |
+                [ LIDENT "normal_do_plus" -> <:expr<`Normal_plus_Vitamines>> ] |
                 [ LIDENT "normal_do" -> <:expr<`Normal>> ]
             ];
         application_command:
@@ -274,6 +275,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ LIDENT "constraint_p" -> <:expr<`Partition []>> ] |
                 [ LIDENT "constraint_p"; ":"; x = flex_integer ->
                     <:expr<`Partition [`MaxDepth $x$]>> ] |
+                [ LIDENT "sets"; ":"; x = cur_expr -> <:expr<`Partition [`Sets $x$]>> ] |
                 [ LIDENT "constraint_p"; ":"; left_parenthesis; 
                     x = LIST1 [x = constraint_options -> x] SEP ","; right_parenthesis
                     -> <:expr<`Partition $exSem_of_list x$>> ]
@@ -505,6 +507,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 = flex_integer; ")" -> <:expr<`Gap ($x$, $y$)>> ] |
                 [ LIDENT "tcm"; ":";  x = flex_string -> <:expr<`Tcm $x$>> ] |
                 [ LIDENT "fixed_states" -> <:expr<`Fixed_States>> ] |
+                [ LIDENT "direct_optimization" -> <:expr<`Direct_Optimization>> ] |
                 [ LIDENT "gap_opening"; ":"; x = flex_integer -> <:expr<`AffGap $x$>> ] |
                 [ LIDENT "static_approx"; x = OPT informative_characters -> 
                     match x with 
@@ -549,9 +552,9 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             [
                 [ days = flex_float; ":"; hours = flex_float; ":";
                 minutes = flex_float ->
-                    <:expr<(int_of_float ((($days$) *. 60. *. 60. *. 24.) +.
-                    ((float_of_string $hours$) *. 60. *. 60.) +.
-                    ((float_of_string $minutes$) *. 60. )))>> ] 
+                    <:expr<(((($days$) *. 60. *. 60. *. 24.) +.
+                    (($hours$) *. 60. *. 60.) +.
+                    (($minutes$) *. 60. )))>> ] 
             ];
         memory:
             [
@@ -752,9 +755,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ x = swap_method -> x ] |
                 [ x = keep_method -> x ] |
                 [ x = threshold_and_trees -> x ] |
-                (*
                 [ x = cost_calculation -> x ] |
-                *)
                 [ LIDENT "forest"; a = OPT optional_integer_or_float -> 
                     match a with
                     | None -> <:expr<`Forest $flo:"0."$>>

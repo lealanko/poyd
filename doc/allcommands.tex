@@ -378,8 +378,10 @@ The \poycommand{calculate\_support} command does not output support values by de
 	\begin{poyexamples}
 
 		\poyexample{cd ("/Users/username/docs/poyfiles")}
-            {Changes the current directory to the directory \\
+            {Changes the current directory to the directory in a Mac environment (when using a 
+            PC the path will the forward slashes will be replaced with backslash characters is the path).\\
             \texttt{/Users/username/docs/poyfiles}.}
+            
 
     \end{poyexamples}
 
@@ -630,10 +632,11 @@ The \poycommand{calculate\_support} command does not output support values by de
 	\syntax{\obligatory{(\poystring)}} 
 
 	\begin{poydescription}
-            Reads and imports a \poy file, the name of which (specified by the command
-             \poycommand{save}) is included in the string argument.
-            All the information of the current \poy session will be replaced
-            with the contents of the \poy file. If the file is not in proper \poy file
+             Imports and inputs \poy files created by the command
+             \poycommand{save}.  The name of the file to be loaded
+              is included in the string argument. All the information of
+               the current \poy session will be replaced with the contents
+              of the \poy file. If the file is not in proper \poy file
             format, an error message is printed in the \emph{POY Output}
             window of the ncurses interface, or the standard error in the flat interface.
             See the description of the command \ccross{save} on the \poy file
@@ -710,14 +713,14 @@ The \poycommand{calculate\_support} command does not output support values by de
 
         \argumentdefinition{ratchet}{\optional{(\poyfloat, \poyint)}}
             {Perturbs the data by implementing a variant of the parsimony
-            ratchet~\cite{Nixon1999}. For unaligned data,
-            \poyargument{ratchet} randomly selects and reweighs a fraction of
+            ratchet~\cite{Nixon1999} by reweighting characters listed in \poycommand{report(data)}. 
+            For unaligned data,\poyargument{ratchet} randomly selects and reweighs a fraction of
             sequence fragments (\emph{not} individual nucleotides) specified
-            by the float
-            (decimal) value, upweighted by a factor specified by the integer
-            value (severity). For static matrices, such as those obtained
-            using the command~\nccross{transform}{transformcommand}, 
-            \poycommand{ratchet} randomly selects and
+            by the float (decimal) value, upweighted by a factor specified by the integer
+            value (severity). Thus, the number of sequence fragments into which the 
+            data is partitioned will impact the effectiveness of using the ratchet on dynamic character matrices.  
+            For static matrices, such as those obtained using the 
+            command~\nccross{transform}{transformcommand},\poycommand{ratchet} randomly selects and
             reweights individual nucleotide positions (column vectors), as in Nixon's
             original implementation ~\cite{Nixon1999}.
             
@@ -872,8 +875,9 @@ The \poycommand{calculate\_support} command does not output support values by de
         Imports data files and tree files.  Supported formats are ASN1, Clustal, FASTA,
         GBSeq, Genbank, Hennig86, Newick, NewSeq, Nexus, PHYLIP, POY3,
         TinySeq, and XML. Filenames should be enclosed in quotes and, if multiple
-        filenames are specified, they must be separated by commas.
-        \poycommand{read} automatically detects the type of the input file.
+        filenames are specified, they must be separated by commas. 
+        All filenames read into \poy should include the appropriate suffix (\emph{e.g.} .fas, .ss, .aln).
+        \poycommand{read} automatically detects the type of the input file. 
         \poycommand{read} can use wildcard expressions (such as *) to
         refer to multiple files in a single step. For example, \poycommand{read("biv*")} 
         imports all data files the names of which start
@@ -959,6 +963,14 @@ The \poycommand{calculate\_support} command does not output support values by de
               from each one of this files, no other commands are currently
               recognized.}
               {}
+              
+            \begin{statement}
+            \poy recognizes the characters \emph{x} and \emph{n} as representing any nucleotide 
+            base (a,c,t, or g).  The \emph{?} symbol inserted in sequence data signifies missing data,
+            a gap, or any nucleotide base may occur in that matrix position.  
+            For prealigned data sequence gaps are recognized by dashes.  
+                    \end{statement}
+
 	
 	\begin{statement}
             Continuous characters can be treated as such by assigning the lower
@@ -1977,13 +1989,22 @@ The \poycommand{calculate\_support} command does not output support values by de
             ratchet, and tree fusing. The strategy involves specifying targets for 
             a driven search, such as maximum and minimum execution times, 
             maximum allowed memory consumption, minimum number of times the
-            shortest tree is found, and an expected cost for the shortest tree.
+            shortest tree is found, and an expected cost for the shortest tree.  When executing
+             \poycommand{search} using parallel processing trees are exchanged upon the
+              completion of the command (after fusing).  Because the lowest cost unique trees 
+              generated are selected and stored at the end of a \poycommand{search} 
+              (defined by the user with \poyargument{max\_time}), aggressive use of this 
+              command in a parallel environment consists of implementing several sequential
+               \poycommand{search} commands that will add the pool of selected
+               best trees to subsequent iterations of the command (see the example for parallel processing).
 	\end{poydescription}
 
 	\begin{arguments}
 
         \argumentdefinition{hits}{\obligatory{\poyint}}{Specifies the minimum number of
-        times that the minimum cost must be reached before aborting the search.}{}
+        times that the minimum cost must be reached before aborting the search. 
+        The \poyargument{hits} argument is not used in parallel processing}{}
+        	      
         
         \argumentdefinition{max\_time}{\obligatory{\poyfloat:\poyfloat:\poyfloat}}
         {Maximum total execution time for the search. The time is specified as
@@ -1991,12 +2012,14 @@ The \poycommand{calculate\_support} command does not output support values by de
         be expressed as 1:12:00 or 1.5:00:00.}{maxtime}
         
         \argumentdefinition{memory}{\obligatory{\poylident:\poyfloat}}{Specifies the maximum amount of
-        memory allocated for the search. \poy \emph{attempts} to consume memory within
+        memory allocated for the search per processor. \poy \emph{attempts} to consume memory within
         the specified limit, but it may surpass it in certain operations. The lident value expresses the 
         units of memory (\poyargument{gb} for Gigabytes and \poyargument{mb} for Megabytes), 
         whereas the float value specifies the actual value. Keeping memory consumption 
         within the limit is approximate and is used as a rough guide to \poy, preventing 
-        the program from overflowing the memory. Under certain circumstances, however, 
+        the program from overflowing the memory.  Furthermore, it is important to note that 
+        when running \poy in parallel the maximum amount of memory specified by the user is 
+        allocated to each processor being used.  Under certain circumstances, however, 
         it might be required to use more memory to avoid program failures.}{}
 
         \argumentdefinition{min\_time}{\obligatory{\poyfloat:\poyfloat:\poyfloat}}
@@ -2015,6 +2038,20 @@ The \poycommand{calculate\_support} command does not output support values by de
     parameters, the program performs a search for at most one hour using at most
     2 GB of memory. \emph{If the user does not specify the value of \poyargument{max\_time}, 
     the search will be aborted after one hour.}}
+    
+        \begin{statement}
+                Note that in order to maximize computational efficiency when using \poycommand{search} 
+                in parallel processing environments the \poyargument{hits} argument has been removed from
+                the valid syntax of the command.  Because the number of trees evaluated in search is \poycommand{search} 
+                is multiplicative such that it is doubled in the \poycommand{fuse} stage during each iteration that this 
+                command performs prior to its user defined \poyargument{max\_time}, a strategy in which many 
+                successive \poycommand{search} commands are executed for relatively short amounts of time is more 
+                exhaustive than a single \poycommand{search} executed for a relatively long amount of time.  During each 
+                successive \poycommand{search}, in addition to the trees generated in the \poycommand{build} stage, the set of 
+                best unique trees selected from the previous search round is applied to the current \poycommand{search} at 
+                the \poycommand{fuse} stage and the set of best trees from each processor will be exchanged at the command's completion.
+                \end{statement}
+
         
     	\begin{poyexamples}
         	
@@ -2024,6 +2061,19 @@ The \poycommand{calculate\_support} command does not output support values by de
             minutes, finding at least 100 hits (whichever occurs first, the time
             limit or the number of hits), knowing that the expected cost of the
             best hits is at most 385 steps.}
+	
+	\poyexample {For Parallel Implementation of \poycommand{search}}
+		               {search(max\_time:0:2:0)}\\
+			    {search(max\_time:0:2:0)}\\
+	                       {search(max\_time:0:2:0)}\\
+                                {search(max\_time:0:2:0)}\\
+	                      {search(max\_time:0:2:0)}\\
+	                      {search(max\_time:0:2:0)}\\
+            {This series of commands will attempt as many builds, swaps, ratchets, and tree
+            fusings as possible within the specified time of 16 hours (2 hours allocated
+             for each successive iteration of the command).  Trees are exchanged among
+             processors at the end of each \poycommand{search} and the best unique trees
+              are then selected and applied to the following  \poycommand{search} command.}
 	
             \end{poyexamples}
 
@@ -2822,10 +2872,23 @@ The \poycommand{calculate\_support} command does not output support values by de
             long sequences greatly accelerates searching. This method is applicable only to dynamic homology characters.}
             {autosequencepartition}
 
+        \argumentdefinition{direct\_optimization}{}
+          {Transforms the characters specified so that the initial assignment of sequences to 
+          the internal vertices of a tree use direct
+          optimization~\cite{wheeler1996}. This method is recommended for small
+          alphabets (less than 7 elements). Otherwise fixed states is
+          recommended. It is only applicable to dynamic homology
+          characters.}
+          {directoptimization}
+
         \argumentdefinition{fixed\_states}{}
           {Transforms the characters specified in fixed state characters~\cite{wheeler1999a}
-          with distances equal to the edition distance between their observed values.
-          This method is applicable only to dynamic homology characters.}
+          where the initial assignment of sequences to the internal vertices of
+          the tree is one of the observed sequences. If the observed sequences
+          contain ambiguities, only those that resolve closest to another
+          sequence are added to the set of valid states. This method is
+          recommended for large alphabets (more than or equal to 7 elements). It is only
+          applicable to dynamic homology characters.}
           {fixedstates}
           
         \argumentdefinition{gap\_opening}{\obligatory{\poyint}}

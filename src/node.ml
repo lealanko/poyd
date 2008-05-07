@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "Node" "$Revision: 2704 $"
+let () = SadmanOutput.register "Node" "$Revision: 2795 $"
 let infinity = float_of_int max_int
 
 let debug = false
@@ -259,7 +259,7 @@ let float_close ?(epsilon=0.001) a b =
     let diff = a -. b in
     (abs_float diff) < epsilon
 
-let rec cs_median anode bnode prev a b = 
+let rec cs_median code anode bnode prev a b = 
     match a, b with 
     | Nonadd8 ca, Nonadd8 cb ->
             assert (ca.weight = cb.weight);
@@ -346,7 +346,7 @@ let rec cs_median anode bnode prev a b =
                 if anode.min_child_code < bnode.min_child_code then ca, cb
                 else cb, ca
             in
-            let median = DynamicCS.median ca.preliminary cb.preliminary in
+            let median = DynamicCS.median code ca.preliminary cb.preliminary in
             let total_cost = DynamicCS.total_cost median in 
             let res = 
                 { ca with 
@@ -369,7 +369,7 @@ let rec cs_median anode bnode prev a b =
                     (* just recursively apply it to our children, in order *)
                     let res =
                         List.map2
-                            (cs_median anode bnode None) l1 l2 in
+                            (cs_median code anode bnode None) l1 l2 in
                     let result = { cb.preliminary with set = res } in
                     set_update_cost
                         (Set { cb with
@@ -385,7 +385,7 @@ let rec cs_median anode bnode prev a b =
                             (fun (i, list) l1i ->
                                  let _, list = List.fold_left
                                  (fun (j, list) l2i ->
-                                      let median = cs_median anode
+                                      let median = cs_median code anode
                                           bnode None l1i l2i in
                                       let cost = extract_cost median in
                                       update_cost cost;
@@ -643,16 +643,20 @@ let median code old a b =
                 decr median_counter;
                 !median_counter
     in
+    (*
+    Printf.printf "Code of median is %d with children %d and %d\n%!" code 
+    a.taxon_code b.taxon_code;
+    *)
     let new_characters =
         match old with
         | None -> 
-                map2 (cs_median a b None) 
+                map2 (cs_median code a b None) 
                 a.characters b.characters
         | Some c ->
-              map3 (fun x -> cs_median a b (Some x))
-                  c.characters
-                  a.characters
-                  b.characters
+                    map3 (fun x -> cs_median code a b (Some x))
+                    c.characters
+                    a.characters
+                    b.characters
     and children_cost = a.total_cost +. b.total_cost in
     let node_cost = get_characters_cost new_characters in
     let total_cost = node_cost +. children_cost in
@@ -682,56 +686,6 @@ let root_cost root =
     in
     List.fold_left adder root.total_cost root.characters
 
-
-let rec cs_reroot_median na nb old a b =
-    match old, a, b with
-    | Nonadd8 old, Nonadd8 a, Nonadd8 b ->
-          let median = NonaddCS8.reroot_median a.final b.final in
-          Nonadd8 { old with preliminary = median; final = median; }
-    | Nonadd16 old, Nonadd16 a, Nonadd16 b ->
-          let median = NonaddCS16.reroot_median a.final b.final in
-          Nonadd16 { old with preliminary = median; final = median; }
-    | Nonadd32 old, Nonadd32 a, Nonadd32 b ->
-          let median = NonaddCS32.reroot_median a.final b.final in
-          Nonadd32 { old with preliminary = median; final = median; }
-    | Add old, Add a, Add b ->
-          let median = AddCS.reroot_median a.final b.final in
-          Add { old with preliminary = median; final = median; }
-    | Sank old, Sank a, Sank b ->
-          let newroot = SankCS.reroot old.final a.final b.final in
-          Sank { old with preliminary = newroot; final = newroot; }
-    | Dynamic old, Dynamic a, Dynamic b ->
-          let median = DynamicCS.median a.final b.final in
-          Dynamic { old with preliminary = median; final = median }
-    | Set old, Set a, Set b ->
-          (* just re-take the median... *)
-          (match a.preliminary.smethod with
-           | `Strictly_Same ->
-                 let res = map3 (cs_reroot_median na nb)
-                     old.final.set a.preliminary.set
-                     b.preliminary.set in
-                 let res = { old.preliminary with set = res } in
-                 Set { old with preliminary = res; final = res; }
-           | `Any_Of _ ->
-                 let newroot = cs_median na nb None (Set a) (Set b) in
-                 newroot
-          )
-    | Dynamic _, _, _ 
-    | Sank _, _, _ | Add _, _, _ | Nonadd32 _, _, _ 
-    | Nonadd16 _, _, _ | Nonadd8 _, _, _ | Set _, _, _ ->
-          failwith "cs_reroot_median"
-
-let reroot_median old a b =
-    let new_characters =
-        map3 (cs_reroot_median a b) old.characters a.characters b.characters in
-    let num_child_edges, num_height = new_node_stats a b in
-    let exclude_info = excludes_median a b in
-    { old with
-          characters = new_characters;
-          num_child_edges = num_child_edges;
-          num_height = num_height;
-          exclude_info = exclude_info;
-    }
 
 (* let median_final old a b = *)
 (*     let old = match old with *)
@@ -896,7 +850,8 @@ let edge_distance clas nodea nodeb =
                | `Any_Of _ ->
                      (* unf. we just take the full median and check the distance
                      *)
-                     let m = cs_median nodea nodeb None ch1 ch2 in
+                     decr median_counter;
+                     let m = cs_median !median_counter nodea nodeb None ch1 ch2 in
                      extract_cost m)
         | _ -> failwith "Incompatible characters (5)"
     and distance_lists chs1 chs2 acc =
@@ -943,7 +898,8 @@ let distance_of_type ?(para=None) ?(parb=None) t
                | `Any_Of _ ->
                      (* unf. we just take the full median and check the distance
                      *)
-                     let m = cs_median nodea nodeb None ch1 ch2 in
+                     decr median_counter;
+                     let m = cs_median !median_counter nodea nodeb None ch1 ch2 in
                      extract_cost m)
         | _ -> 0.0
     and distance_lists chs1 chs2 acc =
@@ -978,7 +934,8 @@ let distance ?(para=None) ?(parb=None)
                | `Any_Of _ ->
                      (* unf. we just take the full median and check the distance
                      *)
-                     let m = cs_median nodea nodeb None ch1 ch2 in
+                     decr median_counter;
+                     let m = cs_median !median_counter nodea nodeb None ch1 ch2 in
                      extract_cost m)
         | _ -> failwith "Incompatible characters (5)"
     and distance_lists chs1 chs2 acc =
@@ -1346,7 +1303,7 @@ let generate_taxon do_classify (laddcode : ms) (lnadd8code : ms)
                     List.fold_left (get_character_with_code_n_weight gen_new) 
                     (1., [], 0) y
                 in
-                x, (a, b)
+                x, (a, b), Array.of_list (List.map snd y)
             in
             let ladd_chars    = List.map (addmapper gen_add)  laddcode    
             and lnadd8_chars  = 
@@ -1389,20 +1346,22 @@ let generate_taxon do_classify (laddcode : ms) (lnadd8code : ms)
             in
             let result = 
                 List.fold_left 
-                (add_characters (NonaddCS8.of_parser !data)
-                (fun c w -> Nonadd8 (make_with_w c w)))
+                (fun acc (a, b, c) -> 
+                    add_characters (NonaddCS8.of_parser !data c)
+                    (fun c w -> Nonadd8 (make_with_w c w)) acc (a, b))
                 result lnadd8_chars
             in
             let result =
                 List.fold_left 
-                (add_characters (NonaddCS16.of_parser !data)
-                (fun c w -> Nonadd16 (make_with_w c w)))
+                (fun acc (a, b, c) -> 
+                    add_characters (NonaddCS16.of_parser !data c)
+                    (fun c w -> Nonadd16 (make_with_w c w)) acc (a, b))
                 result lnadd16_chars
             in
             let result =
                 List.fold_left 
-                (add_characters (NonaddCS32.of_parser !data)
-                (fun c w -> Nonadd32 (make_with_w c w)))
+                (fun acc (a, b, c) -> add_characters (NonaddCS32.of_parser !data c)
+                (fun c w -> Nonadd32 (make_with_w c w)) acc (a, b))
                 result lnadd32_chars
             in
             let result = 
@@ -1411,8 +1370,8 @@ let generate_taxon do_classify (laddcode : ms) (lnadd8code : ms)
             in
             let result = 
                 List.fold_left 
-                (add_characters (AddCS.of_parser !data)
-                (fun c w -> Add (make_with_w c w)))
+                (fun acc (a, b, _) -> add_characters (AddCS.of_parser !data)
+                (fun c w -> Add (make_with_w c w)) acc (a, b))
                 result ladd_chars
             in
             let result = 
@@ -1721,6 +1680,9 @@ let rec cs_to_single (pre_ref_code, fi_ref_code) (root : cs option) parent_cs mi
     | _ -> mine
 
 let to_single (pre_ref_codes, fi_ref_codes) root parent mine = 
+    (*
+    Printf.printf "Assigning single to %d\n%!" mine.taxon_code;
+    *)
     match root with
     | Some root ->
           let root_char_opt = List.map (fun c -> Some c) root.characters in 
@@ -1778,6 +1740,9 @@ let readjust to_adjust ch1 ch2 parent mine =
 let to_single_root (pre_ref_codes, fi_ref_codes) mine = 
     to_single (pre_ref_codes, fi_ref_codes) (Some mine) mine mine
 
+(** [get_active_ref_code node_data] returns codes of
+* all active chromosomes which are used for single state process
+* on the subtree rooted at [node_data] *)
 let get_active_ref_code node_data = 
     List.fold_left 
         (fun (acc_pre, acc_pre_child, acc_fi, acc_fi_child) cs -> 
@@ -1944,7 +1909,8 @@ let to_formatter_single (pre_ref_codes, fi_ref_codes)
     in
     (Tags.Nodes.node, attr, `Structured (`Set children))
 
-
+(** [copy_chrom_map source des] copies the chromosome map
+* which creates chromosome [source] to chromosome map which creates chromosome [des] *)
 let copy_chrom_map source des =
     let s_ch_arr = Array.of_list source.characters in 
     let d_ch_arr = Array.of_list des.characters in 
@@ -2210,38 +2176,9 @@ let get_sequences _ node =
 let fprintf = Printf.fprintf 
 
 
-let prioritize node =
-    let characters = 
-        List.fold_right (fun x acc -> 
-            match x with 
-            | Dynamic x -> 
-                    let x = { x with preliminary = DynamicCS.prioritize
-                    x.preliminary } in
-                    (Dynamic x) :: acc 
-            | x -> x :: acc) 
-        node.characters  []
-    in
-    { node with characters = characters }
+let prioritize node = node
 
-let reprioritize a b =
-    let rec pairwise_priority a b =
-        match a, b with
-        | [], [] -> []
-        | ha :: ta, hb :: tb ->
-                begin match ha, hb with
-                | Dynamic a, Dynamic b -> 
-                        let x = { b with preliminary = 
-                                DynamicCS.reprioritize a.preliminary
-                                b.preliminary;
-                                final = DynamicCS.reprioritize a.preliminary
-                                b.final } 
-                        in
-                        (Dynamic x) :: pairwise_priority ta tb
-                | a, b -> b :: pairwise_priority ta tb
-                end
-        | [], _ | _, [] -> failwith "Node.reprioritize"
-    in
-    { b with characters = pairwise_priority a.characters b.characters }
+let reprioritize a b = b
 
 let is_collapsable clas a b = 
     0.0 = edge_distance clas a b
@@ -2795,6 +2732,8 @@ module Standard :
                 | [], _ -> -1
             in
             aux_cmt a.characters b.characters
+
+        let force x = x
 end 
 
 let merge a b =

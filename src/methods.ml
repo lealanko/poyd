@@ -18,7 +18,7 @@
 (* USA                                                                        *)
 
 
-let () = SadmanOutput.register "Methods" "$Revision: 2731 $"
+let () = SadmanOutput.register "Methods" "$Revision: 2797 $"
 
 exception TimedOut
 
@@ -30,7 +30,8 @@ let io = 3
 let debugging = 4
 let barrier = 5
 
-let cost : [ `Normal | `Exact | `Iterative ] ref = ref `Normal
+let cost : [ `Normal | `Normal_plus_Vitamines | `Exhaustive_Weak | `Exhaustive_Strong | `Iterative ] ref = 
+    ref `Normal
 
 type filename = [ `Local of string | `Remote of string ]
 
@@ -109,7 +110,7 @@ type transform_cost_matrix = [
 ]
 
 
-
+(** parameters used in determining the medians between two chromosomes or genomes *)
 type chromosome_pam_t = [
     | `Locus_Inversion of int
     | `Locus_Breakpoint of int
@@ -149,6 +150,7 @@ type char_transform = [
     | `Static_Aprox of (characters * bool)
     | `Search_Based of characters
     | `Fixed_States of characters
+    | `Direct_Optimization of characters
     | `Automatic_Sequence_Partition of (characters * bool * (int option))
     | `Automatic_Static_Aprox of bool
     | `Prioritize
@@ -308,7 +310,8 @@ type output_class = [
 type tabu_join_strategy = [
     | `UnionBased of int option
     | `AllBased of int option
-    | `Partition of [`MaxDepth of int | `ConstraintFile of filename ] list
+    | `Partition of [`Sets of (All_sets.IntSet.t Lazy.t) | 
+    `MaxDepth of int | `ConstraintFile of filename ] list
 ]
 
 (* New tree build_method methods.
@@ -622,7 +625,9 @@ type application = [
     | `HistorySize of int
     | `Logfile of string option
     | `Normal
-    | `Exact
+    | `Normal_plus_Vitamines
+    | `Exhaustive_Weak
+    | `Exhaustive_Strong
     | `Iterative
     | `ReDiagnose
     | `SetSeed of int
