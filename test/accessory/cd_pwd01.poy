@@ -1,3 +1,0 @@
-(* 'cd' and 'pwd'; VERIFY stdout *)
-cd ("./perturb/")
-pwd ()

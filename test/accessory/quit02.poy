@@ -1,3 +1,0 @@
-(* 'quit', just checking if works *)
-read ("1.fas")
-quit ()

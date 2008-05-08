@@ -1,2 +1,0 @@
-(* 'run' without argument; ERROR expected *)
-run()

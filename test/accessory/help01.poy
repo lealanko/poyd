@@ -1,4 +1,0 @@
-(* confirming 'help' is working *)
-help()
-help(build)
-help("fuse")

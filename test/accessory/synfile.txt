@@ -1,2 +1,0 @@
-alpha t1 t2
-beta t5

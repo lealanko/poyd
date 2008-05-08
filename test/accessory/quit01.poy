@@ -1,3 +1,0 @@
-(* 'quit' with arguments; ERROR EXPECTED and DETECTED *)
-read ("1.fas")
-quit (bye)

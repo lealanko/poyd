@@ -1,3 +1,0 @@
-(* 'exit' with arguments; ERROR message expected *)
-read ("1.fas")
-exit (bye)
