@@ -1,4 +1,4 @@
-SVNVERSION := echo -n 2815
+SVNVERSION := echo -n 2841
 
 QuickStart.pdf: QuickStart.tex
 	pdflatex $<; pdflatex $<; pdflatex $< 

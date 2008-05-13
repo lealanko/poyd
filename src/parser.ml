@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "Parser" "$Revision: 2792 $"
+let () = SadmanOutput.register "Parser" "$Revision: 2834 $"
 
 (* A in-file position specification for error messages. *)
 let ndebug = true
@@ -2483,10 +2483,14 @@ module SC = struct
             Nexus.DStandard
 
         let make_symbol_alphabet gap symbols form =
+            let cnt = ref (1) in
+            let prepro_symbols = 
+                List.map (fun x -> incr cnt; x, !cnt, None) symbols
+            in
             match get_datatype form with
             | Nexus.Protein ->
                     Alphabet.list_to_a
-                    [("A", 0, None); 
+                    ([("A", 0, None); 
                     ("C", 1, None); 
                     ("D", 2, None); 
                     ("E", 3, None); 
@@ -2507,13 +2511,13 @@ module SC = struct
                     ("W", 18, None); 
                     ("Y", 19, None); 
                     ("*", 20, None);
-                    (gap, 21, None);]
+                    (gap, 21, None);] @ prepro_symbols)
                     gap None Alphabet.Sequential,
                     [("B", ["D"; "N"]); ("Z", ["E"; "Q"])]
             | Nexus.Rna ->
                     Alphabet.list_to_a 
-                    [("A", 0, None); ("C", 1, None); ("G", 2, None); ("U", 3,
-                    None); (gap, 4, None)]
+                    ([("A", 0, None); ("C", 1, None); ("G", 2, None); ("U", 3,
+                    None); (gap, 4, None)] @ prepro_symbols)
                     gap None Alphabet.Sequential,
                     [("R", ["A"; "G"]);
                     ("Y", ["C"; "U"]);
@@ -2529,8 +2533,8 @@ module SC = struct
                     ("X", ["A"; "C"; "G"; "U"])]
             | Nexus.Nucleotide | Nexus.Dna ->
                     Alphabet.list_to_a 
-                    [("A", 0, None); ("C", 1, None); ("G", 2, None); ("T", 3,
-                    None); (gap, 4, None)]
+                    ([("A", 0, None); ("C", 1, None); ("G", 2, None); ("T", 3,
+                    None); (gap, 4, None)] @ prepro_symbols)
                     gap None Alphabet.Sequential,
                     [("R", ["A"; "G"]);
                     ("Y", ["C"; "T"]);
@@ -2623,13 +2627,15 @@ module SC = struct
             done;
             ()
 
-        let uninterleave data = 
+        let uninterleave for_fasta data = 
             (* The data is a string right now, but I suppose this is not really
             * convenient as we set a hard constraint on the size of the input. We
             * have to change this for a stream, but that will also require changes
             * in the nexusLexer.mll and nexusParser.mly *)
             let hstbl = Hashtbl.create 97 in
             let stream = new FileStream.string_reader data in
+            let input_order = ref [] in
+            let started_adding = ref false in
             try while true do
                 let line = stream#read_line in
                 let line = 
@@ -2642,10 +2648,17 @@ module SC = struct
                             Buffer.add_string buf x; 
                             Buffer.add_string buf " "
                         in
-                        if Hashtbl.mem hstbl taxon then
+                        if Hashtbl.mem hstbl taxon then begin
+                            started_adding := true;
                             let buf = Hashtbl.find hstbl taxon in
                             List.iter (adder buf) sequence
-                        else begin
+                        end else begin
+                            if !started_adding then 
+                                failwith
+                                ("There appears to be a name mismatch in your \
+                                interleaved format. I could not find " ^ 
+                                taxon);
+                            input_order := taxon :: !input_order;
                             let buf = Buffer.create 1511 in
                             List.iter (adder buf) sequence;
                             Buffer.add_string buf " ";
@@ -2656,12 +2669,16 @@ module SC = struct
             ""
             with
             | End_of_file -> 
+                    let input_order = List.rev !input_order in
+                    let prepend = if for_fasta then "\n\n>" else " " in
+                    let separator = if for_fasta then "\n" else " " in
                     let buf = Buffer.create 1511 in
-                    Hashtbl.iter (fun name str ->
-                        Buffer.add_string buf " ";
+                    List.iter (fun name ->
+                        let str = Hashtbl.find hstbl name in
+                        Buffer.add_string buf prepend;
                         Buffer.add_string buf name;
-                        Buffer.add_string buf " ";
-                        Buffer.add_buffer buf str) hstbl;
+                        Buffer.add_string buf separator;
+                        Buffer.add_buffer buf str) input_order;
                     Buffer.contents buf
 
         let do_on_list f char list =
@@ -2700,6 +2717,7 @@ module SC = struct
             let rec in_comment pos =
                 let start = ref pos in
                 try while !start < len do
+                    incr start;
                     begin match string.[!start] with
                     | ']' -> raise Exit
                     | '[' -> 
@@ -2707,7 +2725,6 @@ module SC = struct
                             ()
                     | _ -> ()
                     end;
-                    incr start;
                 done;
                 failwith "Finished string and the comments are still there!"
                 with
@@ -2940,7 +2957,7 @@ module SC = struct
                 (* We are ready now to fill the contents of the matrix *)
                 let chars = remove_comments chars.Nexus.chars in
                 let data =
-                    if get_interleaved form then uninterleave chars
+                    if get_interleaved form then uninterleave false chars
                     else chars
                 in
                 let get_row_number, assign_item =
@@ -3318,10 +3335,7 @@ module SC = struct
                     let char_spec = 
                         default_static char_cntr file data.Nexus.unal_format 0
                     in
-                    let unal = 
-                        Str.global_replace (Str.regexp ",[ \t\n]*") "\n>"
-                        data.Nexus.unal
-                    in
+                    let unal = uninterleave true data.Nexus.unal in
                     let alph = 
                         (* We override whatever choice for the unaligned
                         * sequences alphabet is, if we are dealing with our
@@ -3612,32 +3626,39 @@ module SC = struct
                 { newspec with 
                 st_type = STSankoff spec.OldHennig.cost_matrix }
 
-    let of_old_atom (newspec : static_spec) (oldspec : OldHennig.encoding_spec)  
+    let of_old_atom table_of_atoms 
+    (newspec : static_spec) (oldspec : OldHennig.encoding_spec)  
     data : static_state =
-        match data with
-        | Ordered_Character (_, _, true)
-        | Unordered_Character (_, true)
-        | Sankoff_Character (_, true) -> None
-        | Ordered_Character (min, max, false) -> Some [min; max]
-        | Unordered_Character (x, false) ->
-                let lst_bits = 
-                    let rec process_bits acc pos v =
-                        if v = 0 || pos > 32 then acc
-                        else 
-                            let mask = 1 lsl pos in
-                            let acc = 
-                                if 0 <> v land mask then
-                                    (pos :: acc) 
-                                else acc
-                            in 
-                            let next = (v land (lnot mask)) in
-                            process_bits acc (pos + 1) next
-                    in
-                    process_bits [] 0 x
-                in
-                Some lst_bits
-        | Sankoff_Character (s, false) -> Some s
-        | _ -> assert false
+        if Hashtbl.mem table_of_atoms data then Hashtbl.find table_of_atoms data
+        else
+            let res = 
+                match data with
+                | Ordered_Character (_, _, true)
+                | Unordered_Character (_, true)
+                | Sankoff_Character (_, true) -> None
+                | Ordered_Character (min, max, false) -> Some [min; max]
+                | Unordered_Character (x, false) ->
+                        let lst_bits = 
+                            let rec process_bits acc pos v =
+                                if v = 0 || pos > 32 then acc
+                                else 
+                                    let mask = 1 lsl pos in
+                                    let acc = 
+                                        if 0 <> v land mask then
+                                            (pos :: acc) 
+                                        else acc
+                                    in 
+                                    let next = (v land (lnot mask)) in
+                                    process_bits acc (pos + 1) next
+                            in
+                            process_bits [] 0 x
+                        in
+                        Some lst_bits
+                | Sankoff_Character (s, false) -> Some s
+                | _ -> assert false
+            in
+            let () = Hashtbl.add table_of_atoms data res in
+            res
 
     let of_old_parser filename alphabet (specs, data, trees) : file_output =
         let taxa, data = 
@@ -3656,10 +3677,12 @@ module SC = struct
                     Array.init nchars (fun x ->
                         of_old_spec filename (Some alphs.(x)) specs.(x) x)
         in
+        let table_of_atoms = Hashtbl.create 1667 in
         let new_data : int list option array array =
             Array.init ntaxa (fun x ->
                 Array.init nchars (fun y ->
-                    of_old_atom new_specs.(y) specs.(y) data.(x).(y)))
+                    of_old_atom table_of_atoms 
+                    new_specs.(y) specs.(y) data.(x).(y)))
         in
         Nexus.fill_observed new_specs new_data;
         taxa, new_specs, new_data, trees, []
