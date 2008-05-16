@@ -17,7 +17,7 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
-let () = SadmanOutput.register "Scripting" "$Revision: 2833 $"
+let () = SadmanOutput.register "Scripting" "$Revision: 2846 $"
 
 module IntSet = All_sets.Integers
 
@@ -403,11 +403,9 @@ let load_data (meth : Methods.input) data nodes =
 (** read breakinv data from files each breakinv is 
 * presented as a sequence of general alphabets *)
                 let data = Data.add_file data [Data.Characters] seq in
-                let orientation = 
-                    not 
-                    (List.mem (`Orientation false) read_options) 
+                let orientation = (List.mem (`Orientation true) read_options) 
                 in
-                let init3D = not (List.mem (`Init3D false) read_options) in
+                let init3D = (List.mem (`Init3D true) read_options) in
                 let data = Data.add_file data [Data.Characters] seq in
                 (* read the alphabet and tcm *)
                 let alphabet, twod, threed =
@@ -2758,18 +2756,19 @@ END
               { run with data =
                       { run.data with Data.root_at = where } }
             | `RootName name ->
-                    try folder run 
-                    (`Root (Some (Data.taxon_code name run.data))) with
-                    | Not_found -> 
-                            let msg = 
-                                "Terminal@ " ^ StatusCommon.escape name ^ 
-                                "@ not@ found.@ To@ set@ the@ root@ I@ "
-                                ^ "must@ have@ loaded@ some@ data@ for@ it.@ "
-                                ^ "The@ assigned@ root@ " ^ 
-                                "will@ remain@ unchanged."
-                            in
-                            Status.user_message Status.Error msg;
-                            run
+                    if All_sets.StringMap.mem name run.data.Data.taxon_names then
+                        folder run 
+                        (`Root (Some (Data.taxon_code name run.data)))
+                    else
+                        let msg = 
+                            "Terminal@ " ^ StatusCommon.escape name ^ 
+                            "@ not@ found.@ To@ set@ the@ root@ I@ "
+                            ^ "must@ have@ loaded@ some@ data@ for@ it.@ "
+                            ^ "The@ assigned@ root@ " ^ 
+                            "will@ remain@ unchanged."
+                        in
+                        let () = Status.user_message Status.Error msg in
+                        run
               
 
 let deal_with_error output_file run tmp err =
