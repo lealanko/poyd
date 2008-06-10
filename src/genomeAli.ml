@@ -539,7 +539,8 @@ let create_fast_general_ali chrom_id genome1_ref_code chrom1_seq loci1_ls
     in   
 
     let max_sq2_id = gen_gap_code - 2 in 
-    let mark2_arr = Array.make (max_sq2_id + 1) false in 
+    let mark2_arr = Array.make (max_sq2_id + 1) true in 
+    Array.iter (fun locus2 -> mark2_arr.(locus2.Subseq.id) <- false) loci2_arr;
     Array.iteri (fun idx _ -> 
                      (if (alied_free_id1.(idx) != gen_gap_code) && (alied_free_id2.(idx) != gen_gap_code) then begin
                           mark2_arr.(alied_free_id2.(idx)) <- true
@@ -1051,7 +1052,7 @@ let create_med med1 med2 cost_mat user_chrom_pams =
                       recost2 = !g_recost2}
     in 
     
-    if (List.length chrom_med_ls = 0) then failwith "Created a fucking empty genome";
+    if (List.length chrom_med_ls = 0) then failwith "Created an empty genome";
     
     genome_med, !g_cost, (!g_recost1, !g_recost2)
         

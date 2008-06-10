@@ -38,6 +38,8 @@ AC_ARG_WITH(ocaml-flags, [AS_HELP_STRING([--with-ocaml-flags],
             [OCAMLFLAGS=$withval],[])
 
 
+
+
 AC_ARG_ENABLE([mpi], [AS_HELP_STRING([--enable-mpi], 
               [Turns on parallel support using MPI. When using MPI remember to set CC to the appropriate mpicc compiler.])], 
               [USEPARALLEL=true], 

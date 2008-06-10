@@ -544,8 +544,8 @@ let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode
     
     let added_locus_indel_cost = ref 0 in 
     let num_locus_indel = ref 0 in
-    let new_ias = List.fold_left 
-        (fun nascent_ias seg ->
+    let new_ias, rev_anc_seq_ls = List.fold_left 
+        (fun (nascent_ias, rev_anc_seq_ls) seg ->
              let sta = seg.ChromAli.sta in 
              let staa = seg.ChromAli.sta1 in 
              let ena = seg.ChromAli.en1 in 
@@ -596,14 +596,13 @@ let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode
                 let gap_cost = Sequence.cmp_ali_cost 
                     seg.ChromAli.alied_seq1 seg.ChromAli.alied_seq2 seg.ChromAli.dir2 cm
                 in 
-
-(*                fprintf stdout "%i -> %i %i\n" (Sequence.length seg.ChromAli.alied_seq1) seg.ChromAli.cost gap_cost; flush stdout; *)
                 incr num_locus_indel;
                 added_locus_indel_cost := !added_locus_indel_cost + (seg.ChromAli.cost-gap_cost);
              end);
 
-             {nascent_ias with order = List.append nascent_ias.order (List.rev ans.order)}
-        ) init_ias med.ChromAli.chrom_map
+             let nascent_ias = {nascent_ias with order = List.append nascent_ias.order (List.rev ans.order)} in
+             (nascent_ias, ans.seq::rev_anc_seq_ls)
+        ) (init_ias, []) med.ChromAli.chrom_map
     in 
 
     
@@ -612,15 +611,24 @@ let ancestor_chrom prealigned calculate_median all_minus_gap acode bcode
 
     let rea = `Single (recost1, achld) in 
     let reb = `Single (recost2, bchld) in
-    let locus_indel = `Single (!added_locus_indel_cost,  achld) in
+    let locus_indel = 
+        if (List.hd (Sexpr.to_list achld)) < (List.hd (Sexpr.to_list bchld)) then 
+            `Single (!added_locus_indel_cost,  achld) 
+        else
+            `Single (!added_locus_indel_cost,  bchld) 
+    in
     
     let dum_chars = ref [a.dum_chars; b.dum_chars] in 
     (if recost1 > 0 then dum_chars:= rea::!dum_chars);
     (if recost2 > 0 then dum_chars:= reb::!dum_chars);
     (if !num_locus_indel > 0 then dum_chars:= locus_indel::!dum_chars);
 
+    let anc_chrom = Sequence.concat (List.rev rev_anc_seq_ls) in
+    let anc_chrom = Sequence.delete_gap anc_chrom in 
     let new_ias = {new_ias with order = List.rev new_ias.order;
+                                seq = anc_chrom;
                                 dum_chars = `Set !dum_chars} in     
+
 
     [|new_ias|]
 
@@ -649,6 +657,8 @@ let ancestor_annchrom prealigned calculate_median all_minus_gap acode bcode
     in
     let med = List.hd med_ls in 
 
+    let added_locus_indel_cost = ref 0 in 
+    let num_locus_indel = ref 0 in
     let merge_ias seqt = 
         let orda = seqt.AnnchromAli.seq_ord1 in 
         let ordb = seqt.AnnchromAli.seq_ord2 in 
@@ -677,13 +687,53 @@ let ancestor_annchrom prealigned calculate_median all_minus_gap acode bcode
             ancestor calculate_median `Annotated prealigned
             all_minus_gap isa isb acode bcode cm alpha achld bchld
         in
+        (if (orda = -1) || (ordb = -1) then begin
+            let gap_cost = Sequence.cmp_ali_cost 
+                seqt.AnnchromAli.alied_seq1 seqt.AnnchromAli.alied_seq2 `Positive cm
+            in 
+
+            let indel_cost = Data.get_locus_indel_cost annchrom_pam in 
+            let seq_cost = 
+                if orda = -1 then 
+                    Sequence.cmp_gap_cost indel_cost seqt.AnnchromAli.alied_seq2
+                else 
+                    Sequence.cmp_gap_cost indel_cost seqt.AnnchromAli.alied_seq1
+            in
+                    
+            incr num_locus_indel;
+            added_locus_indel_cost := !added_locus_indel_cost + (seq_cost - gap_cost);
+        end);
+
+
         let new_codes = Hashtbl.create 1667 in 
         Hashtbl.iter (fun p code -> Hashtbl.add new_codes (p-1) code) ans.codes;
         {ans with seq = seqt.AnnchromAli.seq; codes = new_codes}
     in 
 
     let new_ias_arr = Array.map merge_ias med.AnnchromAli.seq_arr in 
+
+    let recost1 = med.AnnchromAli.recost1 in
+    let recost2 = med.AnnchromAli.recost2 in
+
+    let rea = `Single (recost1, achld) in 
+    let reb = `Single (recost2, bchld) in
+    let locus_indel = 
+        if (List.hd (Sexpr.to_list achld)) < (List.hd (Sexpr.to_list bchld)) then 
+            `Single (!added_locus_indel_cost,  achld) 
+        else
+            `Single (!added_locus_indel_cost,  bchld) 
+    in
+    
+
+    let dum_chars = ref [a.(0).dum_chars; b.(0).dum_chars] in 
+    (if recost1 > 0 then dum_chars:= rea::!dum_chars);
+    (if recost2 > 0 then dum_chars:= reb::!dum_chars);
+    (if !num_locus_indel > 0 then dum_chars:= locus_indel::!dum_chars);
+    new_ias_arr.(0) <- {new_ias_arr.(0) with dum_chars = `Set !dum_chars}; 
+
     new_ias_arr
+
+
 
 (* [ancestor_breakinv prealigned calculate_median all_minus_gap acode bcode 
 *  achld bchld a b cm alpha breakinv_pam] merges the implied alignments of two clades and 
@@ -853,7 +903,7 @@ let ancestor_genome prealigned calculate_median all_minus_gap acode bcode achld
         ) med.GenomeAli.chrom_arr; 
     let new_ias_arr = Array.map 
         (fun chrom ->
-             let init_ias = {seq = chrom.GenomeAli.seq; 
+             let init_ias = {seq = Sequence.get_empty_seq (); 
                              codes = Hashtbl.create 1667;
                              homologous = Hashtbl.create 1667;
                              indels = `Empty; dum_chars = `Empty;
@@ -861,8 +911,9 @@ let ancestor_genome prealigned calculate_median all_minus_gap acode bcode achld
              in 
              let main_idx1 = id_to_index chrom.GenomeAli.main_chrom1_id med1 in 
              let main_idx2 = id_to_index chrom.GenomeAli.main_chrom2_id med2 in 
-             let new_ias = List.fold_left 
-                 ( fun nascent_ias seg ->
+             let med_len = ref 0 in 
+             let new_ias, rev_anc_seq_ls = List.fold_left
+                 ( fun (nascent_ias, rev_anc_seq_ls) seg ->
                        let sta = seg.GenomeAli.sta in 
                        let sta1 = seg.GenomeAli.sta1 in 
                        let en1 = seg.GenomeAli.en1 in 
@@ -931,17 +982,25 @@ let ancestor_genome prealigned calculate_median all_minus_gap acode bcode achld
                        (if (sta != -1) then 
                             Hashtbl.iter 
                                 (fun p code -> 
-                                     Hashtbl.add nascent_ias.codes (p + sta - 1) code
+                                     Hashtbl.add nascent_ias.codes (p + !med_len - 1) code
                                 ) ans_ias.codes); 
                        Hashtbl.iter 
                            (fun code hom -> 
                                 Hashtbl.replace nascent_ias.homologous code hom
                            ) ans_ias.homologous; 
-                       {nascent_ias with order = 
+                       let nascent_ias = 
+                            {nascent_ias with order = 
                                List.append nascent_ias.order (List.rev ans_ias.order)}                 
-                 ) init_ias chrom.GenomeAli.map
+                       in
+                       med_len := !med_len + (Sequence.length ans_ias.seq) - 1;
+                       (nascent_ias, ans_ias.seq::rev_anc_seq_ls) 
+                 ) (init_ias, []) chrom.GenomeAli.map
              in 
-             {new_ias with order = List.rev new_ias.order}
+             let chrom_seq = Sequence.concat (List.rev rev_anc_seq_ls) in
+             let chrom_seq = Sequence.delete_gap chrom_seq in
+             {new_ias with order = List.rev new_ias.order;
+                seq = chrom_seq}
+
         ) med.GenomeAli.chrom_arr
     in 
     new_ias_arr
@@ -1063,12 +1122,11 @@ let analyze_tcm tcm alph =
                             get_gap_opening tcm)
                         else if all_excepting_gap = all_and_gap then 
                             AllOne all_excepting_gap
-                        else if all_excepting_gap = 1 then
+                        else if not (is_affine tcm) then
                             AllOneGapSame 
                             (all_excepting_gap, all_and_gap)
-                        else if is_affine tcm then
+                        else 
                             AllSankoff (Some for_sankoff)
-                        else AllSankoff None
                     else if is_affine tcm then
                         AllSankoff (Some for_sankoff)
                     else AllSankoff None
@@ -1406,6 +1464,7 @@ module Make (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) = stru
                 Codes.fold 
                 (fun u v acc ->
                     let homs = Codes.find u y.sequences in
+
                     let ancestor = 
                         ancestor_f calculate_median all_minus_gap
                         x.cannonic_code y.cannonic_code x.children y.children 
@@ -1874,10 +1933,12 @@ module Make (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) = stru
                                             All_sets.IntegerMap.add c (mc, f, g) funs
                                         end 
                                     in
+                                    let mis_sta = preprocess_sequence alph 
+                                                 (Array.concat (Array.to_list s_arr)) 
+                                    in
                                     let s_arr' = 
-                                        Array.map (fun s ->
-                                            let res = preprocess_sequence alph s in                                                   
-                                            c, (res, s)) 
+                                        Array.map (fun s ->                                            
+                                            c, (mis_sta, s)) 
                                         s_arr 
                                     in 
                                     List.append (Array.to_list s_arr') acc, funs)  
