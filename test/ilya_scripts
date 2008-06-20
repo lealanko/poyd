@@ -21,7 +21,7 @@
 -command accessory/wipe01.poy -message "'wipe'; just to see if works 1"
 -command accessory/wipe02.poy -message "'wipe'; just to see if works 2"
 -command accessory/wipe03.poy -message "'wipe' with argument, ERROR expected" -stderr "accessory/stderr/wipe03.poy.err" -error
--command perturb/perturb01.poy -message "simple "build" and 'perturb' with one dynamic homology character, warning expected" -stderr "perturb/stderr/perturb01.poy.err" -error
+-command perturb/perturb01.poy -message "simple 'build' and 'perturb' with one dynamic homology character, warning expected" -stderr "perturb/stderr/perturb01.poy.err" -error
 -command perturb/perturb02.poy -message "'perturb' defaults, no builds, warning expected" -stderr "perturb/stderr/perturb02.poy.err" -error
 -command perturb/perturb03.poy -message "default 'perturb' with 'build' and default 'swap' for for fas, ss, and aa data" -stderr "perturb/stderr/perturb03.poy.err"
 -command perturb/perturb04.poy -message "'perturb' with integer argument and 'build'; ERROR expected" -stderr "perturb/stderr/perturb04.poy.err" -error
@@ -47,7 +47,7 @@
 -command perturb/perturb24.poy -message "'perturb' using 'resample' without specifying lident value, ERROR expected" -stderr "perturb/stderr/perturb24.poy.err" -error
 -command perturb/perturb26.poy -message "'perturb' using 'resample' with specifying values for fas, aa, ss" -stderr "perturb/stderr/perturb26.poy.err"
 -command perturb/perturb27.poy -message "'perturb' using 'resample' with values in reverse order, ERROR expected" -stderr "perturb/stderr/perturb27.poy.err" -error
--command perturb/perturb31.poy -message "simple "build" and 'perturb' with multiple dynamic homology characters for fas and aa" -stderr "perturb/stderr/perturb31.poy.err"
+-command perturb/perturb31.poy -message "simple 'build' and 'perturb' with multiple dynamic homology characters for fas and aa" -stderr "perturb/stderr/perturb31.poy.err"
 -command search/search01.poy -message "'search' under defaults without reading data files, WARNING expected" -stderr "search/stderr/search01.poy.err" -error
 -command search/search02.poy -message "'search' under defaults for fas, ss, aa" -stderr "search/stderr/search02.poy.err"
 -command search/search03.poy -message "'search' without specifying 'build' argument for fas, ss, aa" -stderr "search/stderr/search03.poy.err"
@@ -93,7 +93,7 @@
 -command swap/swap14.poy -message "tree drifting without specifying values, ERROR expected" -stderr "swap/stderr/swap14.poy.err" -error
 -command swap/swap15.poy -message "'swap' with 'alternate' and braking edge once for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap15.poy.err"
 -command swap/swap16.poy -message "'swap' with 'tbr' and random braking edge for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap16.poy.err"
--command swap/swap17.poy -message "'swap' with 'spr' and length-dependent edge braking for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap17.poy.err"
+-command swap/swap17.poy -message "'swap' with 'spr' and length dependent edge braking for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap17.poy.err"
 -command swap/swap18.poy -message "'swap' under default constraint for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap18.poy.err"
 -command swap/swap21.poy -message "'swap' under under default with specified 'depth' for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap21.poy.err"
 -command swap/swap22.poy -message "'swap' using all join positions for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap/stderr/FILENAME1_FILENAME2_FILENAME3.swap22.poy.err"

@@ -1,4 +1,4 @@
--command perturb_static/perturb_static01.poy -message "simple "build" and 'perturb' with static homology characters" -stderr "perturb_static/stderr/perturb_static01.poy.err" -error
+-command perturb_static/perturb_static01.poy -message "simple 'build' and 'perturb' with static homology characters" -stderr "perturb_static/stderr/perturb_static01.poy.err" -error
 -command perturb_static/perturb_static02.poy -message "'perturb' defaults, no builds, warning expected" -stderr "perturb_static/stderr/perturb_static02.poy.err" -error
 -command perturb_static/perturb_static03.poy -message "default 'perturb' with 'build' and default 'swap' for static homology characters" -stderr "perturb_static/stderr/perturb_static03.poy.err"
 -command perturb_static/perturb_static04.poy -message "'perturb' with integer argument and 'build'; ERROR expected" -stderr "perturb_static/stderr/perturb_static04.poy.err" -error
@@ -23,7 +23,7 @@
 -command perturb_static/perturb_static24.poy -message "'perturb' using 'resample' without specifying lident value, ERROR expected" -stderr "perturb_static/stderr/perturb_static24.poy.err" -error
 -command perturb_static/perturb_static26.poy -message "'perturb' using 'resample' with specifying values for static homology characters" -stderr "perturb_static/stderr/perturb_static26.poy.err"
 -command perturb_static/perturb_static27.poy -message "'perturb' using 'resample' with values in reverse order, ERROR expected" -stderr "perturb_static/stderr/perturb_static27.poy.err" -error
--command perturb_static/perturb_static31.poy -message "simple "build" and 'perturb' with multiple static homology characters" -stderr "perturb_static/stderr/perturb_static31.poy.err"
+-command perturb_static/perturb_static31.poy -message "simple 'build' and 'perturb' with multiple static homology characters" -stderr "perturb_static/stderr/perturb_static31.poy.err"
 -command search_static/search_static01.poy -message "'search' under defaults without reading data files, WARNING expected" -stderr "search_static/stderr/search_static01.poy.err" -error
 -command search_static/search_static02.poy -message "'search' under defaults for static homology characters" -stderr "search_static/stderr/search_static02.poy.err"
 -command search_static/search_static03.poy -message "'search' without specifying 'build' argument for static homology characters" -stderr "search_static/stderr/search_static03.poy.err"
@@ -49,7 +49,7 @@
 -command swap_static/swap_static14.poy -message "tree drifting without specifying values, ERROR expected" -stderr "swap_static/stderr/swap_static14.poy.err" -error
 -command swap_static/swap_static15.poy -message "'swap' with 'alternate' and braking edge once for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static15.poy.err"
 -command swap_static/swap_static16.poy -message "'swap' with 'tbr' and random braking edge for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static16.poy.err"
--command swap_static/swap_static17.poy -message "'swap' with 'spr' and length-dependent edge braking for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static17.poy.err"
+-command swap_static/swap_static17.poy -message "'swap' with 'spr' and length dependent edge braking for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static17.poy.err"
 -command swap_static/swap_static18.poy -message "'swap' under default constraint for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static18.poy.err"
 -command swap_static/swap_static21.poy -message "'swap' under under default with specified 'depth' for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static21.poy.err"
 -command swap_static/swap_static22.poy -message "'swap' using all join positions for static homology characters" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "swap_static/stderr/swap_static22.poy.err"

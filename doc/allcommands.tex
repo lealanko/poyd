@@ -379,8 +379,7 @@ The \poycommand{calculate\_support} command does not output support values by de
 
 		\poyexample{cd ("/Users/username/docs/poyfiles")}
             {Changes the current directory to the directory in a Mac environment (when using a 
-            PC the path will the forward slashes will be replaced with backslash characters is the path).\\
-            \texttt{/Users/username/docs/poyfiles}.}
+            PC, the forward slashes will be replaced with backslashes.)}
             
 
     \end{poyexamples}
@@ -2074,13 +2073,14 @@ The \poycommand{calculate\_support} command does not output support values by de
             best hits is at most 385 steps.}
 	
 	\poyexample {For Parallel Implementation of \poycommand{search}}
-		               {search(max\_time:0:6:0)}\\
+            {{search(max\_time:0:6:0)}\\
 	                      {search(max\_time:0:6:0)}\\
 	                      {search(max\_time:0:4:0)}\\
             {This series of commands will attempt as many builds, swaps, ratchets, and tree
             fusings as possible within the specified total time of 16 hours.  Trees are exchanged among
              processors at the end of each \poycommand{search} and the best unique trees
-              are then selected and included in the following \poycommand{search} command.}
+              are then selected and included in the following
+              \poycommand{search} command.}}
             \end{poyexamples}
 
 	\begin{poyalso}
@@ -2400,20 +2400,21 @@ The \poycommand{calculate\_support} command does not output support values by de
                 used by the \poyargument{normal\_do}).}
                 {exhaustivedo}
 
-                \argumentdefinition{iterative}{\obligatory{\poybool}}
+                \argumentdefinition{iterative}{\obligatory{\poylident}}
                 {Applies the Iterative Pass optimization for the tree cost
                 calculations. There are two forms of iterative pass: if the
-                argument value is true (the default), then a complete three
+                argument value is exact (the default), then a complete three
                 dimensional alignment is computed, as described for POY 3.0 in~\cite{wheeler2003a}. 
-                Otherwise, if the argument value is false, then the iterations
+                Otherwise, if the argument value is approximate, then the iterations
                 approximate the three dimensional alignment using pairwise
-                alignments. The later is much faster than the former, but the
-                former is default for compatibility reasons.
-                If the argument value is true, this method improves the tree
+                alignments. 
+                If the argument value is exact, this method improves the tree
                 cost estimation but at the expense of a tremendous execution
-                time. When false the execution time footprint is much smaller. The iterative argument 
+                time. When approximate the execution time footprint is much
+                smaller, and far less memory consumption.
+                The iterative argument 
                 can only be applied to nucleotide sequence characters.
-                A hueristic strategy is to apply  \poyargument{iterative} at the 
+                A heuristic strategy is to apply  \poyargument{iterative} at the 
                 very end of an analysis to polish the final set of trees and perform a final search.}
                 {}
                 
