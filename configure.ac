@@ -20,6 +20,8 @@ AC_SUBST(OCAMLFLAGS)
 
 
 
+AC_CHECK_PROG([NROFF], [nroff], [nroff], [notfound])
+
 AC_ARG_ENABLE([graphics], [AS_HELP_STRING([--enable-graphics],
               [Force POY to support graphical trees on screen. Valid options are none, ocaml, and tk. The default is none.])], [USEGRAPHICS=$enableval], [USEGRAPHICS=none])
 

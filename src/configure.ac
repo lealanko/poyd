@@ -29,6 +29,7 @@ AC_SUBST(OCAMLTOP)
 AC_SUBST(OCAMLLEX)
 AC_SUBST(OCAMLYACC)
 
+AC_SUBST(NROFF)
 AC_SUBST(LIBS)
 AC_SUBST(OCAMLFLAGS)
 AC_SUBST(EXTRAS)
@@ -63,6 +64,8 @@ AC_ARG_WITH(extras, [AS_HELP_STRING([--with-extras],
             [Add the following object files to the final linking rules (needed for windows).])],
             [EXTRAS=$withval],[])
 
+
+AC_CHECK_PROG([NROFF], [nroff], [nroff], [notfound])
 
 
 
