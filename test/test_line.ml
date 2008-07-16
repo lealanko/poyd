@@ -178,10 +178,18 @@ let () =
             match a with
             | None -> true
             | Some a ->
-                    match Unix.system ("diff -q " ^ filename_fixer a ^ " " ^
-                    filename_fixer b) with
-                    | Unix.WEXITED 0 -> true
-                    | _ -> false
+                    let a = filename_fixer a
+                    and b = filename_fixer b in
+                    match Unix.system ("sed -i -e '/Estimated/d; /Automated Search/d' " ^ a) with
+                    | Unix.WEXITED 0 -> 
+                            (match Unix.system ("sed -i -e '/Estimated/d' " ^ b) with
+                            | Unix.WEXITED 0 ->
+                                    (match Unix.system ("diff -q " ^ a ^ " " ^
+                                            b) with
+                                    | Unix.WEXITED 0 -> true
+                                    | _ -> false)
+                            | _ -> false)
+                   | _ -> false
         in
         let prefix = command ^ test_program in
         let execution_line =

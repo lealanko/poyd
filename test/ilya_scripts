@@ -21,7 +21,16 @@
 -command accessory/wipe01.poy -message "'wipe'; just to see if works 1"
 -command accessory/wipe02.poy -message "'wipe'; just to see if works 2"
 -command accessory/wipe03.poy -message "'wipe' with argument, ERROR expected" -stderr "accessory/stderr/wipe03.poy.err" -error
--command perturb/perturb01.poy -message "simple 'build' and 'perturb' with one dynamic homology character, warning expected" -stderr "perturb/stderr/perturb01.poy.err" -error
+-command search_static/search_static01.poy -message "'search' under defaults without reading data files; expect error; static homology characters only" -stderr "search_static/stderr/search_static01.poy.err" -error
+-command search_static/search_static02.poy -message "'search' under defaults; static homology characters only" -stderr "search_static/stderr/search_static02.poy.err"
+-command search_static/search_static03.poy -message "'search' max_time:0:0:05; static homology characters only" -stderr "search_static/stderr/search_static03.poy.err"
+-command search_static/search_static04.poy -message "'search' with memory:mb:800; static homology characters only" -stderr "search_static/stderr/search_static04.poy.err"
+-command search_static/search_static05.poy -message "'search' with min_time:0:0:15 argument; static homology characters only" -stderr "search_static/stderr/search_static05.poy.err"
+-command search_static/search_static06.poy -message "'search' with 'hits:25; static homology characters only'" -stderr "search_static/stderr/search_static06.poy.err"
+-command search_static/search_static07.poy -message "'search' target_cost:4300; static homology characters only" -stderr "search_static/stderr/search_static07.poy.err"
+-command search_static/search_static08.poy -message "'search' with max_time:0:0:15, min_time:0:0:5; static homology characters only" -stderr "search_static/stderr/search_static08.poy.err"
+-command search_static/search_static09.poy -message "'search' with hits:5, max_time:0:0:25; static homology characters only" -stderr "search_static/stderr/search_static09.poy.err"
+-command search_static/search_static10.poy -message "'search' max_time:0:0:15'; static homology characters only" -stderr "search_static/stderr/search_static10.poy.err"
 -command perturb/perturb02.poy -message "'perturb' defaults, no builds, warning expected" -stderr "perturb/stderr/perturb02.poy.err" -error
 -command perturb/perturb03.poy -message "default 'perturb' with 'build' and default 'swap' for for fas, ss, and aa data" -stderr "perturb/stderr/perturb03.poy.err"
 -command perturb/perturb04.poy -message "'perturb' with integer argument and 'build'; ERROR expected" -stderr "perturb/stderr/perturb04.poy.err" -error
@@ -48,16 +57,16 @@
 -command perturb/perturb26.poy -message "'perturb' using 'resample' with specifying values for fas, aa, ss" -stderr "perturb/stderr/perturb26.poy.err"
 -command perturb/perturb27.poy -message "'perturb' using 'resample' with values in reverse order, ERROR expected" -stderr "perturb/stderr/perturb27.poy.err" -error
 -command perturb/perturb31.poy -message "simple 'build' and 'perturb' with multiple dynamic homology characters for fas and aa" -stderr "perturb/stderr/perturb31.poy.err"
--command search/search01.poy -message "'search' under defaults without reading data files, WARNING expected" -stderr "search/stderr/search01.poy.err" -error
--command search/search02.poy -message "'search' under defaults for fas, ss, aa" -stderr "search/stderr/search02.poy.err"
--command search/search03.poy -message "'search' without specifying 'build' argument for fas, ss, aa" -stderr "search/stderr/search03.poy.err"
--command search/search04.poy -message "'search' without specifying 'transform' argument for fas, ss, aa" -stderr "search/stderr/search04.poy.err"
--command search/search05.poy -message "'search' without specifying 'build' and 'transform' arguments for fas, ss, aa" -stderr "search/stderr/search05.poy.err"
--command search/search06.poy -message "'search' with 'build' for fas, ss, aa" -stderr "search/stderr/search06.poy.err"
--command search/search07.poy -message "'search' with 'transform' but without building for fas, ss, aa" -stderr "search/stderr/search07.poy.err"
--command search/search08.poy -message "'search' with 'transform' based on existing trees" -diff "search/xml/search08.poy.xml"
--command search/search09.poy -message "'search' with 'bild' and 'transform' 1" -diff "search/xml/search09.poy.xml"
--command search/search10.poy -message "'search' with 'bild' and 'transform' 2" -diff "search/xml/search10.poy.xml"
+-command search/search01.poy -message "'search' under defaults without reading data files; expect error" -stderr "search/stderr/search01.poy.err" -error
+-command search/search02.poy -message "'search' under defaults" -stderr "search/stderr/search02.poy.err"
+-command search/search03.poy -message "'search' max_time:0:0:05" -stderr "search/stderr/search03.poy.err"
+-command search/search04.poy -message "'search' with memory:mb:800" -stderr "search/stderr/search04.poy.err"
+-command search/search05.poy -message "'search' with min_time:0:0:15 argument" -stderr "search/stderr/search05.poy.err"
+-command search/search06.poy -message "'search' with 'hits:25'" -stderr "search/stderr/search06.poy.err"
+-command search/search07.poy -message "'search' target_cost:4300" -stderr "search/stderr/search07.poy.err"
+-command search/search08.poy -message "'search' with max_time:0:0:15, min_time:0:0:5" -stderr "search/stderr/search08.poy.err"
+-command search/search09.poy -message "'search' with hits:5, max_time:0:0:25" -stderr "search/stderr/search09.poy.err"
+-command search/search10.poy -message "'search' max_time:0:015'" -stderr "search/stderr/search09.poy.err"
 -command select/select01.poy -message "'select' terminals using terminals file with identifiers" -stderr "select/stderr/select01.poy.err" -stdout "select/stdout/select01.poy.out"
 -command select/select02.poy -message "'select' terminals using terminals file without identifiers" -stderr "select/stderr/select02.poy.err" -stdout "select/stdout/select02.poy.out"
 -command select/select04.poy -message "'select' terminals based terminal names 1" -stderr "select/stderr/select04.poy.err" -stdout "select/stdout/select04.poy.out"

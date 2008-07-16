@@ -2007,6 +2007,9 @@ The \poycommand{calculate\_support} command does not output support values by de
 
 	\begin{arguments}
 
+        \argumentdefinition{constraint}{\obligatory{\poystring}}{For a complete
+        description see \nccross{constraint}{buildconstraint}.}{searchconstraint}
+
         \argumentdefinition{hits}{\obligatory{\poyint}}{Specifies the minimum number of
         times that the minimum cost must be reached before aborting the search. 
         The \poyargument{hits} argument is not used in parallel processing}{}
@@ -2039,6 +2042,11 @@ The \poycommand{calculate\_support} command does not output support values by de
         \argumentdefinition{target\_cost}{\obligatory{\poyfloat}}{Specifies the 
         upper limit for the cost of the shortest tree.}{targetcost}
 
+        \argumentdefinition{visited}{\optional{\poystring}}{For a complete
+        description see \ccross{visited}. Note that this argument has a
+        tremendous execution time cost, as printing the trees becomes a
+        bottleneck for the application.}{searchvisited}
+
 	\end{arguments}
 
     \poydefaults{max\_time:0:1:0, min\_time:0:1:0, memory:gb:2}{Under default
@@ -2050,16 +2058,17 @@ The \poycommand{calculate\_support} command does not output support values by de
                 In order to maximize computational efficiency when using \poycommand{search} 
                 in parallel processing environments the \poyargument{hits}
                 argument is ignored. However, a diverse set of trees which
-                include the current best trees found ammong all the processes is
+                include the current best trees found among all the processes is
                 desirable to improve the potential of tree fusing.
 
-                To guarantee that separate processes
-                exchange trees and seed each other's fuse step, it
-                is advisable to use few successive search commands
-                when executing the program in parallel, to ensure
-                proper tree exchange between different processes,
-                increasing their probability of finding better trees
-                during the fuse step.
+                POY will \emph{only exchange trees between processes at the end
+                of each search command}. Therefore,
+                to guarantee that separate processes seed each other with the
+                best trees they have found every number of hours,
+                it is advisable to use few successive search commands
+                when executing the program in parallel. Each search will still
+                be run in parallel, but after each one, trees will be exchanged
+                between processors, to initiate each successive round of search.
         \end{statement}
 
         
@@ -2403,19 +2412,31 @@ The \poycommand{calculate\_support} command does not output support values by de
                 \argumentdefinition{iterative}{\obligatory{\poylident}}
                 {Applies the Iterative Pass optimization for the tree cost
                 calculations. There are two forms of iterative pass: if the
-                argument value is exact (the default), then a complete three
+                argument value is \poyargument{exact} (the default), then a complete three
                 dimensional alignment is computed, as described for POY 3.0 in~\cite{wheeler2003a}. 
-                Otherwise, if the argument value is approximate, then the iterations
+                Otherwise, if the argument value is \poyargument{approximate}, then the iterations
                 approximate the three dimensional alignment using pairwise
                 alignments. 
-                If the argument value is exact, this method improves the tree
+                For chromosome characters, 
+                the three dimentional alignment for three chromosomes
+                is computed by separating into smaller three dimentional
+                alignments of short sequences whose lengths are smaller 
+                or equal to \poyargument{max\_3d\_len}. The default value
+                is \texttt{200}.
+
+                If the argument value is \poyargument{exact}, this method improves the tree
                 cost estimation but at the expense of a tremendous execution
                 time. When approximate the execution time footprint is much
                 smaller, and far less memory consumption.
-                The iterative argument 
-                can only be applied to nucleotide sequence characters.
+%                The iterative argument 
+%                can only be applied to nucleotide sequence characters.
                 A heuristic strategy is to apply  \poyargument{iterative} at the 
-                very end of an analysis to polish the final set of trees and perform a final search.}
+                very end of an analysis to polish the final set of trees and perform a final search. 
+                
+                Both arguments accept an optional integer, stating the maximum
+                number of iterations that can be performed. If no integer is
+                given, then the procedure iterates until no further tree cost
+                improvement can be made.}
                 {}
                 
 	\begin{statement}
@@ -2463,6 +2484,19 @@ The \poycommand{calculate\_support} command does not output support values by de
             {This commands selects terminal \texttt{Mytilus\_edulis} as a root
             for the output trees.}
             
+            \poyexample{set (iterative:exact)}
+            {Turns on the iterative exact algorithm in all the nucleotide
+            sequence characters. The program will iterate on each vertex of the
+            tree until no further tree cost improvements can be made.}
+
+            \poyexample{set (iterative:approximate:2)}
+            {Turns on the iterative approximate algorithm in all the nucleotide
+            sequence characters. The program will iterate either two times, or
+            until no further tree cost improvements can be made, whichever
+            happens first.}
+
+            \poyexample{set (iterative:exact:2)}
+            {Same as the previous, but using the exact algorithm insted.}
      \end{poyexamples}
      
 	\begin{poyalso}
@@ -3200,6 +3234,16 @@ The \poycommand{calculate\_support} command does not output support values by de
 	                    if they are connected (see Figure \ref{fig:chrom}).
 	                    The default value is \texttt{100}}
                              {minrearrangementlen}
+
+
+                           \argumentdefinition{max\_3d\_len}{\obligatory{\poyint}} 
+                            {The three dimentional alignment for three chromosomes
+                            is computed by separating into smaller three dimentional
+                            alignments of short sequences whose lengths are smaller 
+                            or equalt to \poyargument{max\_3d\_len}. The default value
+                             is \texttt{200}}
+                             {minrearrangementlen}
+
 
  			\begin{figure} [!htbp]
    		 	\begin{center}

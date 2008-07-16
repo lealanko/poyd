@@ -65,7 +65,7 @@ AC_ARG_WITH(extras, [AS_HELP_STRING([--with-extras],
             [EXTRAS=$withval],[])
 
 
-AC_CHECK_PROG([NROFF], [nroff], [nroff], [notfound])
+AC_CHECK_PROG([NROFF], [groff], [groff], [notfound])
 
 
 

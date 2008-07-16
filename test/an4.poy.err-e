@@ -1,0 +1,13 @@
+Information : Reading file an4.fas of type input sequences
+
+Information :
+The file an4.fas contains sequences of 4 taxa, each sequence holding 7
+fragments.
+Status : Tranform Finished
+Status : Transforming : 1 of 1 --  of transformations applied
+Status : Transforming Finished
+Information : 
+                Trees:
+                  Storing 0 trees 
+                Cost Mode: Normal Direct Optimization
+PASSED

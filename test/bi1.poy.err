@@ -1,0 +1,30 @@
+Information :
+The file ca1.fas contains sequences of 6 taxa, each sequence holding 1
+fragment.
+
+Status : Tranform Finished
+Status : Transforming : 1 of 1 --  of transformations applied
+Status : Transforming Finished
+Status : Wagner : 2 of 6 -- Wagner tree with cost 0.
+Status : Wagner : 3 of 6 -- Wagner tree with cost 0.
+Status : Wagner : 4 of 6 -- Wagner tree with cost 0.
+Status : Wagner : 5 of 6 -- Wagner tree with cost 40.
+Status : Wagner Finished
+Status : Building Wagner Tree Finished
+Status : Running Pipeline Finished
+Status : Implied Alignments : 1 of 11 -- vertices calculated
+Status : Implied Alignments : 2 of 11 -- vertices calculated
+Status : Implied Alignments : 3 of 11 -- vertices calculated
+Status : Implied Alignments : 4 of 11 -- vertices calculated
+Status : Implied Alignments : 5 of 11 -- vertices calculated
+Status : Implied Alignments : 6 of 11 -- vertices calculated
+Status : Implied Alignments : 7 of 11 -- vertices calculated
+Status : Implied Alignments : 8 of 11 -- vertices calculated
+Status : Implied Alignments : 9 of 11 -- vertices calculated
+Status : Implied Alignments Finished
+Information :
+
+  Trees:
+    Storing 1 tree with cost 50. 
+  Cost Mode: Normal Direct Optimization
+PASSED

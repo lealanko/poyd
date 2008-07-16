@@ -1,9 +1,9 @@
 -message "Check tree cost 1 chromosome ua.poy" -command "ua.poy" -cost 208 
--message "Check tree cost ua2 with locus_indel chromosome ua2.poy" -command "ua2.poy" -cost 502
--message "Check tree cost ua3 with rearranged_len chromosome ua3.poy" -command "ua3.poy" -cost 208
--message "Check tree cost ua4 with sig_block_len chromosome ua4.poy" -command "ua4.poy" -cost 208
+-message "Check tree cost ua2 with locus_indel chromosome ua2.poy" -command "ua2.poy" -cost 482
+-message "Check tree cost ua3 with min_rearrangement_len chromosome ua3.poy" -command "ua3.poy" -cost 208
+-message "Check tree cost ua4 with min_loci_len chromosome ua4.poy" -command "ua4.poy" -cost 208
 -message "Check tree cost an2 with locus_indel annotated chromosome an2.poy" -command "an2.poy" -cost 40 
--message "Check tree cost an3 with rearranged_len annotated chromosome an3.poy" -command "an3.poy" -cost 40
+-message "Check tree cost an3 with min_rearrangement_len annotated chromosome an3.poy" -command "an3.poy" -cost 40
 -message "Check tree cost FILENAME1 cnc.poy" -command "cnc.poy" -inputfile first_fasta -costfile cnc.costs
 -message "Check tree cost FILENAME1 cnc1.poy" -command "cnc1.poy" -costfile cnc1.costs -inputfile first_fasta
 -message "Check tree cost FILENAME1 cnc2.poy" -command "cnc2.poy" -costfile cnc2.costs -inputfile first_fasta

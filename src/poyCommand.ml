@@ -145,7 +145,7 @@ type transform = [
 type cost_calculation = [
     | `Exhaustive_Weak
     | `Exhaustive_Strong
-    | `Iterative of [ `ThreeD | `ApproxD ] 
+    | `Iterative of [ `ThreeD of int option | `ApproxD of int option ] 
     | `Normal_plus_Vitamines
     | `Normal
 ]
@@ -351,6 +351,8 @@ type std_searcha = [
     | `MaxTime of float
     | `MinTime of float
     | `Target of float
+    | `Visited of string option
+    | `ConstraintFile of string 
 ]
 
 type command = [
@@ -1010,13 +1012,16 @@ let transform_search items =
     | _ -> failwith "Forgot to update the list of options of search?"
 
 let transform_stdsearch items = 
-    `StandardSearch (List.fold_left (fun (a, e, b, c, d) x ->
+    `StandardSearch (List.fold_left (fun (a, e, b, c, d, f, g) x ->
         match x with
-        | `MaxTime x -> (Some x, e, b, c, d)
-        | `MinTime x -> (a, Some x, b, c, d)
-        | `MaxRam x -> (a, e, b, Some x, d)
-        | `MinHits x -> (a, e, Some x, c, d)
-        | `Target x -> (a, e, b, c, Some x)) (None, None, None, None, None) items)
+        | `MaxTime x -> (Some x, e, b, c, d, f, g)
+        | `MinTime x -> (a, Some x, b, c, d, f, g)
+        | `MaxRam x -> (a, e, b, Some x, d, f, g)
+        | `MinHits x -> (a, e, Some x, c, d, f, g)
+        | `Visited x -> (a, e, b, c, d, Some x, g)
+        | `ConstraintFile x -> (a, e, b, c, d, f, Some x)
+        | `Target x -> (a, e, b, c, Some x, f, g)) (None, None, None, None, None,
+        None, None) items)
 
 
 let rec transform_command (acc : Methods.script list) (meth : command) : Methods.script list =
@@ -1315,8 +1320,19 @@ let create_expr () =
             ];
         iterative_mode:
             [ 
-                [ LIDENT "exact" -> `ThreeD ] |
-                [ LIDENT "approximate" -> `ApproxD ]
+                [ LIDENT "exact"; iterations = OPT optional_integer_or_float  ->
+                    let iterations = 
+                        match iterations with 
+                        None -> None | Some x -> Some (int_of_string x)
+                    in
+                    `ThreeD iterations ] |
+                [ LIDENT "approximate"; iterations = OPT
+                optional_integer_or_float -> 
+                    let iterations =
+                        match iterations with
+                        | None -> None | Some x -> Some (int_of_string x)
+                    in
+                    `ApproxD iterations ]
             ];
         (* Reporting *)
         report:
@@ -1532,7 +1548,10 @@ let create_expr () =
                 [ LIDENT "hits"; ":"; x = INT -> `MinHits (int_of_string x) ] |
                 [ LIDENT "max_time"; ":"; x = time -> `MaxTime (float_of_int x)
                 ] |
-                [ LIDENT "min_time"; ":"; x = time -> `MinTime (float_of_int x) ]
+                [ LIDENT "visited"; x = OPT string_arg -> `Visited x ] |
+                [ LIDENT "min_time"; ":"; x = time -> 
+                    `MinTime (float_of_int x) ] |
+                [ LIDENT "constraint"; ":"; x = STRING -> `ConstraintFile x ]
             ];
         search:
             [

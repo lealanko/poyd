@@ -1,0 +1,24 @@
+Information :
+The file ca1.fas contains sequences of 6 taxa, each sequence holding 1
+fragment.
+
+Status : Tranform Finished
+Status : Transforming : 1 of 1 --  of transformations applied
+Status : Transforming Finished
+Status : Wagner : 2 of 6 -- Wagner tree with cost 0.
+Status : Wagner : 3 of 6 -- Wagner tree with cost 0.
+Status : Wagner : 4 of 6 -- Wagner tree with cost 0.
+Status : Wagner : 5 of 6 -- Wagner tree with cost 40.
+Status : Wagner Finished
+Status : Building Wagner Tree Finished
+Status : Running Pipeline Finished
+Status : Diagnosis : 0 Recalculating original tree
+Status : Diagnosis Finished
+Status : Diagnosis : 1 of 1 -- Recalculating trees
+Status : Diagnosis Finished
+Information :
+
+  Trees:
+    Storing 1 tree with cost 50. 
+  Cost Mode: Normal Direct Optimization
+PASSED

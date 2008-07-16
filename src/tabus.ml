@@ -1418,6 +1418,14 @@ module Make  (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) : S w
 
     let make_edge_list dont_cut ptree =
         let cnt = 
+            let cnt = Hashtbl.create 1667 in
+            List.iter 
+            (fun ((Tree.Edge ((a, b) as e))) ->
+                Hashtbl.add cnt e 1;
+                Hashtbl.add cnt (b, a) 1)
+            dont_cut;
+            cnt
+            (*
             let res = Hashtbl.create 1667 in
             let cnt = Hashtbl.create 1667 in
             let add x = 
@@ -1427,15 +1435,16 @@ module Make  (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) : S w
                     else Hashtbl.replace cnt x (1 + (Hashtbl.find cnt x))
                 else Hashtbl.add cnt x 1
             in
-            List.iter (fun (Tree.Edge (a, b)) -> add a; add b) dont_cut;
-            res
+            List.iter (fun (Tree.Edge (a, b)) -> add (a, b); add (b, a)) dont_cut;
+            cnt
+            *)
         in
         let tabu_distance2 ptree (Tree.Edge (x, y)) =
             let xn = Ptree.get_node_data x ptree
             and yn = Ptree.get_node_data y ptree in
             Node.edge_distance xn yn
         in
-        let filter (a, (Tree.Edge (x, y))) = not (Hashtbl.mem cnt x) in
+        let filter (a, (Tree.Edge x)) = not (Hashtbl.mem cnt x) in
         let handle = All_sets.Integers.choose (Ptree.get_handles ptree) in
         let edge_lst = Ptree.get_pre_order_edges handle ptree in
         let id_cost = List.map (fun x -> tabu_distance2 ptree x, x) edge_lst in
@@ -1911,17 +1920,20 @@ module Make  (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) : S w
                         let sis = All_sets.IntegerMap.find item sisters in
                         (Tree.Edge (par, item)), sis
                     else if item = (-1) then
-                        (Tree.Edge (handle, par)), par
+                        (Tree.normalize_edge
+                        (Tree.Edge (handle, par)) tree), par
                     else 
                         let () = assert (item = (-2)) in
-                        (Tree.Edge (par, handle)), handle
+                        (Tree.normalize_edge 
+                        (Tree.Edge (par, handle)) tree), handle
                 in
                 e :: acc,
                     try
                         let sis = All_sets.IntegerMap.find sis res in
                         if All_sets.IntSet.mem sis sets then
                             e :: no_break
-                        else no_break
+                        else 
+                            no_break
                     with Not_found -> no_break
             else acc, no_break
         in
@@ -1966,7 +1978,7 @@ module Make  (Node : NodeSig.S) (Edge : Edge.EdgeSig with type n = Node.n) : S w
             match sets with
             | None -> []
             | Some (`Sets x) ->
-                    fst (generate_partition_edges x ptree)
+                    snd (generate_partition_edges x ptree)
             | Some (`Height x) -> max_height ptree
         in
         new sort_edges_by_cost early_stop dont_cut ptree

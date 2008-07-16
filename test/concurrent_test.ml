@@ -43,14 +43,14 @@ let fork_and_execute line =
             incr running_counter
 
 let collect_results () =
-    let () = decr running_counter in
-    let pid = 
-        if !max_processes > 1 then
-            let pid, _ = Unix.wait () in
-            pid
-        else Unix.getpid () 
-    in
-    concatenate pid
+    if !max_processes > 1 && !running_counter > 0 then
+        let pid, _ = Unix.wait () in
+        let () = decr running_counter in
+        concatenate pid
+    else if !running_counter > 0 && !max_processes = 1 then
+        let () = decr running_counter in
+        concatenate (Unix.getpid ())
+    else ()
 
 
 let not_empty line = line <> ""

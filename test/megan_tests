@@ -1,16 +1,22 @@
--message "test default settings with fasta, ss, and aa files build.poy " -command ./build/build.poy
--message "test build with fasta, ss, and aa files build1.poy" -command ./build/build1.poy
--message "test as_is build with fasta, ss, and aa files build2.poy" -command ./build/build2.poy
--message "test as_is with fasta, ss, and aa files build3.poy" -command ./build/build3.poy
--message "Build with 1.fas specifying a negative number Expect Error build4.poy" -command ./build/build4.poy -ostderr "./build/stderr/build4.err" -error
--message "build with all with fasta, ss, and aa files build5.poy" -command ./build/build5.poy 
--message "build with of_file with fasta file 1.fas, read tree 1.fas.1.tree build6.poy" -command ./build/build6.poy
--message "test build 2 trees and default fuse with fasta and ss files fuse.poy" -command ./fuse/fuse.poy
--message "test build 3 trees and fuse keep 2 for with fasta and ss files fuse1.poy" -command ./fuse/fuse1.poy
+-message "build using default settings with fasta, ss, and aa files build.poy " -command ./build/build.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build.poy.err"
+-message "build 1 tree with fasta, ss, and aa files build1.poy" -command ./build/build1.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build1.poy.err"
+-message "build as_is with fasta, ss, and aa files build2.poy" -command ./build/build2.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build2.poy.err"
+-message "build 3 trees with fasta, ss, and aa files build3.poy" -command ./build/build3.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build3.poy.err"
+-message "build with all with fasta, ss, and aa files build5.poy" -command ./build/build5.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build5.poy.err"
+-message "build with 1.fas specifying a negative number Expect Error build4.poy" -command ./build/build4.poy -stderr "./build/stderr/build4.err" -error
+-message "build with of_file with fasta file 2.fas, read tree 2.fas.2.tree build6.poy" -command ./build/build6.poy -stderr "build/stderr/build6.poy.err"
+-message "build for xml.output build7.poy" -command ./build/build7.poy -stderr "build/stderr/build7.poy.err"
+-message "build with all with fasta, ss, and aa files branch and bound build8.poy" -command ./build/build8.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stdout "build/stdout/FILENAME1_FILENAME2_FILENAME3.build8.poy.out"
+-message "build with all with fasta files with constraint build9.poy" -command ./build/build9.poy -stderr "build/stderr/build9.poy.err"
+-message "build with all with fasta, ss, and aa files with random build10.poy" -command ./build/build10.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build10.poy.err"
+-message "build with all with fasta, ss, and aa files with randomized build11.poy" -command ./build/build11.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "build/stderr/FILENAME1_FILENAME2_FILENAME3.build11.poy.err"
+-message "build under iterative exact build12.poy" -command ./build/build12.poy -stderr "build/stderr/build12.poy.err"
+-message "test build 2 trees and default fuse with fasta and ss files fuse.poy" -command ./fuse/fuse.poy -ostderr "./fuse/stderr/fuse.poy.err"
+-message "test build 3 trees and fuse keep 2 for with fasta and ss files fuse1.poy" -command ./fuse/fuse1.poy -ostderr "./fuse/stderr/fuse1.poy.err"
 -message "Fuse with 1.fas fasta files without build, Expect Error There are no active trees in memory fuse2.poy" -command ./fuse/fuse2.poy -stderr "./fuse/stderr/fuse2.poy.err" -error
--message "test build, fuse from read tree files with fasta file 2.fas.1.tree fuse4.poy" -command ./fuse/fuse4.poy
 -message "Fuse from read tree files without data file Expext error could not find data fuse3.poy" -command ./fuse/fuse3.poy -stderr "./fuse/stderr/fuse3.poy.err" -error
--message "test build and fuse with 10 iterations with fasta ss files fuse5.poy" -command ./fuse/fuse5.poy
+-message "test build, fuse from read tree files with fasta file 2.fas.1.tree fuse4.poy" -command ./fuse/fuse4.poy -ostderr "./fuse/stderr/fuse4.poy.err"
+-message "test build and fuse with 10 iterations with fasta ss files fuse5.poy" -command ./fuse/fuse5.poy -ostderr "./fuse/stderr/fuse5.poy.err"
 -message "Fuse with fasta and ss files with a float rather than an integer for iterations, Expect Error" -command ./fuse/fuse6.poy -ostderr "./fuse/stderr/fuse6.err" -error
 -message "Fuse with fasta and ss files with a float rather than an integer for keep, Expect Error" -command ./fuse/fuse7.poy -stderr "./fuse/stderr/fuse7.err" -error
 -message "test fuse with better with fasta and ss files fuse8.poy" -command ./fuse/fuse8.poy
@@ -51,20 +57,22 @@
 -message "Build  report implied alignments 33.poy" -command ./report/report33.poy -stdout "./report/stdout/report33.out"
 -message "Build  report implied alignments 34.poy" -command ./report/report34.poy -stdout "./report/stdout/report34.out"
 -message "Build  transform using static_approx, and report as a phatwinclad file 39.poy" -command ./report/report39.poy -stdout "./report/stdout/report39.out"
--message "Build  and report diagnosis to screen 40.poy" -command ./report/report40.poy -ostdout "./report/stdout/report40.poy.out"
--message "Build  and report diagnosis to file 41.poy" -command ./report/report41.poy  -stdout "./report/stdout/report41.poy..out"
+-message "Build  and report diagnosis to screen 40.poy" -command ./report/report40.poy -stdout "./report/stdout/report40.poy.out"
+-message "Build and report diagnosis to file 41.poy" -command ./report/report41.poy  -stderr "./report/stderr/report41.poy.err"
 -message "Build  transform to static characters, and report memory report44.poy" -command ./report/report44.poy
 -message "Build  report as a phatwinclad file 46.poy" -command ./report/report46.poy  -stdout "./report/stdout/report46.poy.out"
--message "test read and transform auto_sequence_partition and build with fasta  transform6.poy" -command ./transform/transform6.poy -ostdout "./transform/stdout/transform6.out"
--message "test read and transform fixedstates with fasta  transform7.poy"  -command ./transform/transform7.poy -stdout "./transform/stdout/transform7.out"
--message "test read and transform gap_opening with fasta  transform8.poy" -command ./transform/transform8.poy -ostdout "./transform/stdout/transform8.out"
--message "test read and transform multi_static_approx with fasta  transform9.poy" -command ./transform/transform9.poy -stdout "./transform/stdout/transform9.out"
--message "test read and transform static_approx with fasta  transform11.poy" -command ./transform/transform11.poy -ostdout "./transform/stdout/transform11.out"
--message "test read and transform trailing_insertion with fasta  transform13.poy" -command ./transform/transform13.poy -stdout "./transform/stdout/transform13.out"
--message "test read and transform weightfactor float with fasta  transform21.poy" -command ./transform/transform21.poy -ostdout "./transform/stdout/transform21.out"
--message "test read and transform weight float with fasta  transform23.poy" -command ./transform/transform23.poy -stdout "./transform/stdout/transform23.out"
+-message "transform all tcm(1,1) with fasta, ss, and aa files transform.poy" -command ./transform/transform.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -ostderr "./transform/stderr/FILENAME1_FILENAME2_FILENAME3.transform.err" 
+-message "transform all gap_opening with fasta, ss, and aa files transform1.poy" -command ./transform/transform1.poy -inputfile "fas" -inputfile "ss" -inputfile "aa" -ostderr "./transform/stderr/FILENAME1_FILENAME2_FILENAME3.transform1.err"
+-message "transform with auto_sequence_partition and build with fasta  transform6.poy" -command ./transform/transform6.poy -inputfile "fas" -ostderr "./transform/stderr/FILENAME1.transform6.err"
+-message "transform with fixedstates with fasta  transform7.poy"  -command ./transform/transform7.poy -inputfile "fas" -ostderr "./transform/stderr/FILENAME1.transform7.err"
+-message "transform fas file with ti:(1,1,1,1,0)  transform10.poy" -command ./transform/transform10.poy -inputfile "fas" -ostderr "./transform/stderr/FILENAME1.transform10.err"
+-message "transform using static_approx with fasta transform11.poy" -command ./transform/transform11.poy -inputfile "fas" -stderr "./transform/stderr/FILENAME1.transform11.err"
+-message "transform using static_approx:keep with fasta  transform12.poy" -command ./transform/transform12.poy -inputfile "fas" -ostdout "./transform/stdout/FILENAME1.transform12.out"
+-message "test read and transform trailing_deletion (2,2,2,2,0) with fasta  transform13.poy" -command ./transform/transform13.poy -ostderr "./transform/stderr/transform13.err"
+-message "transform with prealigned using unequallength sequences EXPECT ERROR transform15.poy" -command ./transform/transform15.poy -ostderr "./transform/stderr/transform15.err"
+-message "test read and transform weightfactor float with fasta transform21.poy" -command ./transform/transform21.poy -inputfile "fas" -stderr "./transform/stderr/FILENAME1.transform21.err"
+-message "test read and transform weight float with fasta  transform23.poy" -command ./transform/transform23.poy -stderr "./transform/stderr/FILENAME1_FILENAME2_FILENAME3.transform23.err"
 -message "test read and transform weightfactor integer with fasta  transform25.poy" -command ./transform/transform25.poy -ostdout "./transform/stdout/transform25.out"
--message "test read and transform static_approx: keep with fasta  transform12.poy" -command ./transform/transform12.poy
 -message "test read and transform custom alphabet to breakinv using dynamic pam default" -command ./transform/transform30.poy
 -message "test read and transform custom alphabet to breakinv using dynamic pam locus_breakpoint 50" -command ./transform/transform31.poy
 -message "test read and transform custom alphabet to breakinv using dynamic pam approx true" -command ./transform/transform32.poy
@@ -86,22 +94,21 @@
 -message "test read annotated chromosome using dynamic pam seed_length 15 with fasta  transform49.poy" -command ./transform/transform49.poy -inputfile ann
 -message "test read annotated chromosome using dynamic pam rearranged_len 150 with fasta  transform51.poy" -command ./transform/transform51.poy -inputfile ann 
 -message "test read annotated chromosome using dynamic pam swap_med 2 with fasta  transform52.poy" -command ./transform/transform52.poy -inputfile ann 
--message "test read annotated chromosome using dynamic pam default with fasta  transform54.poy " -command ./transform/transform54.poy -inputfile ann
--message "test read unannotated chromosome and using dynamic pam locus_breakpoint ua.fas with transform55.poy" -command ./transform/transform55.poy
--message "test read unannotated chromosome and using dynamic pam approx true with ua.fas transform56.poy"  -command ./transform/transform56.poy
--message "test read unannotated chromosome and using dynamic pam circular true with ua.fas transform57.poy" -command ./transform/transform57.poy
--message "test read unannotated chromosome and using dynamic pam locus_indel 50, 2.0 with fasta ua.fas transform59.poy" -command ./transform/transform59.poy
--message "test read unannotated chromosome and using dynamic pam median 2 with fasta ua.fas transform60.poy" -command ./transform/transform60.poy
--message "test read unannotated chromosome and using dynamic pam seed_length 15 with fasta ua.fas transform61.poy" -command ./transform/transform61.poy
--message "test read unannotated chromosome and using dynamic pam rearranged_len 150 with fasta ua.fas transform62.poy" -command ./transform/transform62.poy
--message "test read unannotated chromosome and using dynamic pam swap_med 2 with fasta ua.fas transform64.poy" -command ./transform/transform64.poy
--message "test read unannotated chromosome and using dynamic pam inversion 50 with fasta ua_inv2.fas transform58.poy" -command ./transform/transform58.poy
--message "test read unannotated chromosome and using dynamic pam locus_indel 50, 2.0 with fasta  transform59.poy" -command ./transform/transform59.poy -inputfile unann 
--message "test read unannotated chromosome and using dynamic pam median 2 with fasta  transform60.poy" -command ./transform/transform60.poy -inputfile unann 
--message "test read unannotated chromosome and using dynamic pam seed_length 15 with fasta  transform61.poy" -command ./transform/transform61.poy -inputfile unann 
--message "test read unannotated chromosome and using dynamic pam rearranged_len 150 with fasta  transform62.poy" -command ./transform/transform62.poy -inputfile unann
--message "test read unannotated chromosome and using dynamic pam swap_med 2 with fasta  transform64.poy" -command ./transform/transform64.poy -inputfile unann
+-message "test read unannotated chromosome using dynamic pam default with fasta transform54.poy " -command ./transform/transform54.poy  -stderr "./transform/stderr/FILENAME1.transform54.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam locus_breakpoint ua.fas with transform55.poy" -command ./transform/transform55.poy -stderr "./transform/stderr/FILENAME1.transform55.poy.err"
+-message "test read unannotated chromosome and using dynamic pam approx true with ua.fas transform56.poy"  -command ./transform/transform56.poy -stderr "./transform/stderr/FILENAME1.transform56.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam circular true with ua.fas transform57.poy" -command ./transform/transform57.poy -stderr "./transform/stderr/FILENAME1.transform57.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam inversion 50; transform58.poy" -command ./transform/transform58.poy -stderr "./transform/stderr/FILENAME1.transform58.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam locus_indel 50, 2.0 with fasta ua.fas transform59.poy" -command ./transform/transform59.poy -stderr "./transform/stderr/FILENAME1.transform59.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam median 2 with fasta  transform60.poy" -command ./transform/transform60.poy -stderr "./transform/stderr/FILENAME1.transform60.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam seed_length 15 with fasta ua.fas transform61.poy" -command ./transform/transform61.poy -stderr "./transform/stderr/FILENAME1.transform61.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam rearranged_len 150 with fasta ua.fas transform62.poy" -command ./transform/transform62.poy -stderr "./transform/stderr/FILENAME1.transform62.poy.err" -inputfile unann
+-message "test read unannotated chromosome and using dynamic pam swap_med 2 with fasta ua.fas transform64.poy" -command ./transform/transform64.poy -stderr "./transform/stderr/FILENAME1.transform64.poy.err" -inputfile unann
 -message "test read genome and transform using dynamic pam chrom_breakpoint 20 with fasta  transform66.poy" -command ./transform/transform66.poy -inputfile gen 
 -message "test read genome and transform using dynamic pam chrom_hom 0.80 with fasta  transform67.poy" -command ./transform/transform67.poy -inputfile gen
 -message "test read genome and transform using dynamic pam chrom_indel 2.0 .80 with fasta  transform68.poy" -command ./transform/transform68.poy -inputfile gen
 -message "test read genome and transform using dynamic pam inversion with fasta  transform69.poy" -command ./transform/transform69.poy -inputfile gen
+
+
+
+

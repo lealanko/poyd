@@ -1,5 +1,5 @@
 (* Build and transform annotated chromosome with sig_block_len*)
 read (annotated:("an4.fas"))
-transform ((all, dynamic_pam:(sig_block_len:50,locus_breakpoint:50)))
+transform ((all, dynamic_pam:(min_loci_len:50,locus_breakpoint:50)))
 
 

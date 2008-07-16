@@ -16,7 +16,7 @@ list_of_tests=$3
 number_of_processors=$4
 test_execution_script="ocaml unix.cma str.cma test_line.ml"
 
-report_bug_to="avaron@amnh.org, megan@amnh.org, ilya@amnh.org, vle@amnh.org"
+report_bug_to="megan@amnh.org"
 
 temp="tmp_mail"
 
