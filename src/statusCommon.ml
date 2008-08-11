@@ -132,6 +132,7 @@ module CommandCompletion = struct
         "locus_indel";
         "locus_inversion";
         "log";
+        "lookahead";
         "m";
         "margin";
         "max_time";
@@ -187,6 +188,7 @@ module CommandCompletion = struct
         "script_analysis";
         "search";
         "search_based";
+        "searchsstats";
         "sectorial";
         "seed";
         "seed_length";
