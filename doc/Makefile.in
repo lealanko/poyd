@@ -1,4 +1,4 @@
-MERCURIAL :=@MERCURIAL@
+MERCURIAL := echo -n 2889
 
 QuickStart.pdf: QuickStart.tex
 	pdflatex $<; pdflatex $<; pdflatex $< 
