@@ -1,6 +1,6 @@
 (* Build and transform unannotated chromosome with sig_bloc_len function check against tree cost *)
 set(seed:1)
 read (chromosome:("ua4.fas"))
-transform ((all, dynamic_pam:(sig_block_len:50,locus_breakpoint:20)))
+transform ((all, dynamic_pam:(min_loci_len:50,locus_breakpoint:20)))
 read ("../test/ua4.fas.tree")
 

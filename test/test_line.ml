@@ -15,46 +15,91 @@ let costfile = ref None
 let costlessfile = ref None
 let error_expected = ref false
 
-let _ = Unix.system "rm tmp_line*.*"
+let buildbot_prefix = ref ""
+let buildbot_suffix = ref ""
+let buildbot = ref false
 
-let assign item v = item := v
-let assign_opt item v = item := Some v
+let is_first = ref true 
+
+let for_buildbot_output flag to_strg contents =
+    if not !is_first then print_string ", ";
+    is_first := false;
+    if !buildbot then Printf.printf "\"%s\", \"%s\" " flag (to_strg contents)
+    else ()
+
+let assign flag to_strg item v = 
+    for_buildbot_output flag to_strg v;
+    item := v
+
+let assign_opt flag to_strg item v = 
+    for_buildbot_output flag to_strg v;
+    item := Some v
+
+
+let ident x = x
+let of_float x = string_of_float x
+let of_int x = string_of_int x
+let ignore _ = ""
 
 let () =
     let parse_list = [
-        ("-inputfile", Arg.String (fun x -> files := x :: !files), 
+        ("-buildbot_prefix", Arg.String (fun x -> buildbot_prefix := x), 
+        "The prefix to be used if the buildbot option is passed.");
+        ("-buildbot_suffix", Arg.String (fun x -> buildbot_suffix := x), 
+        "The suffix to be used if the buildbot option is passed.");
+        ("-buildbot", Arg.Unit (fun () -> 
+            buildbot := true; 
+            print_string !buildbot_prefix),
+        "Dump the rest of the input line for buildbot. This option turns \
+        off all testing.");
+        ("-inputfile", Arg.String (fun x -> 
+            for_buildbot_output "-inputfile" ident x;
+            files := x :: !files), 
         "An input file containing a list of files that should be replacing FILENAMEX");
-        ("-error", Arg.Unit (fun () -> error_expected := true), 
+        ("-error", Arg.Unit (fun () -> 
+            for_buildbot_output "-error" ignore ();
+            error_expected := true), 
         "Expect an error with normal program termination (no signals) from the poy_test.");
-        ("-stderr", Arg.String (assign_opt mstderr),
+        ("-stderr", Arg.String (assign_opt "-stderr" ident mstderr),
         "The file where the reference stderr is located.");
-        ("-stdout", Arg.String (assign_opt mstdout),
+        ("-stdout", Arg.String (assign_opt "-stdout" ident mstdout),
         "The file where the reference stdout is located.");
-        ("-diff", Arg.String (assign_opt mdiff),
+        ("-diff", Arg.String (assign_opt "-diff" ident mdiff),
         "The file where a reference output is located.");
-        ("-ostderr", Arg.String (assign_opt rmstderr),
+        ("-ostderr", Arg.String (assign_opt "-ostderr" ident rmstderr),
         "The file where the reference stderr is to be stored.");
-        ("-ostdout", Arg.String (assign_opt rmstdout),
+        ("-ostdout", Arg.String (assign_opt "-ostdout" ident rmstdout),
         "The file where the reference stdout is to be stored.");
-        ("-odiff", Arg.String (assign_opt rmdiff),
+        ("-odiff", Arg.String (assign_opt "-odiff" ident rmdiff),
         "The file where a reference output is to be stored.");
-        ("-tempfile", Arg.String (assign temp),
+        ("-tempfile", Arg.String (assign "-tmpfile" ident temp),
         "The file where the stdout of the test run is to be stored. tmp.log by default");
-        ("-message", Arg.String (assign message), 
+        ("-message", Arg.String (assign "-message" ident message), 
         "The message to be printed out during the test");
-        ("-command", Arg.String (assign command),
+        ("-command", Arg.String (assign "-command" ident command),
         "The command to be executed in this test");
-        ("-costless", Arg.Float (fun x -> check_cost_less := [x]), 
+        ("-costless", Arg.Float (fun x -> 
+            for_buildbot_output "-costless" of_float x;
+            check_cost_less := [x]), 
         "The cost of the final tree, if we are intended to do that");
-        ("-cost", Arg.Float (fun x -> check_cost := [x]), 
+        ("-cost", Arg.Float (fun x -> 
+            for_buildbot_output "-cost" of_float x;
+            check_cost := [x]), 
         "The cost of the final tree, if we are intended to do that");
-        ("-costfile", Arg.String (fun x -> costfile := Some x),
+        ("-costfile", Arg.String (assign_opt "-costfile" ident costfile),
         "A file containing the expected cost for each combination of input files");
-        ("-costlessfile", Arg.String (fun x -> costlessfile := Some x),
+        ("-costlessfile", Arg.String (assign_opt "-costlessfile" ident costlessfile),
         "A file containing the maximum expected cost for each combination of input files")
     ]
     in
-    Arg.parse parse_list (fun _ -> ()) "test_line.ml [OPTIONS]*"
+    Arg.parse parse_list (fun _ -> ()) "test_line.ml [OPTIONS]*";
+    if !buildbot then begin
+        print_string !buildbot_suffix;
+        print_newline ();
+        exit 0
+    end else ()
+
+let _ = Unix.system "rm tmp_line*.*"
 
 let () = (* We verify options that are mutually exclusive *)
     let excl = 

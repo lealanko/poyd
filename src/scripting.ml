@@ -502,9 +502,9 @@ let process_input run (meth : Methods.input) =
     (* check whether this read any trees *)
     if [] = d.Data.trees then update_trees_to_data false false run
     else
-        let trees =
-            Build.prebuilt run.data.Data.trees (run.data, run.nodes)
-        in
+        let () = List.iter (Data.verify_trees run.data) run.data.Data.trees in
+        let trees = List.map (fun (x, _, _) -> x) run.data.Data.trees in
+        let trees = Build.prebuilt trees (run.data, run.nodes) in
         let trees = Sexpr.to_list trees in
         let total_trees = (Sexpr.to_list run.trees) @ trees in
         let total_trees = Sexpr.of_list total_trees in
@@ -980,7 +980,7 @@ let rec handle_support_output run meth =
                 let output tree =
                     Status.user_message fo ("@[Support@ tree:@]@,@[");
                     Status.user_message fo 
-                    (AsciiTree.for_formatter true false tree);
+                    (AsciiTree.for_formatter false true false tree);
                     Status.user_message fo "@]";
                 in
                 Sexpr.leaf_iter output trees;
@@ -3248,7 +3248,7 @@ let set_console_run r = console_run_val := r
             let res = 
                 PtreeSearch.build_forest_with_names_n_costs collapse tree data cost
             in
-            List.map (AsciiTree.for_formatter true true) res 
+            List.map (AsciiTree.for_formatter false true true) res 
 
         let of_file file data nodes =
             let trees = Parser.Tree.of_file (`Local file) in

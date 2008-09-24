@@ -35,6 +35,8 @@ type dynhom_opts =
 (** The valid types of contents of a file *)
 type contents = Characters | CostMatrix | Trees 
 
+type parsed_trees = ((string Parser.Tree.t list) * string * int)
+
 type dyna_state_t = [
     (** A short sequence, no rearrangements are allowed*)
     | `Seq
@@ -295,7 +297,7 @@ type d = {
     (* The set of taxa to be ignored in the analysis *)
     ignore_character_set : string list;
     (* The set of loaded trees *)
-    trees : string Parser.Tree.t list list;
+    trees : parsed_trees list;
     (* The set of codes that belong to the class of Non additive with up to 1
     * states (useless!) *)
     non_additive_1 : int list;
@@ -613,26 +615,80 @@ let warn_if_repeated_and_choose_uniquely list str file =
     All_sets.Strings.fold (fun x acc -> x :: acc) selected []
 
 
-let process_trees data file =
-    let check_tree cnt trees =
-        let check_tree tree = 
-            let rec leafs acc tree = 
-                match tree with
-                | Parser.Tree.Node (c, _) ->
-                        List.fold_left ~f:leafs ~init:acc c
-                | Parser.Tree.Leaf x -> x :: acc
-            in
-            let leafs = leafs [] tree in
-            let _ =
-                warn_if_repeated_and_choose_uniquely leafs 
-                ("input@ tree@ " ^ string_of_int cnt ^ "@ of@ file@ ")
-                (FileStream.filename file)
-            in
-            ()
-        in
-        List.iter ~f:check_tree trees;
-        cnt + 1
+let trim taxon =
+    let rec non_empty_position x n fmod res =
+        if x = n then (res x)
+        else 
+            match taxon.[x] with
+            | ' ' | '\t' -> non_empty_position (fmod x) n fmod res
+            | _ -> x
     in
+    let len = String.length taxon in
+    if 0 < len then 
+        let start = non_empty_position 0 len succ pred
+        and final = non_empty_position (len - 1) (-1) pred succ in
+        String.sub taxon start (final - start + 1) 
+    else taxon
+
+let verify_trees data ((tree, file, position) : parsed_trees) =
+    let esc_file = StatusCommon.escape file in
+    let rec leafs acc tree = 
+        match tree with
+        | Parser.Tree.Node (c, _) ->
+                List.fold_left ~f:leafs ~init:acc c
+        | Parser.Tree.Leaf x -> x :: acc
+    in
+    let rec stop_if_not_all_terminals_in_tree map taxon =
+        let taxon = trim taxon in
+        if All_sets.StringMap.mem taxon data.synonyms then
+            stop_if_not_all_terminals_in_tree map
+            (All_sets.StringMap.find taxon data.synonyms)
+        else 
+            if All_sets.StringMap.mem taxon map then 
+                All_sets.StringMap.remove taxon map
+            else 
+                let msg = 
+                    ("input@ tree@ " ^ string_of_int position ^ 
+                    (if "" <> file then "@ of@ file@ " ^ esc_file else "") ^
+                    "@ has@ the@ terminal@ "
+                    ^ StatusCommon.escape taxon ^ 
+                    "@ and@ there@ is@ no@ data@ loaded@ for@ it")
+                in
+                let () = Status.user_message Status.Error msg in
+                failwith "Data not found"
+                    
+    in
+    let leafs = List.fold_left ~f:leafs ~init:[] tree in
+    let _ =
+        warn_if_repeated_and_choose_uniquely leafs 
+        ("input@ tree@ " ^ string_of_int position ^ "@ of@ file@ ") file
+    in
+    let res = 
+        List.fold_left ~f:(stop_if_not_all_terminals_in_tree )
+        ~init:data.taxon_names
+        leafs
+    in
+    if All_sets.StringMap.is_empty res then ()
+    else 
+        let taxa = 
+            (String.concat ", "
+            (List.map StatusCommon.escape 
+                (All_sets.StringMap.fold (fun a _ acc -> a :: acc) res [])))
+        in
+        let file_string =
+            if "" <> file then "@ of@ file@ " ^ esc_file else ""
+        in
+        let msg = 
+            "The@ following@ terminals@ do@ not@ appear@ in@ the@ input@ "
+            ^ "tree@ " ^ string_of_int position ^ file_string ^ "@ :@ " ^ taxa ^
+            ".@ Beware@ that@ this@ tree@ will@ be@ incompatible@ with@ any@ " ^
+            "@ other@ trees@ built@ by@ POY,@ as@ some@ terminals@ appearing@ "
+            ^ "in@ the@ new@ trees@ will@ be@ missing@ on@ this@ one@ and@ " ^ 
+            "could@ cause@ errors." 
+        in
+        Status.user_message Status.Warning msg
+
+let process_trees data file =
     try
         let ch, file = FileStream.channel_n_filename file in
         let trees = Parser.Tree.of_channel ch in
@@ -642,7 +698,8 @@ let process_trees data file =
             "@[The@ file@ " ^ StatusCommon.escape file ^ 
             "@ contains@ " ^ string_of_int len ^ "@ trees.@]"
         in
-        let _ = List.fold_left ~f:check_tree ~init:1 trees in
+        let cnt = ref 0 in
+        let trees = List.map ~f:(fun x -> incr cnt; (x, file, !cnt)) trees in
         Status.user_message Status.Information msg;
         { data with trees = data.trees @ trees }
     with
@@ -718,21 +775,6 @@ let pick_code_for_root code data =
             if Hashtbl.mem data.taxon_characters previous then 
                 data 
             else { data with root_at = Some code }
-
-let trim taxon =
-    let rec non_empty_position x n fmod res =
-        if x = n then (res x)
-        else 
-            match taxon.[x] with
-            | ' ' | '\t' -> non_empty_position (fmod x) n fmod res
-            | _ -> x
-    in
-    let len = String.length taxon in
-    if 0 < len then 
-        let start = non_empty_position 0 len succ pred
-        and final = non_empty_position (len - 1) (-1) pred succ in
-        String.sub taxon start (final - start + 1) 
-    else taxon
 
 (** Returns a [d] with the following condition: if [taxon] is present in [data]
  * then [data] is returned, otherwise, [data] with the added name and assigned code
@@ -1222,7 +1264,11 @@ matrix, trees, sequences) : Parser.SC.file_output) =
                 Status.full_report ~adv:(did + 1) st;
     done;
     (* We add the trees *)
-    let data = { data with trees = data.trees @ trees } in
+    let data = 
+        let cnt = ref 0 in
+        let trees = List.rev trees in
+        let trees = List.map ~f:(fun x -> x, file, (incr cnt; !cnt)) trees in
+        { data with trees = data.trees @ trees } in
     (* Now time to add the molecular sequences *)
     let data = 
         let single_sequence_adder data (alphabet, sequences) =
@@ -1698,8 +1744,9 @@ let add_character_spec spec code data =
     end else raise Illegal_argument;
     data
 
-let taxon_code name data =
-    All_sets.StringMap.find name data.taxon_names
+let rec taxon_code name data =
+    try All_sets.StringMap.find name data.taxon_names with
+    | Not_found -> taxon_code (All_sets.StringMap.find name data.synonyms) data
 
 let get_tcm code data = 
     match Hashtbl.find data.character_specs code with

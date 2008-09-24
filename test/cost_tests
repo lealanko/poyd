@@ -14,3 +14,4 @@
 -message "Check tree cost FILENAME1 cc3.poy" -command "cc3.poy" -costfile cc3.costs -inputfile first_fasta
 -message "Check tree cost after static approx FILENAME1 sa.poy" -command "sa.poy" -costfile sa.costs -inputfile first_fasta
 -message "Check tree cost after static approx FILENAME1 sa1.poy" -command "sa1.poy" -costlessfile sa1.costs -inputfile first_fasta
+-message "Check tree cost with static and polymorphisms static_poly.poy" -command "static_poly.poy" -cost 1298 

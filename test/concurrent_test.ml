@@ -1,9 +1,35 @@
 let running_counter = ref 0
 let max_processes = ref 1
 let input_file = ref ""
+let buildbot = ref false
+let buildbot_prefix = ref ""
+let buildbot_suffix = ref ""
+
+let set_buildbot_mode () = 
+    buildbot := true;
+    buildbot_suffix := "]))";
+    match !input_file with
+    | "cost_tests" -> 
+            buildbot_prefix := 
+                "cost_calculation_tests.append (generate_test ([";
+    | "search_tests" ->
+            buildbot_prefix := "search_tests.append (generate_test ([";
+    | "bucket_tests" -> 
+            buildbot_prefix :=
+                "append_by_bucket (command_tests, generate_test (["
+    | x -> 
+            prerr_string "Unknown mode for file: ";
+            prerr_string x;
+            prerr_newline ();
+            exit 1
+
 
 let () =
     let parse_list = [
+        ("-buildbot", Arg.Unit set_buildbot_mode, 
+        "Don't run the test but dump the buildbot ready file using prefix and \
+        suffix according to the following modes: costcalculation, search, \
+        bucket.");
         ("-scriptsfile", Arg.String (fun x -> input_file := x),
         "Input file containing the list of scripts to run");
         ("-p", Arg.Int (fun x -> if x > 0 then max_processes := x),
@@ -13,16 +39,28 @@ let () =
 
 
 let concatenate pid =
-    let pid = string_of_int pid in
-    let _ = 
-        Unix.system ("cat test_all" ^ pid ^ ".log >> test_all.log" ) 
-    in
-    ()
+    if not !buildbot then
+        let pid = string_of_int pid in
+        let _ = 
+            Unix.system ("cat test_all" ^ pid ^ ".log >> test_all.log" ) 
+        in
+        ()
+    else ()
 
 let prepare_line line pid = 
-    let pid = string_of_int pid in
-    "ocaml unix.cma str.cma test_line.ml " ^ line ^ " > test_all" ^ pid ^
-    ".log"
+    let executable =
+        let executable = "ocaml unix.cma str.cma test_line.ml " in
+        if !buildbot then 
+            Printf.sprintf "%s -buildbot_prefix \"%s\" -buildbot_suffix \"%s\" -buildbot " 
+            executable !buildbot_prefix !buildbot_suffix 
+        else
+            executable
+    in
+    let output_redirection =
+        if !buildbot then " >> buildbot.txt "
+        else " > test_all" ^ string_of_int pid ^ ".log"
+    in
+    executable ^ line ^ output_redirection
 
 let fork_and_execute line =
     let execute pid = 
