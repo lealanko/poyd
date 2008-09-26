@@ -48,7 +48,7 @@ OCAMLDEP := @OCAMLDEP@
 OCAMLTOP := @OCAMLTOP@
 OCAMLLEX := @OCAMLLEX@
 OCAMLYACC := @OCAMLYACC@
-MERCURIAL := 2902
+MERCURIAL := 2903
 NROFF := @NROFF@
 EXTRAS := @EXTRAS@
 OFLAGS := @OCAMLFLAGS@ 
@@ -293,7 +293,7 @@ ctags: *.c
 
 # Runtime options
 buildNumber.ml: 
-	echo "let build = \" " `$(MERCURIAL)` "\"" > $@
+	echo "let build = \" " $(MERCURIAL) "\"" > $@
 
 compileFlags.ml: ./config.log
 	echo "(** automatically generated description of compile-time flags *)" \
