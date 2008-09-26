@@ -97,7 +97,6 @@ let rec process_list_of_tasks lst =
     match lst with
     | h :: t when !running_counter < !max_processes-> 
             if not_empty h then fork_and_execute h;
-            collect_results ();
             process_list_of_tasks t
     | h :: t -> 
             collect_results ();

@@ -99,8 +99,6 @@ let () =
         exit 0
     end else ()
 
-let _ = Unix.system "rm tmp_line*.*"
-
 let () = (* We verify options that are mutually exclusive *)
     let excl = 
         [(!mstdout, !rmstdout); (!mstderr, !rmstderr); (!mdiff, !rmdiff)]
