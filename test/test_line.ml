@@ -227,7 +227,7 @@ let () =
                     | Unix.WEXITED 0 -> 
                             (match Unix.system ("sed -i -e '/Estimated/d' " ^ b) with
                             | Unix.WEXITED 0 ->
-                                    (match Unix.system ("diff -q " ^ a ^ " " ^
+                                    (match Unix.system ("diff --strip-trailing-cr -E -B -w -b -u " ^ a ^ " " ^
                                             b) with
                                     | Unix.WEXITED 0 -> true
                                     | _ -> false)
@@ -243,6 +243,14 @@ let () =
         in
         let execution_line = append_output execution_line in
         print_endline ("Executing " ^ execution_line);
+        print_endline ("For the script:");
+        let () = 
+            match Unix.system command with
+            | Unix.WEXITED 0 -> print_newline ()
+            | _ -> 
+                    print_endline 
+                    "Warning: there was an error producing resulting script"
+        in
         match Unix.system execution_line with
         | Unix.WEXITED n ->
                 if n = 0 || !error_expected then
@@ -257,6 +265,7 @@ let () =
                                 with
                                 | Unix.WEXITED 0 -> ()
                                 | _ ->
+                                        exit_code := 1;
                                         Printf.printf 
                                         "FAILED: Could not generate reference %s\n"
                                         x
@@ -268,8 +277,10 @@ let () =
                     in
                     if res then
                         Printf.printf "PASSED: %s\n%!" message
-                    else
+                    else begin
+                        if not !error_expected then exit_code := 1;
                         Printf.printf "FAILED: %s\n%!" message;
+                    end
                 else begin
                     Printf.printf "FAILED: %s\n%!" message;
                     exit_code := 1
