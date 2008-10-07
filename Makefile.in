@@ -40,13 +40,13 @@ poy_test:
 	cd ./src/; $(MAKE) poy_test
 	cp ./src/poy_test ./test/
 
-MERCURIAL := 2908
+MERCURIAL := 2909
 
 poy_server: poy xml/swami.xml
 	cd src; $(MAKE) poy_server
 
 xml/swami.xml: xml/swami.xml.in
-	cd xml; sed "s/VERSION/<version>4.0.`$(MERCURIAL)`<\/version>/g" swami.xml.in > swami.xml
+	cd xml; sed "s/VERSION/<version>4.0.$(MERCURIAL)<\/version>/g" swami.xml.in > swami.xml
 
 .PHONY:	subdirs $(SUBDIRS) clean driver install distclean
 subdirs:	$(SUBDIRS)
