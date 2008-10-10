@@ -100,7 +100,7 @@ let rec process_list_of_tasks lst =
             process_list_of_tasks t
     | h :: t -> 
             collect_results ();
-            process_list_of_tasks t
+            process_list_of_tasks lst
     | [] when !running_counter > 0 -> 
             collect_results ();
             process_list_of_tasks []

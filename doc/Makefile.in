@@ -1,4 +1,4 @@
-MERCURIAL := 2911
+MERCURIAL := 2911d1
 
 .PHONY: clean distclean
 
