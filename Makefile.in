@@ -40,7 +40,7 @@ poy_test:
 	cd ./src/; $(MAKE) poy_test
 	cp ./src/poy_test ./test/
 
-MERCURIAL := 2911d1
+MERCURIAL := 2911d2
 
 poy_server: poy xml/swami.xml
 	cd src; $(MAKE) poy_server
