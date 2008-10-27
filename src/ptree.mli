@@ -549,6 +549,10 @@ val supports :
     (int -> string) -> int -> float -> Tree.u_tree -> int Tree.CladeFPMap.t ->
     string Parser.Tree.t
 
+val support_of_input :
+    (int -> string) -> int -> float -> string Parser.Tree.t list -> Data.d -> int Tree.CladeFPMap.t ->
+    string Parser.Tree.t
+
 val extract_bremer :  (All_sets.Integers.elt -> string) ->
   int Tree.CladeFPMap.t -> string Parser.Tree.t
 
@@ -568,7 +572,7 @@ val extract_bremer :  (All_sets.Integers.elt -> string) ->
 val bremer :
     (int -> string) -> int -> Tree.u_tree -> 
               ((string Parser.Tree.t * string) -> (int * Tree.CladeFP.CladeSet.t)) ->
-          Parser.filename -> 
+          Parser.filename list -> 
               string Parser.Tree.t
 val preprocessed_consensus :
   (All_sets.Integers.elt -> string) ->

@@ -180,6 +180,8 @@ module type S = sig
         val of_string : string -> unit
     end
 
+    module Node : NodeSig.S with type n = a
+
 end
 
 
@@ -940,6 +942,19 @@ let get_trees_for_support support_class run =
                             tree.Ptree.tree
                             fs)
                         run.trees
+                | `InputFile x ->
+                        let trees = Parser.Tree.of_file (`Local x) in
+                        Sexpr.of_list
+                        (List.map 
+                        (fun tree ->
+                            Ptree.support_of_input
+                            (fun x -> Data.code_taxon x run.data)
+                            0
+                            (float_of_int iterations)
+                            tree
+                            run.data
+                            fs)
+                        trees)
                 | `Consensus ->
                         `Single 
                         (Ptree.preprocessed_consensus 
@@ -949,13 +964,13 @@ let get_trees_for_support support_class run =
                         fs)
     in
     match support_class with
-    | `Bremer (Some input_file) ->
+    | `Bremer (Some input_files) ->
                 S.bremer_of_input_file_but_trust_input_cost 
                 (match run.data.Data.root_at with
                 | Some x -> x | None -> failwith "no root?")
                 (fun x -> Data.code_taxon x run.data)
                 run.data
-                input_file
+                input_files
                 run.trees, 
                 "Bremer"
     | `Bremer None ->
@@ -2787,8 +2802,7 @@ END
                                                             [|name; res|]
                                                         with 
                                                         | Not_found ->
-                                                                if min_val =
-                                                                    max_val.
+                                                                if min_val = max_val
                                                                 then [|name;
                                                                 "uninformative"|]
                                                                 else [|name;
@@ -3266,6 +3280,7 @@ let set_console_run r = console_run_val := r
             console_run_val := { run with trees = trees }
     end
 
+    module Node = Node
 end
 
 module FILES = struct

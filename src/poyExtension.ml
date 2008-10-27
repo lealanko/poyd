@@ -467,12 +467,13 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
         summary_class:
             [ 
                 [ ":"; LIDENT "individual" -> <:expr<`Individual>> ] | 
-                [ ":"; LIDENT "consensus" -> <:expr<`Consensus>> ]
+                [ ":"; LIDENT "consensus" -> <:expr<`Consensus>> ] |
+                [ ":"; x = flex_string -> <:expr<`InputFile $x$ >> ]
             ];
         support_names:
             [
                 [ LIDENT "bremer"; ":"; x = flex_string -> <:expr<`Bremer (Some
-            (`Local $x$))>>] |
+            [(`Local $x$)])>>] |
                 [ LIDENT "bremer" -> <:expr<`Bremer None>> ] |
                 [ LIDENT "jackknife"; y = OPT [ x = summary_class -> x ] -> 
                     match y with

@@ -32,6 +32,8 @@ AC_SUBST(OCAMLYACC)
 AC_SUBST(LIBS)
 AC_SUBST(OCAMLFLAGS)
 AC_SUBST(EXTRAS)
+AC_SUBST(NATIVEDYNLINK)
+
 USEWIN32=false
 # System dependent options
 case `../gnu/config.guess` in
@@ -162,6 +164,8 @@ AC_MSG_RESULT([$OCAMLVERSION])
 case $OCAMLVERSION in 
     3.10.*)
     ;;
+    3.11.*)
+    NATIVEDYNLINK="dynlink.cmxa";;
     *)
     AC_MSG_RESULT([no])
     AC_MSG_FAILURE([POY requires OCaml version 3.10.0 or later to compile.  Please upgrade to the latest version. (You can get it from http://www.ocaml.org and follow their compilation instructions. It's really easy.)])
@@ -190,4 +194,5 @@ AC_CHECK_FUNCS([floor gettimeofday memset pow sqrt])
 AC_CONFIG_FILES([Makefile
                  graphps/Makefile
                  grappa/Makefile])
+AC_CONFIG_SUBDIRS([gz-0.5.7])
 AC_OUTPUT
