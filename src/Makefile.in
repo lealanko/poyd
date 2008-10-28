@@ -48,7 +48,7 @@ OCAMLDEP := @OCAMLDEP@
 OCAMLTOP := @OCAMLTOP@
 OCAMLLEX := @OCAMLLEX@
 OCAMLYACC := @OCAMLYACC@
-MERCURIAL := 2911d6
+MERCURIAL := 2911d7
 EXTRAS := @EXTRAS@
 OFLAGS := @OCAMLFLAGS@ 
 NATIVEDYNLINK := @NATIVEDYNLINK@
@@ -329,6 +329,8 @@ compileFlags.ml: ./config.log
 	echo "let str_parallel = \"" `grep USEPARALLEL ./config.log` "\"" >> $@
 	echo "let str_interface = \"" `grep USEINTERFACE ./config.log` "\"" >> $@
 	echo "let str_graphics = \"" `grep USEGRAPHICS ./config.log` "\"" >> $@
+
+status.ml: $(INTERFACE)
 
 # The libraries
 status_ncurses.cma : dequeue.cmo status.cmi ncurses.o ncursesML.cmo \
@@ -614,12 +616,12 @@ DOCFILTER = $(CAMLP4PROCESSED) $(OPTIONPREPROCESSED)
 # We have to seed some dependencies in the initial dependency contruction. The
 # following list of depencencies are linnear, that is, the second item depends
 # on the first one.
-.depend: compileFlags.cmo sadmanOutput.cmo poyFile.cmi poyFile.cmo lz.cmo \
+.depend: compileFlags.cmo sadmanOutput.cmo sadman.cmi sadman.cmo poyFile.cmi poyFile.cmo lz.cmo \
 	statusCommon.cmo status.cmi timer.cmi sexpr.cmi enum.cmi tags.cmo \
 	alphabet.cmi all_sets.cmi fileStream.cmo sequence.cmi bitSet.cmi \
 	parser.cmi config.h \
 	poyExtension.cmo nonaddCSc8.c nonaddCSc16.c nonaddCSc32.c \
-	nonaddCS8.ml nonaddCS16.ml nonaddCS32.ml *.ml *.mli *.c *.h
+	nonaddCS8.ml nonaddCS16.ml nonaddCS32.ml *.ml *.mli *.c *.h grappa/*.ml* graphps/*.ml*
 	$(OCAMLDEP) $(OCAML_INCLUDES) \
 	$(filter-out $(DOCFILTER), $(wildcard *.ml)) \
 	$(filter-out $(DOCFILTER:.ml=.mli), $(wildcard *.mli)) > .depend 
