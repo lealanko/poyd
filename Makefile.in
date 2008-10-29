@@ -28,19 +28,16 @@ SUBDIRS = ocamlmpi src doc
 all: 
 ifeq ($(USEPARALLEL), true)
 	cd ocamlmpi; $(MAKE) 
-	$(MAKE) depend
 	cd ./src/; $(MAKE) poy
 else
-	$(MAKE) depend
 	cd ./src/; $(MAKE) poy
 endif
 
 poy_test:
-	$(MAKE) depend
 	cd ./src/; $(MAKE) poy_test
 	cp ./src/poy_test ./test/
 
-MERCURIAL := 2911d7
+MERCURIAL := 2911d8
 
 poy_server: poy xml/swami.xml
 	cd src; $(MAKE) poy_server
