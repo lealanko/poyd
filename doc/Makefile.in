@@ -1,12 +1,36 @@
-MERCURIAL := 2911d8
+OCAML :=@OCAML@
+MERCURIAL := 4.1.0.RC9
 
-.PHONY: clean distclean
+.PHONY: clean distclean version
+
+../src/version.cmo: 
+	$(MAKE) -C ../src version.cmo
+
+../src/buildNumber.cmo: 
+	$(MAKE) -C ../src buildNumber.cmo
+
+../src/compileFlags.cmo: 
+	$(MAKE) -C ../src compileFlags.cmo
+
+version.tex: ../src/compileFlags.cmo ../src/buildNumber.cmo ../src/version.cmo makeVersion.ml
+	$(OCAML) -noprompt str.cma ../src/compileFlags.cmo ../src/buildNumber.cmo  ../src/version.cmo -I ../src/ makeVersion.ml > version.tex
+
+version: ../src/compileFlags.cmo ../src/buildNumber.cmo ../src/version.cmo makeVersion.ml
+	$(OCAML) -noprompt str.cma ../src/compileFlags.cmo ../src/buildNumber.cmo  ../src/version.cmo -I ../src/ makeVersion.ml -text
 
 QuickStart.pdf: QuickStart.tex
-	pdflatex $<; pdflatex $<; pdflatex $< 
+	pdflatex $<
+	pdflatex $<
+	pdflatex $< 
 
-commands.pdf: commands.tex allcommands.tex poy3commands.tex  QuickStart.tex poylibrary.bib poyheuristics.tex
-	echo '@DOCSTRING@' $(MERCURIAL) " }" | sed "s/ //g" > version.tex; pdflatex commands.tex ; bibtex commands; pdflatex commands.tex ; pdflatex commands.tex ; makeindex general ; makeindex poy3 ; pdflatex commands.tex
+commands.pdf: commands.tex allcommands.tex poy3commands.tex  QuickStart.tex poylibrary.bib poyheuristics.tex version.tex
+	pdflatex commands.tex
+	bibtex commands
+	pdflatex commands.tex
+	pdflatex commands.tex
+	makeindex general
+	makeindex poy3 
+	pdflatex commands.tex
 
 clean:
 	rm -f *.aux *.pdf *.log *.idx *.ind *.out *.toc *.ilg *.bbl *.blg

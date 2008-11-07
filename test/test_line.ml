@@ -223,9 +223,9 @@ let () =
             | Some a ->
                     let a = filename_fixer a
                     and b = filename_fixer b in
-                    match Unix.system ("sed -i -e '/Estimated/d; /Automated Search/d' " ^ a) with
+                    match Unix.system ("sed -i \"\" -e '/Estimated/d; /Automated Search/d' " ^ a) with
                     | Unix.WEXITED 0 -> 
-                            (match Unix.system ("sed -i -e '/Estimated/d' " ^ b) with
+                            (match Unix.system ("sed -i \"\" -e '/Estimated/d; /Automated Search/d' " ^ b) with
                             | Unix.WEXITED 0 ->
                                     (match Unix.system ("diff --strip-trailing-cr -E -B -w -b -u " ^ a ^ " " ^
                                             b) with

@@ -69,7 +69,7 @@
 -command perturb/perturb18.poy -message "'perturb' using 'resample' under default, ERROR expected" -stderr "perturb/stderr/perturb18.poy.err" -error
 -command perturb/perturb19.poy -message "'perturb' using 'resample' under default, ERROR expected" -stderr "perturb/stderr/perturb19.poy.err" -error
 -command perturb/perturb20.poy -message "default 'perturb' with specified values and multiple 'swap' arguments for fas, ss, aa" -stderr "perturb/stderr/perturb20.poy.err"
--command perturb/perturb21.poy -message "default 'perturb' with specified swap, ratchet and iterations values and multiple 'swap' arguments for fas, ss, and aa" -stderr "perturb/stderr/perturb21.poy.err"
+-command perturb/perturb21.poy -message "default 'perturb' with specified swap, ratchet and iterations values and multiple 'swap' arguments for fas, ss, and aa" 
 -command perturb/perturb22.poy -message "default 'perturb' with specified swap, ratchet, iterations, and transform values and multiple 'swap' arguments for FILENAME1 FILENAME2 FILENAME3" -inputfile "fas" -inputfile "ss" -inputfile "aa" -stderr "perturb/stderr/FILENAME1_FILENAME2_FILENAME3.perturb22.poy.err"
 -command perturb/perturb24.poy -message "'perturb' using 'resample' without specifying lident value, ERROR expected" -stderr "perturb/stderr/perturb24.poy.err" -error
 -command perturb/perturb26.poy -message "'perturb' using 'resample' with specifying values for fas, aa, ss" -stderr "perturb/stderr/perturb26.poy.err"

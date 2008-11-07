@@ -25,6 +25,7 @@ AC_SUBST(OCAML)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLOPT)
 AC_SUBST(OCAMLDEP)
+AC_SUBST(CAMLP4ORF)
 AC_SUBST(OCAMLTOP)
 AC_SUBST(OCAMLLEX)
 AC_SUBST(OCAMLYACC)
@@ -150,10 +151,11 @@ AC_CHECK_HEADER(malloc.h,[],[AC_CHECK_HEADER(/usr/include/malloc/malloc.h,[CFLAG
 
 AC_CHECK_PROGS([OCAML], [ocaml])
 AC_CHECK_PROGS([OCAMLC], [ocamlc.opt ocamlc])
-AC_CHECK_PROGS([OCAMLYACC], [ocamlyacc])
-AC_CHECK_PROGS([OCAMLLEX], [ocamllex])
+AC_CHECK_PROGS([OCAMLYACC], [ocamlyacc.opt ocamlyacc])
+AC_CHECK_PROGS([OCAMLLEX], [ocamllex.opt ocamllex])
 AC_CHECK_PROGS([OCAMLOPT], [ocamlopt.opt ocamlopt])
-AC_CHECK_PROGS([OCAMLDEP], [ocamldep])
+AC_CHECK_PROGS([OCAMLDEP], [ocamldep.opt ocamldep])
+AC_CHECK_PROGS([CAMLP4ORF], [camlp4orf])
 AC_CHECK_PROGS([OCAMLTOP], [ocamlmktop])
 
 # Check the version of OCaml
@@ -162,13 +164,13 @@ OCAMLVERSION=`$OCAMLOPT -version`
 AC_MSG_RESULT([$OCAMLVERSION])
 
 case $OCAMLVERSION in 
-    3.10.*)
+    3.10.2*)
     ;;
     3.11.*)
     NATIVEDYNLINK="dynlink.cmxa";;
     *)
     AC_MSG_RESULT([no])
-    AC_MSG_FAILURE([POY requires OCaml version 3.10.0 or later to compile.  Please upgrade to the latest version. (You can get it from http://www.ocaml.org and follow their compilation instructions. It's really easy.)])
+    AC_MSG_FAILURE([POY requires OCaml version 3.10.2 or later to compile.  Please upgrade to the latest version. (You can get it from http://www.ocaml.org and follow their compilation instructions. It's really easy.)])
     ;;
 esac
 
