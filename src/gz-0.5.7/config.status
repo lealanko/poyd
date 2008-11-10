@@ -331,7 +331,7 @@ Copyright (C) 2006 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/andres/public_release/public_src/poy_build4.1.0.RC9/src/gz-0.5.7'
+ac_pwd='/home/andres/public_release/public_src/poy_build4.1.0.RC12/src/gz-0.5.7'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 # If no file are specified by the user, then we need to provide default
