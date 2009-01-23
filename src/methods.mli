@@ -28,6 +28,7 @@ type simple_input =
     | `GeneralAlphabetSeq of filename * filename * read_option_t list
     | `Genome of filename list
     | `Nucleotides of filename list
+    | `PartitionedFile of filename list
     | `Poyfile of filename list ]
 type input =
     [ `Aminoacids of filename list
@@ -39,6 +40,7 @@ type input =
     | `GeneralAlphabetSeq of filename * filename * read_option_t list
     | `Genome of filename list
     | `Nucleotides of filename list
+    | `PartitionedFile of filename list
     | `Poyfile of filename list
     | `Prealigned of simple_input * prealigned_costs ]
 type information_contained =
@@ -108,6 +110,7 @@ type char_transform =
     | `Custom_to_Breakinv of characters * chromosome_pam_t list
     | `Direct_Optimization of characters
     | `Fixed_States of characters
+    | `Partitioned of ([`Clip | `NoClip] * characters)
     | `MultiStatic_Aprox of characters * bool
     | `Prealigned_Transform of characters
     | `Prioritize
@@ -134,6 +137,7 @@ type transform =
     | `Fixed_States of characters
     | `MultiStatic_Aprox of characters * bool
     | `OriginCost of float
+    | `Partitioned of ([`Clip | `NoClip] * characters)
     | `Prealigned_Transform of characters
     | `Prioritize
     | `RandomizedTerminals
@@ -163,6 +167,7 @@ type report =
     | `ExplainScript of string * string option
     | `FasWinClad of string option
     | `GraphicConsensus of string option * float option
+    | `GraphicDiagnosis of string 
     | `GraphicSupports of support_output option * string option
     | `Implied_Alignment of string option * characters * bool
     | `Load of string
@@ -189,8 +194,9 @@ type runtime_store =
     | `Set of store_class list * string
     | `Store of store_class list * string ]
 type ('a, 'b) character_input_output = [ `Characters of 'a | `Floats of 'b ]
+type ia_seq = [ `DO of int array | `First of int array | `Last of int array ]
 type implied_alignment =
-    (((int * int array array All_sets.IntegerMap.t list) list *
+    (((int * ia_seq array All_sets.IntegerMap.t list) list *
       (int * string * int * [ `Deletion | `Insertion ] * int Sexpr.t) Sexpr.t
       list list) *
      (int * int Sexpr.t) Sexpr.t list list)
@@ -360,8 +366,20 @@ type char_operations =
     [ `Distance of (taxa * taxa) * characters
     | `Median of (taxa * taxa) * characters ]
 type clear_item = [ `Matrices | `SequencePool ]
+type 'a plugin_arguments = 
+    [ `Empty
+    |`Float of float 
+    | `Int of int
+    | `String of string
+    | `Lident of string
+    | `Labled of (string * 'a plugin_arguments)
+    | `List of 'a plugin_arguments list 
+    | `Command of 'a
+]
+
 type application =
     [ `Ascii of string option * bool
+    | `KML of (string option * filename * string)
     | `ChangeWDir of string
     | `ClearMemory of clear_item list
     | `ClearRecovered
@@ -412,6 +430,7 @@ type script =
     | `Annchrom_to_Breakinv of characters * chromosome_pam_t list
     | `AnnotatedFiles of simple_input list
     | `Ascii of string option * bool
+    | `KML of (string option * filename * string)
     | `Assign_Affine_Gap_Cost of int * characters
     | `Assign_Prep_Cost of prep_tail_spec * characters
     | `Assign_Tail_Cost of prep_tail_spec * characters
@@ -471,6 +490,7 @@ type script =
     | `GetStored
     | `Graph of string option * bool
     | `GraphicConsensus of string option * float option
+    | `GraphicDiagnosis of string 
     | `GraphicSupports of support_output option * string option
     | `Help of string option
     | `HistorySize of int
@@ -494,11 +514,14 @@ type script =
     | `Normal
     | `Normal_plus_Vitamines
     | `Nucleotides of filename list
+    | `PartitionedFile of filename list
     | `OnEachTree of script list * script list
     | `OriginCost of float
     | `ParallelPipeline of int * script list * script list * script list
+    | `Partitioned of ([`Clip | `NoClip] * characters)
     | `PerturbateNSearch of
         transform list * perturb_method * local_optimum * int * timer option
+    | `Plugin of (string * script plugin_arguments)
     | `Poyfile of filename list
     | `Prealigned of simple_input * prealigned_costs
     | `Prealigned_Transform of characters
@@ -582,6 +605,7 @@ type ('a, 'b, 'c, 'd) checkpoints =
         tabu_join_strategy * tabu_reroot_strategy * samples list
     | `Median of 'd Sexpr.t * 'd Sexpr.t
     | `Nucleotides of filename list
+    | `PartitionedFile of filename list
     | `OfNodes of int
     | `ParallelPipeline of int * script list * script list * script list
     | `PerturbateNSearch of

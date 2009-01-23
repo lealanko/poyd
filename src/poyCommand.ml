@@ -29,6 +29,7 @@ type read_option_t = [
 type otherfiles = [
     | `AutoDetect of string
     | `Nucleotides of string list
+    | `PartitionedFile of string list
     | `Aminoacids of string list
     | `GeneralAlphabetSeq of (string * string * read_option_t list) 
     | `Breakinv of (string * string * read_option_t list)
@@ -128,6 +129,7 @@ type transform_method = [
     | `Prioritize
     | `SearchBased
     | `Fixed_States
+    | `Partitioned of [`Clip | `NoClip]
     | `Direct_Optimization
     | `SeqToChrom of chromosome_args list
     | `ChangeDynPam of chromosome_args list
@@ -287,6 +289,7 @@ type reporta = [
     | `File of string
     | `Data
     | `Xslt of (string * string)
+    | `KML of (string * string)
     | `Ascii of bool
     | `Memory
     | `Graph of bool
@@ -311,6 +314,7 @@ type reporta = [
     | `GraphicSupports of Methods.support_output option
     | `AllRootsCost
     | `Implied_Alignments of identifiers * bool
+    | `GraphicDiagnosis
     | `Diagnosis
     | `Nodes
 ]
@@ -368,6 +372,7 @@ type command = [
     | `Support of supporta list
     | `Calculate of charoper list
     | `Report of reporta list
+    | `Plugin of (string * command Methods.plugin_arguments)
     | `Select of selecta list
     | `Rename of renamea list
     | `Search of searcha list
@@ -417,6 +422,7 @@ let transform_transform acc (id, x) =
             | `Prioritize -> `Prioritize :: acc
             | `SearchBased -> (`Search_Based id) :: acc
             | `Fixed_States -> (`Fixed_States id) :: acc
+            | `Partitioned mode -> (`Partitioned (mode, id)) :: acc
             | `Direct_Optimization -> (`Direct_Optimization id) :: acc
             | `SeqToChrom x -> (`Seq_to_Chrom (id, x)) :: acc
             | `CustomToBreakinv x -> (`Custom_to_Breakinv (id, x)) :: acc
@@ -723,9 +729,11 @@ join_tabu, reroot_tabu, samples)
 
 
 let transform_swap_arguments (lst : swapa list) =
-    let param =
+    let (space, thres, keep, keepm, cclist, origin, traj, break_tabu,
+join_tabu, reroot_tabu, samples) =
         List.fold_left transform_swap swap_default lst in
-    `LocalOptimum param
+    `LocalOptimum (space, thres, keep, keepm, List.rev cclist, origin, traj,
+    break_tabu, join_tabu, reroot_tabu, samples)
 
 (* Fusing *)
 let rec transform_fuse ?(iterations=None) ?(keep=None) ?(replace=`Better)
@@ -786,7 +794,7 @@ let transform_perturb (tr, m, sw, it, timeout) = function
 
 let transform_perturb_arguments x : Methods.script list = 
     let tr, a, b, c, d = List.fold_left transform_perturb perturb_default x in
-    `PerturbateNSearch (tr, a, b, c, d) :: []
+    `PerturbateNSearch (List.rev tr, a, b, c, d) :: []
 
 (* Support *)
 let support_default_swap = `LocalOptimum swap_default
@@ -835,6 +843,11 @@ let transform_report ((acc : Methods.script list), file) (item : reporta) =
     | `Data -> (`Dataset file) :: acc, file
     | `Xslt x -> (`Xslt x) :: acc, file
     | `Ascii x -> (`Ascii (file, x)) :: acc, file
+    | `KML (plugin, out_file) -> 
+            (match file with
+            | None -> failwith "KML generation requires an output file"
+            | Some f -> 
+                    (`KML (Some plugin, `Local out_file, f)) :: acc, file)
     | `Memory -> (`Memory file) :: acc, file
     | `Graph x -> 
             begin match acc, file with
@@ -899,6 +912,10 @@ let transform_report ((acc : Methods.script list), file) (item : reporta) =
             | #Methods.characters as id ->
                     (`Implied_Alignment (file, id, include_header)) :: acc, file
             | _ -> acc, file)
+    | `GraphicDiagnosis -> 
+            (match file with
+            | None -> (`Diagnosis file) :: acc, file
+            | Some file -> (`GraphicDiagnosis file) :: acc, Some file)
     | `Diagnosis -> 
             (`Diagnosis file) :: acc, file
     | `Nodes ->
@@ -1071,6 +1088,22 @@ let transform_stdsearch items =
 
 let rec transform_command (acc : Methods.script list) (meth : command) : Methods.script list =
     match meth with
+    | `Plugin (name, commands) ->
+            let rec process_contents x =
+                match x with
+                | `Lident _
+                | `Float _ | `Empty | `Int _ | `String _ as x
+                -> x
+                | `Labled (name, args) ->
+                        `Labled (name, process_contents args)
+                | `List lst ->
+                        `List (List.map process_contents lst)
+                | `Command c -> 
+                        let c = transform_command [] c in
+                        let c = List.map (fun x -> `Command x) c in
+                        `List c
+            in
+            (`Plugin (name, process_contents commands)) :: acc
     | `Version
     | `Exit 
     | `Recover
@@ -1155,12 +1188,19 @@ let create_expr () =
                         -> (`All, `OriginCost (float_of_string x)) ] |
                 [ LIDENT "prioritize" -> (`All, `Prioritize) ] 
             ];
+        partitioned_mode:
+            [   
+                [ LIDENT "clip" -> `Clip ] |
+                [ LIDENT "noclip" -> `NoClip ]
+            ];
         transform_method:
             [
                 [ LIDENT "prealigned" -> `Prealigned_Transform ] |
                 [ LIDENT "randomize_terminals" -> `RandomizedTerminals ] |
                 [ LIDENT "alphabetic_terminals" -> `AlphabeticTerminals ] |
                 [ LIDENT "tcm"; ":";  x = STRING -> `Tcm x ] |
+                [ LIDENT "partitioned"; ":"; x = partitioned_mode -> 
+                    `Partitioned x ] | 
                 [ LIDENT "fixed_states" -> `Fixed_States ] |
                 [ LIDENT "direct_optimization" -> `Direct_Optimization ] |
                 [ LIDENT "tcm"; ":"; left_parenthesis; x = INT; ","; y = INT; 
@@ -1391,6 +1431,9 @@ let create_expr () =
         report_argument:
             [
                 [ x = STRING -> `File x ] |
+                [ LIDENT "kml"; ":"; left_parenthesis; 
+                    plugin = LIDENT; ","; csv = STRING;
+                right_parenthesis -> `KML (plugin, csv) ] |
                 [ LIDENT "new"; ":"; x = STRING ->
                     StatusCommon.Files.closef x ();
                     let _ = StatusCommon.Files.openf ~mode:`New x in
@@ -1439,6 +1482,7 @@ let create_expr () =
                 [ LIDENT "graphsupports"; y = OPT opt_support_names -> 
                     `GraphicSupports y ] |
                 [ LIDENT "diagnosis" -> `Diagnosis ] |
+                [ LIDENT "graphdiagnosis" -> `GraphicDiagnosis ] |
                 [ LIDENT "data" -> `Data ] |
                 [ LIDENT "xslt"; ":"; "("; a = STRING; ","; b = STRING; ")" ->
                     `Xslt (a, b) ] |
@@ -1549,7 +1593,28 @@ let create_expr () =
                 [ t = rename -> (t :> command) ] |
                 [ t = application_command -> (t :> command) ] |
                 [ t = fuse -> (t :> command) ] |
-                [ t = loop -> (t :> command) ]
+                [ t = loop -> (t :> command) ] |
+                [ t = plugin -> (t :> command) ]
+            ];
+        plugin: 
+            [
+                [ x = LIDENT; left_parenthesis; 
+                    y = LIST0 [ x = plugin_args -> x] SEP ",";
+                        right_parenthesis -> 
+                    match y with
+                    | [] -> `Plugin (x, `Empty)
+                    | [y] -> `Plugin (x, y) 
+                    | y -> `Plugin (x, `List y) ]
+            ];
+        plugin_args:
+            [   
+                [ x = FLOAT -> `Float (float_of_string x) ] |
+                [ x = INT -> `Int (int_of_string x) ] |
+                [ x = STRING -> `String x ] |
+                [ x = LIDENT; ":"; y = plugin_args -> `Labled (x, y)] |
+                [ x = LIDENT -> `Lident x ] | 
+                [ left_parenthesis; x = LIST0 [ x = plugin_args -> x] SEP ",";
+                right_parenthesis -> `List x ]
             ];
         loop:
             [
@@ -1664,6 +1729,9 @@ let create_expr () =
         otherfiles:
             [
                 [ f = STRING -> `AutoDetect [`Local f] ] |
+                [ LIDENT "partitioned"; ":"; left_parenthesis; a = LIST1 [ x =
+                    STRING -> x ] SEP ","; right_parenthesis -> `PartitionedFile
+                    (to_local a) ] |
                 [ LIDENT "nucleotides"; ":"; left_parenthesis; a = LIST1 [x =
                     STRING -> x] SEP ","; 
                     right_parenthesis -> `Nucleotides (to_local a) ] |

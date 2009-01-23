@@ -58,7 +58,7 @@ module Nodes :
         val saturation : u -> float
         val distance_node : int option -> n -> u -> float
         val compare : u -> u -> int
-        val get_sequence : int option -> int -> u -> Sequence.Unions.u
+        val get_sequence : int option -> int -> u -> SeqCS.union_element
       end
     val compare : n -> n -> int
     val for_support : int -> (int * n) list -> int list -> int list -> n list
@@ -104,7 +104,7 @@ module TreeOps :
     val incremental_uppass :
       (a, b) Ptree.p_tree -> Ptree.incremental list -> (a, b) Ptree.p_tree
     val to_formatter :
-      Tags.attributes -> Data.d -> (a, b) Ptree.p_tree -> Tags.output
+      Xml.attributes -> Data.d -> (a, b) Ptree.p_tree -> Xml.xml
     val root_costs : (a, b) Ptree.p_tree -> (Tree.edge * float) list
     val unadjust : (a, b) Ptree.p_tree -> (a, b) Ptree.p_tree
   end
@@ -143,6 +143,184 @@ module M :
     type b = Edges.e
     type c = CharOps.cs
     type tree = (a, b) Ptree.p_tree
+    module Kml : sig
+        type phylogeny = tree
+
+        module GIS : sig 
+
+            type point = { 
+                latitude : float;
+                longitude : float;
+                altitude : float;
+            }
+
+            type triangle = (point * point * point)
+
+            (* Estimate the horizontal distance between points, in meters *)
+            val horizontal_distance : point -> point -> float
+            
+            (* Calculate a point located in the center between two points *)
+            val center_points : point -> point -> point
+
+            (* Find the centroid of a triangle *)
+            val center_triangle : triangle -> point
+
+        end
+
+        module TemporalGIS : sig
+            type date = (int * int * int) option (* Year month day *)
+
+            type sample = {
+                coordinates : GIS.point;
+                date : date;
+            }
+
+            (* Compare a pair of dates and return the minimum *)
+            val min_date : date -> date -> date
+
+            (* Produce a hash table of terminals and their corresponding samples, as
+            * read from a csv file *)
+            val csv : string -> (Xml.unstructured, sample) Hashtbl.t
+        end
+
+        module KTree : sig
+            (* A module to easily process trees for KML generation *)
+
+            (* POY uses internally a relatively complex data structure to hold the
+            * trees, this is a sipmlified version that has all the information in XML
+            * like format. Only binary trees are alowed, and each is a tuple, consisting
+            * of the contents of the vertex in the phylogenetic tree, and the temporal
+            * and geographic information associated with it. The leaves are exactly the
+            * input data, while the interior vertices are computed by POY or user
+            * provided plugins. *)
+            type simplified_topology = (Xml.xml * TemporalGIS.sample) Parser.Tree.t
+
+            (* The represenatation of the name of a node. We don't use plain strings
+            * because they would make the generation of the XML a little bit too verbose
+            * *)
+            type node_name = Xml.unstructured 
+
+            (* The topology of a tree, with the simplified version of the topology, and
+            * quick access to the nodes of the tree, and the ancestors. This suplies
+            * some functions that the simplified_topology can nos perform (like finding
+            * the ancestor of a tree or quickly reaching a particular vertex of the
+            * tree). *)
+            type topology =
+                { ancestors : (Xml.unstructured, Xml.xml Xml.contents option) Hashtbl.t;
+                nodes : (Xml.unstructured, Xml.xml) Hashtbl.t;
+                topo : simplified_topology }
+
+
+            (* The default tree adjustment function *)
+            val adjust_tree : simplified_topology -> simplified_topology
+
+            (* [process data csv phylogeny] producess a topology consisting of the
+            * contents computed in the [phylogeny] tree, with temporal and geographic
+            * information contained in the CSV file [csv], and all the data
+            * representation [data]. *)
+            val process : Data.d -> string -> phylogeny -> topology
+
+            (* [ancestor topology vertex] gets the ancestor of the [vertex] in the
+            * [topology]. The output is optional as the root of the tree has no
+            * ancestor. *)
+            val ancestor : topology -> node_name -> Xml.xml Xml.contents option
+
+            (* [children topology vertex] gets the pair of the vertex [vertex] in the
+            * [topology]. The output is optional as the leaves of the tree have no
+            * children. *)
+            val children : topology -> node_name -> (node_name * node_name) option
+
+            (* [sister topology vertex] gets the sister group of the [vertex] in the
+            * [topology] (that is, the other child of the ancestor of [vertex]). 
+            * The output is optional as the root has no sister. *)
+            val sister : topology -> node_name ->  node_name option
+
+            (** [node topology vertex] extracts all the data about [vertex] contained 
+            * in the original phylogeny as stored in [topology]. *)
+            val node : topology -> node_name -> Xml.xml
+
+
+            (** [is_root topology vertex] is true iff [vertex] is the root of the
+            * [topology] *)
+            val is_root : topology -> node_name -> bool
+
+            (** [extract_gis simplified_topology] extracts the temporal and gis
+            * information stored in the root vertex of the [simplified_topology]. *)
+            val extract_gis : simplified_topology -> TemporalGIS.sample
+
+        end
+
+        module KFile : sig
+            (** The following types are needed to produce a Plugin for POY. *)
+
+            (** [node_information data topology vertex] produces an HTML-equivalent
+            * structure with the information that should be printed about the [vertex] in
+            * the [topology]. [data] is provided in case the specification of some of
+            * the characters in [vertex] or the [vertex] itself is needed. *)
+            type node_information = 
+                Data.d -> KTree.topology -> Xml.unstructured -> 
+                    [ Xml.unstructured | Xml.xml Xml.structured ]
+
+            (** [create_node node_information data topology vertex parent_sample
+            *   child1_sample child2_sample vertex_sample] produces the XML structure
+            *   with the representation of [vertex] in the KML file. The information
+            *   about the vertex should be generated and enclosed in a CDATA using the
+            *   [node_information] function provided in the argument. The
+            *   [parent_sample], [child1_sample], and [child2_sample] are provided for
+            *   convenience, as the main goal of this function is to print the node and
+            *   edges connected with it. *)
+            type create_node =
+                    node_information -> Data.d -> KTree.topology ->
+                    Xml.xml -> TemporalGIS.sample option -> 
+                        TemporalGIS.sample option ->
+                        TemporalGIS.sample option ->TemporalGIS.sample -> 
+                            Xml.xml Sexpr.t
+
+
+            (** [adjust_tree simple_topology] beautifies the location of the vertices in
+             * the tree *)
+            type adjust_tree = KTree.simplified_topology -> KTree.simplified_topology
+
+            (** [styles ()] produces all the styles used in the KML. *)
+            type styles = unit -> Xml.xml Sexpr.t
+
+            type folder = {
+                name : string;
+                node_information : node_information;
+                create_node : create_node option;
+            }
+
+            type plugin = {
+                folders : folder list;
+                adjust_tree : adjust_tree;
+                styles : styles;
+            }
+
+            (** [default ] is the default plugin *)
+            val default : plugin
+
+            (** [register_plugin name plugin] registers the [plugin] under the [name]
+             * provided. This plugin will be usable in the user interface using the
+             * command report (kml:name). *)
+            val register_plugin : string -> plugin -> unit
+
+            (** [has_plugin name] is [true] iff [register_plugin name plugin] has been
+            * called before *)
+            val has_plugin : string -> bool
+
+            (** [kml ?plugin name output data csv tree] dumps in the file [output] a
+            * KML file using the [plugin] selected for the tree [tree] and using the
+            * [csv] file with the geographic and temporal information. The KML will be
+            * registerd with the [name] provided. If not [plugin] is given, then
+            * [default] is selected .*)
+            val kml : ?plugin:string -> string -> string -> Data.d -> string ->
+                phylogeny Sexpr.t -> unit
+
+
+            val create_line : TemporalGIS.sample option -> TemporalGIS.sample -> 
+                Xml.xml Xml.contents
+        end
+    end
     type r = (a, b, c) Scripting.run
     type minimum_spanning_tree = tree
     type build = minimum_spanning_tree list
@@ -276,7 +454,7 @@ module M :
             val saturation : u -> float
             val distance_node : int option -> n -> u -> float
             val compare : u -> u -> int
-            val get_sequence : int option -> int -> u -> Sequence.Unions.u
+            val get_sequence : int option -> int -> u -> SeqCS.union_element
           end
         val compare : n -> n -> int
         val for_support :
@@ -303,7 +481,111 @@ type a = Nodes.n
 type b = Edges.e
 type c = CharOps.cs
 type tree = (a, b) Ptree.p_tree
+module Kml :
+  sig
+    type phylogeny = tree
+    module GIS :
+      sig
+        type point =
+          Scripting.Make(Nodes)(Edges)(TreeOps)(CharOps).Kml.GIS.point = {
+          latitude : float;
+          longitude : float;
+          altitude : float;
+        }
+        type triangle = point * point * point
+        val horizontal_distance : point -> point -> float
+        val center_points : point -> point -> point
+        val center_triangle : triangle -> point
+      end
+    module TemporalGIS :
+      sig
+        type date = (int * int * int) option
+        type sample =
+          Scripting.Make(Nodes)(Edges)(TreeOps)(CharOps).Kml.TemporalGIS.sample = {
+          coordinates : GIS.point;
+          date : date;
+        }
+        val min_date : date -> date -> date
+        val csv : string -> (Xml.unstructured, sample) Hashtbl.t
+      end
+    module KTree :
+      sig
+        type simplified_topology =
+            (Xml.xml * TemporalGIS.sample) Parser.Tree.t
+        type node_name = Xml.unstructured
+        type topology =
+          Scripting.Make(Nodes)(Edges)(TreeOps)(CharOps).Kml.KTree.topology = {
+          ancestors :
+            (Xml.unstructured, Xml.xml Xml.contents option) Hashtbl.t;
+          nodes : (Xml.unstructured, Xml.xml) Hashtbl.t;
+          topo : simplified_topology;
+        }
+        val adjust_tree : simplified_topology -> simplified_topology
+        val process : Data.d -> string -> phylogeny -> topology
+        val ancestor :
+          topology -> node_name -> Xml.xml Xml.contents option
+        val children :
+          topology -> node_name -> (node_name * node_name) option
+        val sister : topology -> node_name -> node_name option
+        val node : topology -> node_name -> Xml.xml
+        val is_root : topology -> node_name -> bool
+        val extract_gis : simplified_topology -> TemporalGIS.sample
+      end
+    module KFile :
+      sig
+        type node_information =
+            Data.d ->
+            KTree.topology ->
+            Xml.unstructured ->
+            [ `Bool of bool
+            | `Delayed of unit -> Xml.xml Sexpr.t
+            | `Empty
+            | `Float of float
+            | `FloatFloatTuple of float * float
+            | `Fun of unit -> string
+            | `Int of int
+            | `IntFloatTuple of int * float
+            | `IntTuple of int * int
+            | `Set of Xml.xml Sexpr.t list
+            | `Single of Xml.xml
+            | `String of string ]
+        type create_node =
+            node_information ->
+            Data.d ->
+            KTree.topology ->
+            Xml.xml ->
+            TemporalGIS.sample option ->
+            TemporalGIS.sample option ->
+            TemporalGIS.sample option ->
+            TemporalGIS.sample -> Xml.xml Sexpr.t
+        type adjust_tree =
+            KTree.simplified_topology -> KTree.simplified_topology
+        type styles = unit -> Xml.xml Sexpr.t
+        type folder =
+          Scripting.Make(Nodes)(Edges)(TreeOps)(CharOps).Kml.KFile.folder = {
+          name : string;
+          node_information : node_information;
+          create_node : create_node option;
+        }
+        type plugin =
+          Scripting.Make(Nodes)(Edges)(TreeOps)(CharOps).Kml.KFile.plugin = {
+          folders : folder list;
+          adjust_tree : adjust_tree;
+          styles : styles;
+        }
+        val default : plugin
+        val register_plugin : string -> plugin -> unit
+        val has_plugin : string -> bool
+        val kml :
+          ?plugin:string ->
+          string -> string -> Data.d -> string -> phylogeny Sexpr.t -> unit
+        val create_line :
+          TemporalGIS.sample option ->
+          TemporalGIS.sample -> Xml.xml Xml.contents
+      end
+  end
 type r = (a, b, c) Scripting.run
+val register_function : string -> (Methods.script Methods.plugin_arguments -> r -> r) -> unit
 type minimum_spanning_tree = tree
 type build = minimum_spanning_tree list
 type minimum_spanning_family = minimum_spanning_tree list
@@ -432,7 +714,7 @@ module Node :
         val saturation : u -> float
         val distance_node : int option -> n -> u -> float
         val compare : u -> u -> int
-        val get_sequence : int option -> int -> u -> Sequence.Unions.u
+        val get_sequence : int option -> int -> u -> SeqCS.union_element
       end
     val compare : n -> n -> int
     val for_support : int -> (int * n) list -> int list -> int list -> n list

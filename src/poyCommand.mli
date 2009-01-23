@@ -9,6 +9,7 @@ type otherfiles =
     | `GeneralAlphabetSeq of string * string * read_option_t list
     | `Genome of string list
     | `Nucleotides of string list
+    | `PartitionedFile of string list
     | `Prealigned of otherfiles * Methods.prealigned_costs ]
 type reada = Methods.input
 type keepa = Methods.tree_handling
@@ -61,6 +62,7 @@ type transform_method =
     | `Gap of int * int
     | `MultiStaticApproximation of bool
     | `OriginCost of float
+    | `Partitioned of [`Clip | `NoClip]
     | `Prealigned_Transform
     | `PrepFile of string
     | `PrepInput of int array
@@ -210,6 +212,7 @@ type charoper =
 type reporta =
     [ `AllRootsCost
     | `Ascii of bool
+    | `KML of (string * string)
     | `Ci of old_identifiers option
     | `Clades
     | `CompareSequences of bool * old_identifiers * old_identifiers
@@ -222,6 +225,7 @@ type reporta =
     | `File of string
     | `Graph of bool
     | `GraphicConsensus of float option
+    | `GraphicDiagnosis
     | `GraphicSupports of Methods.support_output option
     | `Implied_Alignments of identifiers * bool
     | `Memory
@@ -291,6 +295,7 @@ type command =
     | `InspectFile of string
     | `Load of string
     | `Perturb of perturba list
+    | `Plugin of (string * command Methods.plugin_arguments)
     | `PrintWDir
     | `ReDiagnose
     | `Read of reada list
@@ -337,6 +342,7 @@ val transform_transform :
     | `Fixed_States of [> Methods.characters ]
     | `MultiStatic_Aprox of [> Methods.characters ] * 'r
     | `OriginCost of 's
+    | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
     | `Prealigned_Transform of [> Methods.characters ]
     | `Prioritize
     | `RandomizedTerminals
@@ -369,6 +375,7 @@ val transform_transform :
    | `Gap of 'o * 'p
    | `MultiStaticApproximation of 'r
    | `OriginCost of 's
+   | `Partitioned of [`Clip | `NoClip]
    | `Prealigned_Transform
    | `PrepFile of 'e
    | `PrepInput of 'd
@@ -406,6 +413,7 @@ val transform_transform_arguments :
     | `Gap of 'k * 'l
     | `MultiStaticApproximation of 'm
     | `OriginCost of 'n
+    | `Partitioned of [`Clip | `NoClip]
     | `Prealigned_Transform
     | `PrepFile of 'o
     | `PrepInput of 'p
@@ -442,6 +450,7 @@ val transform_transform_arguments :
    | `Fixed_States of [> Methods.characters ]
    | `MultiStatic_Aprox of [> Methods.characters ] * 'm
    | `OriginCost of 'n
+   | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
    | `Prealigned_Transform of [> Methods.characters ]
    | `Prioritize
    | `RandomizedTerminals
@@ -617,6 +626,7 @@ val transform_swap :
     | `Fixed_States of [> Methods.characters ]
     | `MultiStatic_Aprox of [> Methods.characters ] * bool
     | `OriginCost of float
+    | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
     | `Prealigned_Transform of [> Methods.characters ]
     | `Prioritize
     | `RandomizedTerminals
@@ -664,6 +674,7 @@ val transform_swap_arguments :
         | `Fixed_States of [> Methods.characters ]
         | `MultiStatic_Aprox of [> Methods.characters ] * bool
         | `OriginCost of float
+        | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
         | `Prealigned_Transform of [> Methods.characters ]
         | `Prioritize
         | `RandomizedTerminals
@@ -710,6 +721,8 @@ val transform_fuse :
                  | `Fixed_States of [> Methods.characters ]
                  | `MultiStatic_Aprox of [> Methods.characters ] * bool
                  | `OriginCost of float
+                 | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters
+                 ])
                  | `Prealigned_Transform of [> Methods.characters ]
                  | `Prioritize
                  | `RandomizedTerminals
@@ -763,6 +776,7 @@ val transform_perturb :
     | `Fixed_States of [> Methods.characters ]
     | `MultiStatic_Aprox of [> Methods.characters ] * 'r
     | `OriginCost of 's
+    | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
     | `Prealigned_Transform of [> Methods.characters ]
     | `Prioritize
     | `RandomizedTerminals
@@ -804,6 +818,7 @@ val transform_perturb :
          | `Fixed_States of [> Methods.characters ]
          | `MultiStatic_Aprox of [> Methods.characters ] * bool
          | `OriginCost of float
+         | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
          | `Prealigned_Transform of [> Methods.characters ]
          | `Prioritize
          | `RandomizedTerminals
@@ -960,6 +975,7 @@ val transform_support :
           | `Fixed_States of [> Methods.characters ]
           | `MultiStatic_Aprox of [> Methods.characters ] * bool
           | `OriginCost of float
+          | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
           | `Prealigned_Transform of [> Methods.characters ]
           | `Prioritize
           | `RandomizedTerminals
@@ -1017,6 +1033,7 @@ val transform_support :
               | `Gap of int * int
               | `MultiStaticApproximation of bool
               | `OriginCost of float
+              | `Partitioned of [`Clip | `NoClip]
               | `Prealigned_Transform
               | `PrepFile of string
               | `PrepInput of int array
@@ -1082,6 +1099,7 @@ val transform_support_arguments :
               | `Gap of int * int
               | `MultiStaticApproximation of bool
               | `OriginCost of float
+              | `Partitioned of [`Clip | `NoClip]
               | `Prealigned_Transform
               | `PrepFile of string
               | `PrepInput of int array
@@ -1135,6 +1153,7 @@ val transform_support_arguments :
               | `Fixed_States of [> Methods.characters ]
               | `MultiStatic_Aprox of [> Methods.characters ] * bool
               | `OriginCost of float
+              | `Partitioned of ([`Clip  | `NoClip] * [> Methods.characters ])
               | `Prealigned_Transform of [> Methods.characters ]
               | `Prioritize
               | `RandomizedTerminals

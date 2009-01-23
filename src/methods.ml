@@ -66,6 +66,7 @@ type simple_input = [
     | `Poyfile of filename list
     | `AutoDetect of filename list
     | `Nucleotides of filename list
+    | `PartitionedFile of filename list
     | `Aminoacids of filename list
     | `GeneralAlphabetSeq of (filename * filename * read_option_t list)
     | `Breakinv of filename * filename * read_option_t list
@@ -154,6 +155,7 @@ type char_transform = [
     | `Static_Aprox of (characters * bool)
     | `Search_Based of characters
     | `Fixed_States of characters
+    | `Partitioned of ([`Clip | `NoClip] * characters)
     | `Direct_Optimization of characters
     | `Automatic_Sequence_Partition of (characters * bool * (int option))
     | `Automatic_Static_Aprox of bool
@@ -208,6 +210,7 @@ type report = [
     | `TerminalsFiles of string option
     | `Supports of (support_output option * string option)
     | `GraphicSupports of (support_output option * string option)
+    | `GraphicDiagnosis of string
     | `Dataset of string option
     | `Xslt of (string * string)
     | `Diagnosis of string option
@@ -259,12 +262,14 @@ type ('c, 'd) character_input_output = [
     | `Floats of 'd
 ]
 
+type ia_seq = [ `DO of int array | `First of int array | `Last of int array ]
+
 (* Note: there are a list of alignments coresponding to a character
  * if the character is a chromosome and broken into diffrent segments *)
 type implied_alignment = 
 (
     (
-        (int * int array array All_sets.IntegerMap.t list) list *
+        (int * ia_seq array All_sets.IntegerMap.t list) list *
         (int * string * int * [ `Deletion | `Insertion ] * int Sexpr.t) Sexpr.t list list
     ) * (int * int Sexpr.t) Sexpr.t list list
 ) list
@@ -617,6 +622,17 @@ type clear_item = [
     | `SequencePool
 ]
 
+type 'a plugin_arguments = 
+    [ `Empty
+    | `Float of float 
+    | `Int of int
+    | `String of string
+    | `Lident of string
+    | `Labled of (string * 'a plugin_arguments)
+    | `List of 'a plugin_arguments list 
+    | `Command of 'a
+]
+
 type application = [
     | `Version
     | `Exit
@@ -631,6 +647,7 @@ type application = [
     | `Graph of (string option * bool)
     | `Ascii of (string option * bool)
     | `Memory of string option
+    | `KML of (string option * filename * string)
     | `TimerInterval of int
     | `HistorySize of int
     | `Logfile of string option
@@ -685,6 +702,7 @@ type script = [
     | `StandardSearch of 
         (float option * float option * int option * 
         int option * float option * string option option * string option)
+    | `Plugin of (string * script plugin_arguments)
     | input
     | transform
     | build

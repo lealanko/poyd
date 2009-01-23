@@ -4694,7 +4694,17 @@ case $OCAMLVERSION in
     3.10.2*)
     ;;
     3.11.*)
-    NATIVEDYNLINK="dynlink.cmxa";;
+        { echo "$as_me:$LINENO: checking if OCaml supports dynamic linking in this architecture" >&5
+echo $ECHO_N "checking if OCaml supports dynamic linking in this architecture... $ECHO_C" >&6; }
+        if ${OCAMLOPT} -shared -o str.cmxs str.cmxa ; then
+            { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+            NATIVEDYNLINK="dynlink.cmxa"
+        else
+            { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+            NATIVEDYNLINK=""
+        fi;;
     *)
     { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }

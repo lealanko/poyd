@@ -132,15 +132,23 @@ let dyna_pam_default ={
     max_kept_wag = Some 1;
 }
 
+type clip = Clip | NoClip
+
+type dyna_initial_assgn = [ 
+    | `Partitioned of clip
+    | `AutoPartitioned of (clip * int * (int,  ((int * int) list)) Hashtbl.t)
+    | `DO 
+    | `FS of 
+            ((float array array) * 
+            (Sequence.s array) * 
+            ((int, int) Hashtbl.t))  ]
+
 type dynamic_hom_spec = {
     filename : string;
     fs : string;
     tcm : string;
     fo : string;
-    initial_assignment : [ 
-        | `DO 
-        | `FS of ((float array array) * (Sequence.s
-        array) * ((int, int) Hashtbl.t))  ];
+    initial_assignment : dyna_initial_assgn;
     tcm2d : Cost_matrix.Two_D.m;
     tcm3d : Cost_matrix.Three_D.m;
     alph : Alphabet.a;
@@ -470,6 +478,8 @@ let is_fs data code =
     | Dynamic x -> 
             match x.initial_assignment with
             | `FS _ -> true
+            | `Partitioned _
+            | `AutoPartitioned _
             | `DO -> false
 
 let get_empty_seq alph = 
@@ -977,8 +987,11 @@ let repack_codes data =
     process_available recode_character check data greatest_char_code 
     available_char_codes
 
-let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet 
-    file dyna_state data res =
+let ( --> ) a b = b a
+
+let process_parsed_sequences tcmfile tcm tcm3 default_mode annotated alphabet 
+    file dyna_state data (res : (Sequence.s list list list *
+    All_sets.StringMap.key) list)  =
     let data = duplicate data in
     let res = 
         (* Place a single sequence together with its taxon *)
@@ -990,7 +1003,6 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
                           let res1 = List.flatten res2 in
                           List.map (fun s -> s, b) res1) res
         in
-     
         (* Place each locus in a list containing all the taxa *)
         let arr = 
             let lst = List.map (Array.of_list) tmp in
@@ -1044,20 +1056,22 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
     let original_filename = file in
     let locus_name = 
         let c = ref (-1) in
-        fun () ->
+        ref (fun () ->
             incr c;
-            file ^ ":" ^ string_of_int !c
+            file ^ ":" ^ string_of_int !c)
     in
     let dyna_state = 
         match annotated with
         | true -> `Annotated
         | false -> dyna_state
     in 
-    let add_character items max_len data = 
+    let add_character data = 
         let file = 
-            match annotated or (dyna_state = `Chromosome) with 
-            | false -> locus_name () 
-            | true -> original_filename
+            if  annotated || (dyna_state = `Chromosome) then 
+                original_filename
+            else match default_mode with
+            | `FS _ | `DO | `AutoPartitioned _ -> (!locus_name) () 
+            | `Partitioned _ -> original_filename
         in
         incr data.character_code_gen;
         let chcode = !(data.character_code_gen) in
@@ -1066,7 +1080,7 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
             fs = data.current_fs_file;
             tcm = tcmfile;
             fo = "0";
-            initial_assignment = `DO;
+            initial_assignment = default_mode;
             tcm2d = tcm;
             tcm3d = tcm3;
             alph = alphabet;
@@ -1080,15 +1094,7 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
         chcode, data
     in 
     let single_loci_processor acc res = 
-        let chcode, data = 
-            let get_lengths (a, b) (seq, _) =
-                a + 1, max b (Sequence.length seq)
-            in
-            let items, max_len = 
-                List.fold_left ~f:get_lengths ~init:(0, 0) res 
-            in
-            add_character items max_len acc 
-        in 
+        let chcode, data = add_character acc in 
         (* Now a function to process one taxon at a time to be 
         * folded over the taxa collected in the [file]. *)
         let process_a_taxon data (seq, taxon) =
@@ -1099,15 +1105,23 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
             in
             let tl = get_taxon_characters data tcode in
             let seqa = 
+                let makeone seqa = 
+                    {seq=seqa; code = -1}
+                in
                 match dyna_state with 
-                | `Seq -> seq
-                | _ -> Sequence.del_first_char seq 
+                | `Seq -> Array.map makeone seq
+                | _ -> Array.map (fun x -> x --> 
+                        Sequence.del_first_char --> makeone) seq 
             in 
-            let seq = {seq=seqa; code = -1} in
-            let dyna_data = {seq_arr =  [|seq|]} in 
+            let dyna_data = {seq_arr =  seqa} in 
             let _ = 
                 let spc =
-                    if 2 <= Sequence.length seqa then `Specified
+                    let maxlen =
+                        Array.fold_left ~f:(fun acc x ->
+                            max acc (Sequence.length x.seq)) ~init:0 
+                        seqa
+                    in
+                    if 2 <= maxlen then `Specified
                     else `Unknown
                 in
                 Hashtbl.replace tl chcode (Dyna (chcode, dyna_data), spc) 
@@ -1124,12 +1138,7 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
         let mat = Array.map Array.of_list arr in 
         let locus0 = mat.(0) in 
         let num_taxa = Array.length locus0 in 
-        let chcode, data = 
-            let max_len = 
-                Array.fold_left ~f:(fun x (seq, _) -> max x (Sequence.length seq)) ~init:0 locus0
-            in
-            add_character num_taxa max_len data 
-        in 
+        let chcode, data = add_character data in 
         data.seg_code_gen := 0;
         let rec add_taxon data t = 
             match t >= num_taxa with
@@ -1183,7 +1192,7 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
                  )
             )
         in 
-        let chcode, data =  add_character num_genome !max_chrom_len data in 
+        let chcode, data =  add_character data in 
         Array.fold_left 
             ~f:(fun data chrom_arr ->
                  let chrom_ls = Array.fold_left 
@@ -1213,12 +1222,37 @@ let process_parsed_sequences tcmfile tcm tcm3 annotated alphabet
                  data
             ) ~init:data genome_arr
     in 
+    let individual_fragments x = 
+        List.map (List.map ~f:(fun (seq, t) -> [|seq|], t)) x
+    in
+    let merge_fragments x =
+        match x with
+        | h :: t ->
+                let h = List.map ~f:(fun (seq, t) -> [seq], t) h in
+                let merged =
+                    List.fold_left 
+                    ~f:(fun merged next ->
+                        List.map2 ~f:(fun (seq, t) (locus, t2) ->
+                            assert (t = t2);
+                            (locus :: seq, t)) merged next) ~init:h t
+                in
+                List.rev_map (fun (lst, taxon) ->
+                    Array.of_list (List.rev lst), taxon) merged
+        | [] -> []
+    in
     let data = 
-        match annotated with  
-        | false -> 
-              if dyna_state = `Genome then process_genome data
-              else List.fold_left ~f:single_loci_processor ~init:data res 
-        | true ->  process_annotated_chrom data 
+        if annotated then process_annotated_chrom data 
+        else if dyna_state = `Genome then process_genome data
+        else if `DO = default_mode then
+            match (res --> individual_fragments) with
+            | [x] ->
+                    locus_name := (fun () -> original_filename);
+                    single_loci_processor data x
+            | [] -> data
+            | x -> List.fold_left ~f:single_loci_processor ~init:data x
+        else 
+            (res --> merge_fragments -->
+            single_loci_processor data)
     in 
     data
 
@@ -1298,7 +1332,7 @@ matrix, trees, sequences) : Parser.SC.file_output) =
                 size 1 1 all_elements
             in
             let tcm3d = Cost_matrix.Three_D.of_two_dim tcm in
-            process_parsed_sequences "tcm:(1,2)" tcm tcm3d false alphabet file
+            process_parsed_sequences "tcm:(1,2)" tcm tcm3d `DO false alphabet file
             `Seq data sequences
         in
         List.fold_left ~f:single_sequence_adder ~init:data sequences
@@ -1469,12 +1503,13 @@ let aux_process_molecular_file tcmfile tcm tcm3 alphabet processor builder dyna_
             data
     end
 
-let process_molecular_file tcmfile tcm tcm3 annotated alphabet is_prealigned dyna_state data file = 
+let process_molecular_file tcmfile tcm tcm3 annotated alphabet 
+mode is_prealigned dyna_state data file = 
     let data =
         aux_process_molecular_file 
         tcmfile tcm tcm3 alphabet
         (fun alph parsed -> 
-            process_parsed_sequences tcmfile tcm tcm3 annotated 
+            process_parsed_sequences tcmfile tcm tcm3 mode annotated 
             alph (FileStream.filename file) dyna_state data parsed)
         (fun x -> 
             if not is_prealigned then Parser.AlphSeq x
@@ -1915,71 +1950,67 @@ let get_used_observed code d =
     | Some x -> x
     | None -> failwith "Data.get_used_observed"
 
-let synonyms_to_formatter d : Tags.output =
-    let synonym t1 t2 acc : Tags.output Sexpr.t list =
-        let t1 = `Single (Tags.Data.value, [], `String t1)
-        and t2 = `Single (Tags.Data.value, [], `String t2) in
-        `Single (Tags.Data.synonym, [], (`Set [t1; t2])) :: acc
+let make_value_formatter x = (PXML -[Xml.Data.value][`String x]--)
+
+let synonyms_to_formatter d : Xml.xml =
+    let module T = Xml.Data in
+    let synonym t1 t2 acc : Xml.xml Sexpr.t list =
+        (PXML -[T.synonym]
+            { make_value_formatter t1 }
+            { make_value_formatter t2 } --) :: acc
     in
     let res = All_sets.StringMap.fold synonym d.synonyms [] in
-    Tags.Data.synonyms, [], (`Set res)
+    (RXML -[T.synonyms] { set res }--)
 
-let taxon_names_to_formatter d : Tags.output =
+let taxon_names_to_formatter d : Xml.xml =
+    let module T = Xml.Data in
     let taxon_name code name acc =
         if All_sets.Strings.mem name d.ignore_taxa_set then acc
         else
-            let attr = [
-                (Tags.Data.name, `String name);
-                (Tags.Data.code, `Int code);
-            ]
-            in
-            `Single (Tags.Data.taxon, attr, `Empty) :: acc
+            (PXML -[T.taxon] 
+                ([T.name] = [`String name])
+                ([T.code] = [`Int code]) --) :: acc
     in
     let res = All_sets.IntegerMap.fold taxon_name d.taxon_codes [] in
-    Tags.Data.taxa, [], (`Set res)
+    (RXML -[T.taxa] { set res } --)
 
-let files_to_formatter d : Tags.output =
-    let file (f, contents) : Tags.output Sexpr.t =
-        let contents = 
-            let contents_to_output item =
-                let tmp = 
-                    match item with
-                    | Characters -> Tags.Data.characters
-                    | CostMatrix -> Tags.Data.cost_matrix
-                    | Trees -> Tags.Data.trees
-                in
-                `Single (Tags.Data.file_contents, [], `String tmp)
+let files_to_formatter d : Xml.xml =
+    let module T = Xml.Data in
+    let file (f, contents) : Xml.xml Sexpr.t =
+        let aux item =
+            let tmp = 
+                `String 
+                    (match item with
+                    | Characters -> Xml.Data.characters
+                    | CostMatrix -> Xml.Data.cost_matrix
+                    | Trees -> Xml.Data.trees)
             in
-            List.map contents_to_output contents 
-        and name = Tags.Data.filename, `String f in
-        `Single ((Tags.Data.file, [name], (`Set contents)) :
-            Tags.output)
+            (PXML -[T.file_contents] [tmp] --)
+        in
+        (PXML -[T.file] 
+            ([T.filename] = [`String f]) { set List.map aux contents } --)
     in
-    Tags.Data.files, [], (`Set (List.map file d.files))
+    (RXML -[T.files] { set List.map file d.files } --)
 
-let ignored_taxa_to_formatter d : Tags.output = 
-    let taxon x acc =
-        `Single (Tags.Data.value, [], `String x) :: acc
-    in
+let ignored_taxa_to_formatter d : Xml.xml = 
+    let module T = Xml.Data in
+    let taxon x acc = (make_value_formatter x) :: acc in
     let res = All_sets.Strings.fold taxon d.ignore_taxa_set [] in
-    Tags.Data.ignored_taxa, [], (`Set res)
+    (RXML -[T.ignored_taxa] { set res } --)
 
-let ignored_characters_to_formatter d : Tags.output = 
-    let character x = `Single (Tags.Data.value, [], `String x) in
-    let res = List.map character d.ignore_character_set in
-    Tags.Data.ignored_characters, [], (`Set res)
+let ignored_characters_to_formatter d : Xml.xml = 
+    let module T = Xml.Data in
+    let res = List.map make_value_formatter d.ignore_character_set in
+    (RXML -[T.ignored_characters] { set res } --)
 
-let states_set_to_formatter enc : Tags.output = 
+let states_set_to_formatter enc : Xml.xml = 
+    let module T = Xml.Characters in
     let set = Parser.OldHennig.Encoding.get_set enc in
-    let add item acc =
-        `Single (Tags.Characters.state, 
-            [Tags.Characters.value, `Int item], `Empty) :: 
-                acc
-    in
-    let res = All_sets.Integers.fold add set [] in
-    Tags.Characters.states, [], (`Set res)
+    let add item acc = (PXML -[T.state] ([T.value] = [`Int item]) --) :: acc in
+    (RXML -[T.states] { set All_sets.Integers.fold add set [] } --)
 
 let pam_spec_to_formatter (state : dyna_state_t) pam =
+    let module T = Xml.Characters in
     let option_to_string contents = function
         | Some x -> contents x
         | None -> assert false
@@ -1995,14 +2026,14 @@ let pam_spec_to_formatter (state : dyna_state_t) pam =
         | None -> assert false
     in
     match (state : dyna_state_t) with
-    | `Seq -> [Tags.Characters.clas, `String Tags.Characters.sequence]
+    | `Seq -> [T.clas, `String T.sequence]
     | others -> 
             let clas = 
                 match others with
-                | `Chromosome -> `String Tags.Characters.chromosome
-                | `Genome -> `String Tags.Characters.genome
-                | `Annotated -> `String Tags.Characters.annotated
-                | `Breakinv -> `String Tags.Characters.breakinv
+                | `Chromosome -> `String T.chromosome
+                | `Genome -> `String T.genome
+                | `Annotated -> `String T.annotated
+                | `Breakinv -> `String T.breakinv
                 | _ -> assert false
             in
 
@@ -2021,41 +2052,50 @@ let pam_spec_to_formatter (state : dyna_state_t) pam =
             let chrom_indel_e = float chrom_indel_e /. 100.0 in
             let chrom_indel_str = `IntFloatTuple (chrom_indel_o, chrom_indel_e) 
             in
+            (AXML
+            ([T.clas] = [clas]) 
+            ([T.seed_len] = [handle_int pam.seed_len]) 
+            ([T.re_meth] = [handle_re_meth pam.re_meth])
+            ([T.circular] = [handle_int pam.circular])
+            ([T.locus_indel_cost] = [locus_indel_str])
+            ([T.chrom_indel_cost] = [chrom_indel_str])
+            ([T.chrom_hom] = [handle_int pam.chrom_hom])
+            ([T.chrom_breakpoint] = [handle_int pam.chrom_breakpoint])
+            ([T.sig_block_len] = [handle_int pam.sig_block_len])
+            ([T.rearranged_len] = [handle_int pam.rearranged_len])
+            ([T.keep_median] = [handle_int pam.keep_median])
+            ([T.swap_med] = [handle_int pam.swap_med])
+            ([T.approx] = [handle_bool pam.approx])
+            ([T.symmetric] =  [handle_bool pam.symmetric]))
 
-            [Tags.Characters.clas, clas; 
-            Tags.Characters.seed_len, handle_int pam.seed_len; 
-            Tags.Characters.re_meth, handle_re_meth pam.re_meth;
-            Tags.Characters.circular, handle_int pam.circular;
-            Tags.Characters.locus_indel_cost, locus_indel_str;
-            Tags.Characters.chrom_indel_cost, chrom_indel_str;
-            Tags.Characters.chrom_hom, handle_int pam.chrom_hom;
-            Tags.Characters.chrom_breakpoint, handle_int pam.chrom_breakpoint;
-            Tags.Characters.sig_block_len, handle_int pam.sig_block_len;
-            Tags.Characters.rearranged_len, handle_int pam.rearranged_len;
-            Tags.Characters.keep_median, handle_int pam.keep_median;
-            Tags.Characters.swap_med, handle_int pam.swap_med;
-            Tags.Characters.approx, handle_bool pam.approx;
-            Tags.Characters.symmetric, handle_bool pam.symmetric;]
-
-let character_spec_to_formatter enc : Tags.output =
+let character_spec_to_formatter enc : Xml.xml =
+    let module T = Xml.Characters in
     match enc with
-    | Static enc ->
-            Parser.SC.to_formatter enc    | Dynamic dspec ->
-            Tags.Characters.molecular,
-            ( (Tags.Characters.name, `String dspec.filename) ::
-                (Tags.Characters.initial_assignment, 
-                    (match dspec.initial_assignment with
-                    | `DO -> `String "Direct Optimization"
-                    | `FS _ -> `String "Fixed States")) ::
-                (Tags.Characters.tcm, `String dspec.tcm) ::
-                (Tags.Characters.gap_opening, `String dspec.fo) ::
-                (Tags.Characters.weight, `Float dspec.weight) ::
-                (pam_spec_to_formatter dspec.state dspec.pam)
-            ),
-            (`Single (Alphabet.to_formatter dspec.alph))
+    | Static enc -> Parser.SC.to_formatter enc    
+    | Dynamic dspec ->
+            let initial =
+                match dspec.initial_assignment with
+                | `AutoPartitioned (_, size, _) -> 
+                        `String 
+                        ("AutoPartition of size " ^ string_of_int size ^ 
+                        " with DO")
+                | `Partitioned _ -> 
+                        `String "User provided partition with DO"
+                | `DO -> `String "Direct Optimization"
+                | `FS _ -> `String "Fixed States"
+            in
+            (RXML -[T.molecular]
+                ([T.name] = [`String dspec.filename])
+                ([T.initial_assignment] = [initial])
+                ([T.tcm] = [`String dspec.tcm])
+                ([T.gap_opening] = [`String dspec.fo])
+                ([Xml.Characters.weight] = [`Float dspec.weight])
+                ([pam_spec_to_formatter dspec.state dspec.pam])
+                { single Alphabet.to_formatter dspec.alph } --)
     | Set -> failwith "TODO Set in Data.character_spec_to_formatter"
 
-let characters_to_formatter d : Tags.output =
+let characters_to_formatter d : Xml.xml =
+    let module T = Xml.Data in
     let create code name acc =
         let enc = 
             try Hashtbl.find d.character_specs code with
@@ -2064,24 +2104,21 @@ let characters_to_formatter d : Tags.output =
                     prerr_newline ();
                     raise err 
         in
-        let res = Tags.Characters.character, 
-        [ (Tags.Characters.name, `String name); ("code", `Int code) ],
-        (`Single (character_spec_to_formatter enc))
-        in
-        (`Single res) :: acc
+        (PXML -[T.characters] 
+            ([T.name] = [`String name])
+            ("code" = [`Int code])
+            { single character_spec_to_formatter enc } --) :: acc
     in
-    let res = Hashtbl.fold create d.character_codes [] in
-    Tags.Data.characters, [], (`Set res)
+    (RXML -[T.characters] { set Hashtbl.fold create d.character_codes [] } --)
 
-let to_formatter attr d : Tags.output =
-    let syn = `Single (synonyms_to_formatter d)
-    and names = `Single (taxon_names_to_formatter d)
-    and ignored_taxa = `Single (ignored_taxa_to_formatter d)
-    and ignored_char = `Single (ignored_characters_to_formatter d)
-    and characters = `Single (characters_to_formatter d)
-    and files = `Single (files_to_formatter d) in
-    Tags.Data.data, attr, 
-    (`Set [names; syn; ignored_taxa; characters; ignored_char; files])
+let to_formatter attr d : Xml.xml =
+    (RXML -[Xml.Data.data] ([attr]) 
+        { single taxon_names_to_formatter d }
+        { single synonyms_to_formatter d }
+        { single ignored_taxa_to_formatter d }
+        { single characters_to_formatter d }
+        { single ignored_characters_to_formatter d }
+        { single files_to_formatter d } --)
 
 (** transform dyna_pam_ls which is a list of dynamic parameters
 * taken from poyCommand into dyna_pam which is structured as a record*)
@@ -2823,7 +2860,7 @@ let transform_chrom_to_rearranged_seq data meth tran_code_ls
                 let ia_arr = FullTupleMap.find (t_code, char_code) t_ch_ia_map in
                 let ia_arr = 
                     Array.map 
-                    (fun ia ->
+                    (function `DO ia | `Last ia | `First ia ->
                         let seq = Sequence.of_code_arr ia Alphabet.gap in 
                         Sequence.prepend_char seq Alphabet.gap)
                     ia_arr
@@ -2832,11 +2869,56 @@ let transform_chrom_to_rearranged_seq data meth tran_code_ls
             with Not_found -> seqs) 
             data.taxon_codes []
         in                   
-        process_parsed_sequences tcmfile tcm tcm3d false alph
+        process_parsed_sequences tcmfile tcm tcm3d `DO false alph
         char_name `Seq data seqs) ~init:data 
         tran_code_ls 
     in 
     categorize data
+
+
+let get_sequences_of_code data code =
+    let process_taxon tcode chars acc =
+        try
+            let (tc, _) = Hashtbl.find chars code in
+            match tc with
+            | Dyna (_, c) -> (tcode, (c.seq_arr.(0)).seq)  :: acc
+            | _ -> failwith "Impossible?"
+        with
+        | Not_found -> acc
+    in
+    (Hashtbl.fold process_taxon 
+    data.taxon_characters [])
+
+let auto_partition mode data code =
+    let mode = 
+        match mode with
+        | `Clip -> Clip
+        | `NoClip -> NoClip
+    in
+    let dhs =
+        match Hashtbl.find data.character_specs code with
+        | Dynamic dhs -> dhs
+        | _ -> assert false
+    in
+    let taxa = 
+        let gap = Alphabet.get_gap dhs.alph in
+        let taxa = get_sequences_of_code data code in
+        List.filter (fun (_, a) -> not (Sequence.is_empty a gap)) taxa 
+    in
+    let partitions = Splitting.partition dhs.tcm2d taxa in
+    match partitions with
+    | (_, ((_ :: _) as h)) :: _ ->  
+            let res = Hashtbl.create 1667 in
+            let size = 1 + (List.length h) in
+            List.iter 
+                (fun (code, part) -> Hashtbl.add res code part)
+                partitions;
+            Hashtbl.replace data.character_specs code 
+            (Dynamic { dhs with 
+                initial_assignment = `AutoPartitioned (mode, size, res)})
+    | _ -> 
+            Status.user_message Status.Information 
+            "There are no potential partitions"
 
 let compute_fixed_states data code =
     let dhs =
@@ -3004,8 +3086,6 @@ let assign_tcm_to_characters_from_file data chars file =
                 Some (FileStream.filename f)
     in
     assign_tcm_to_characters data chars file None tcm
-
-let ( --> ) a b = b a
 
 let classify_characters_by_alphabet_size data chars =
     let is_dynamic_character x = 
@@ -3530,6 +3610,8 @@ let make_fixed_states chars data =
         | Dynamic dhs -> 
                 (match dhs.initial_assignment with
                 | `FS _ -> ()
+                | `Partitioned _
+                | `AutoPartitioned _
                 | `DO -> compute_fixed_states data code)
         | _ -> failwith "How could this happen?"
     in
@@ -3543,6 +3625,8 @@ let make_direct_optimization chars data =
         match Hashtbl.find data.character_specs code with
         | Dynamic dhs ->
                 (match dhs.initial_assignment with
+                | `AutoPartitioned _
+                | `Partitioned _
                 | `FS _ -> 
                         Hashtbl.replace data.character_specs code 
                         (Dynamic { dhs with initial_assignment = `DO })
@@ -3552,6 +3636,23 @@ let make_direct_optimization chars data =
     let codes = get_code_from_characters_restricted_comp `Dynamic data chars in
     List.iter ~f:convert_and_process codes;
     data
+
+let make_partitioned mode chars data =
+    let data = duplicate data in
+    let convert_and_process code =
+        match Hashtbl.find data.character_specs code with
+        | Dynamic dhs -> 
+                (match dhs.initial_assignment with
+                | `FS _ -> ()
+                | `AutoPartitioned _
+                | `Partitioned _
+                | `DO -> auto_partition mode data code)
+        | _ -> failwith "How could this happen?"
+    in
+    let codes = get_code_from_characters_restricted_comp `Dynamic data chars in
+    List.iter ~f:convert_and_process codes;
+    data
+
 
 let number_of_taxa d = 
     Hashtbl.fold  (fun _ _ num_taxa -> num_taxa + 1) d.taxon_characters 0  

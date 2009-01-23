@@ -37,6 +37,9 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
     let expr_poy = Gram.Entry.mk "expr_poy" 
     let arg_poy = Gram.Entry.mk "arg_poy"
     let single_poy = Gram.Entry.mk "single_poy"
+    let xml_poy = Gram.Entry.mk "xml_poy"
+    let attr_poy = Gram.Entry.mk "attr_poy"
+    let root_xml = Gram.Entry.mk "root_xml"
 
     let rec exSem_of_list = function
         | [] -> 
@@ -72,8 +75,76 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
         | Some x -> <:expr<Some $x$>>
         | None -> <:expr<None>>
 
+    let handle_optional_lst x = 
+        let _loc = Loc.ghost in
+        match x with
+        | Some x -> <:expr<$exSemCom_of_list x$>>
+        | None -> <:expr<[]>>
+
     EXTEND Gram
-        GLOBAL: expr_poy arg_poy single_poy;
+        GLOBAL: expr_poy arg_poy single_poy xml_poy attr_poy root_xml;
+        xml_poy : [
+            [ "---" -> <:expr<`Empty>> ] |
+            [ "-"; "--" -> <:expr<`Empty>> ] |
+            [ "{"; LIDENT "single"; x = expr; "}" -> <:expr<`Single $x$>> ] |
+            [ "{"; LIDENT "set"; x = expr; "}" -> <:expr<`Set $x$>> ] |
+            [ "{"; LIDENT "string"; x = expr; "}" -> <:expr<`String $x$>> ] |
+            [ "{"; LIDENT "int"; x = expr; "}" -> <:expr<`Int $x$>> ] |
+            [ "{"; LIDENT "float"; x = expr; "}" -> <:expr<`Float $x$>> ] |
+            [ "{"; LIDENT "delayed"; x = expr; "}" -> <:expr<`Delayed $x$>> ] |
+            [ "-"; LIDENT "set"; x = LIST1 [ x = xml_poy -> x]; "--" -> 
+                <:expr<`Set $exSem_of_list x$>> ] |
+            [ "{"; x = expr; "}" -> x ] |
+            [ x = root_xml -> <:expr<`Single $x$>> ]
+        ];
+        root_xml : [
+            [ "-"; t = tag; a = OPT [ x = attr_poy -> x ]; 
+                c = OPT contents; "--" ->
+                    match c with
+                    | None -> 
+                            <:expr<($t$, $handle_optional_lst a$, `Empty)>>
+                    | Some c -> 
+                            <:expr<($t$, $handle_optional_lst a$, $c$)>>]
+        ];
+        tag : [
+            [ x = LIDENT -> <:expr<$str:x$>> ] | 
+            [ x = UIDENT -> <:expr<$str:x$>> ] |
+            [ x = STRING -> <:expr<$str:x$>> ] |
+            [ "["; x = expr; "]" -> x ]
+        ];
+        attr_poy : [
+            [ x = LIST0 [ 
+                "("; a = att_label; v = OPT ["="; v = xml_value -> v]; 
+                ")" -> 
+                    match v with
+                    | None -> `L <:expr<$a$>>
+                    | Some v -> `S <:expr< ($a$, $v$)>> ] -> x ]
+        ];
+        att_label : [
+            [ x = LIDENT -> <:expr<$str:x$>> ] |
+            [ x = UIDENT -> <:expr<$str:x$>> ] |
+            [ x = STRING -> <:expr<$str:x$>> ] |
+            [ "["; x = expr; "]" -> <:expr<$x$>> ]
+        ];
+        xml_value : [
+            [ x = LIDENT -> <:expr<`String $str:x$>> ] |
+            [ x = UIDENT -> <:expr<`String $str:x$>> ] |
+            [ x = STRING -> <:expr<`String $str:x$>> ] |
+            [ x = INT -> <:expr<`Int $int:x$>> ] |
+            [ x = FLOAT -> <:expr<`Float $flo:x$>> ] |
+            [ "["; LIDENT "string"; x = expr; "]" -> <:expr<`String $x$>> ] |
+            [ "["; LIDENT "int"; x = expr; "]" -> <:expr<`Int $x$>> ] |
+            [ "["; LIDENT "float"; x = expr; "]" -> <:expr<`Float $x$>> ] |
+            [ "["; x = expr; "]" -> <:expr<$x$>> ]
+        ];
+        contents : [
+            [ x = xml_value -> <:expr<$x$>> ] |
+            [ x = LIST1 [ x = xml_poy -> x ] -> 
+                match x with
+                | [] -> assert false
+                | [x] -> x
+                | lst -> <:expr<`Set $exSem_of_list x$>> ]
+        ];
         expr_poy: [ [ 
             x = LIST1 [a = transform -> `S a 
                     | a = fuse -> `S a 
@@ -88,7 +159,9 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                     | x = rename -> `S x
                     | x = search -> `S x
                     | x = simp_expr -> `S x
-                    | x = cur_expr -> `L x ]
+                    | x = cur_expr -> `L x 
+                    | x = plugin -> `S x
+            ]
         -> x] ];
         single_poy : [
             [ a = transform -> a ] 
@@ -103,6 +176,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             | [ x = read -> x ]
             | [ x = rename -> x ]
             | [ x = search -> x ]
+            | [ x = plugin -> x ]
             | [ x = simp_expr -> x ]
             | [ x = cur_expr -> x ]
         ];
@@ -118,6 +192,28 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             [ x = std_search_argument -> x ] 
         ];
         (* Application commands *)
+        plugin: 
+            [
+                [ x = LIDENT; left_parenthesis; 
+                    y = LIST0 [ x = plugin_args -> x] SEP ",";
+                        right_parenthesis -> 
+                    match y with
+                    | [] -> <:expr<`Plugin ($str:x$, `Empty)>>
+                    | [y] -> <:expr<`Plugin ($str:x$, $y$)>>
+                    | y -> <:expr<`Plugin ($str:x$, `List $exSem_of_list y$)>> ]
+            ];
+        plugin_args:
+            [   
+                [ x = FLOAT -> <:expr<`Float ($flo:x$)>> ] |
+                [ x = INT -> <:expr<`Int ($int:x$)>> ] |
+                [ x = STRING -> <:expr<`String $str:x$>> ] |
+                [ x = LIDENT; ":"; y = plugin_args -> 
+                    <:expr<`Labled ($str:x$, $y$)>>] |
+                [ x = LIDENT -> <:expr<`Lident $str:x$>> ] | 
+                [ left_parenthesis; x = 
+                    LIST0 [ x = plugin_args -> x] SEP ",";
+                right_parenthesis -> <:expr<`List $exSem_of_list x$>> ]
+            ];
         cur_expr: [[ "["; x = expr; "]" -> x ]];
         simp_expr: [[ "{"; x = expr; "}" -> x ]];
         (* Transforming taxa or characters *)
@@ -249,6 +345,10 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             [
                 [ f = STRING -> <:expr<`AutoDetect $exSem_of_list (to_local [f])$>> ] |
                 [ f = cur_expr -> <:expr<`AutoDetect [`Local $f$]>> ] |
+                [ LIDENT "partitioned"; ":"; left_parenthesis; a = LIST1 [x =
+                    STRING -> x] SEP ","; 
+                    right_parenthesis -> <:expr<`PartitionedFile $exSem_of_list (to_local
+                    a)$>> ] |
                 [ LIDENT "nucleotides"; ":"; left_parenthesis; a = LIST1 [x =
                     STRING -> x] SEP ","; 
                     right_parenthesis -> <:expr<`Nucleotides $exSem_of_list (to_local
@@ -488,6 +588,10 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             [
                 [ "{"; x = expr; "}" -> x ] |
                 [ x = flex_string -> <:expr<`File $x$>> ] |
+                [ LIDENT "kml"; ":"; left_parenthesis; 
+                    plugin = LIDENT; ","; csv = flex_string;
+                right_parenthesis -> 
+                    <:expr<`KML ($str:plugin$, $csv$)>> ] |
                 [ LIDENT "asciitrees" ; y = OPT optional_collapse -> 
                     match y with
                     | None -> <:expr<`Ascii False>> 
@@ -569,6 +673,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ LIDENT "tcm"; ":"; "("; x = flex_integer; ","; y
                 = flex_integer; ")" -> <:expr<`Gap ($x$, $y$)>> ] |
                 [ LIDENT "tcm"; ":";  x = flex_string -> <:expr<`Tcm $x$>> ] |
+                [ LIDENT "partitioned" -> <:expr<`Partitioned>> ] |
                 [ LIDENT "fixed_states" -> <:expr<`Fixed_States>> ] |
                 [ LIDENT "direct_optimization" -> <:expr<`Direct_Optimization>> ] |
                 [ LIDENT "gap_opening"; ":"; x = flex_integer -> <:expr<`AffGap $x$>> ] |
@@ -621,10 +726,10 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             ];
         memory:
             [
-                [ "gb"; ":"; x = flex_float -> 
+                [ LIDENT "gb"; ":"; x = flex_float -> 
                     <:expr<int_of_float ($x$ *. 1000. *. 1000. *. 1000. /. (float_of_int
                     (Sys.word_size / 8)))>> ] |
-                [ "mb"; ":"; x = flex_float ->
+                [ LIDENT "mb"; ":"; x = flex_float ->
                     <:expr<int_of_float ($x$ *. 1000. *. 1000. /. (float_of_int
                     (Sys.word_size / 8)))>> ]
             ];
@@ -933,6 +1038,10 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
 
     EXTEND Gram
     Syntax.expr : LEVEL "top" [
+        [ "PXML"; s = xml_poy -> s ] | 
+        [ "PCDATA"; s = xml_poy -> <:expr<`CDATA $s$>> ] |
+        [ "AXML"; s = attr_poy -> exSemCom_of_list s ] | 
+        [ "RXML"; s = root_xml -> s ] | 
         [ "CPOY"; s = expr_poy -> exSemCom_of_list s ] |
         [ "SPOY"; s = single_poy -> s ] |
         [ "APOY"; s = arg_poy -> s ] |
