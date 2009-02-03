@@ -215,7 +215,7 @@ let dependency_relations (init : Methods.script) =
     | #Methods.input as meth ->
             let rec processor (meth : [< Methods.input]) = 
                 match meth with
-                | `Prealigned (input, _) ->
+                | `Prealigned (input, _, _) ->
                         let data, data1, compos =
                             match ((processor (input  :> Methods.input))) with
                             | [(data, data1, _, compo)] -> data, data1, compo
@@ -284,6 +284,7 @@ let dependency_relations (init : Methods.script) =
             let res = 
                 match meth with
                 | `Branch_and_Bound _
+                | `Nj
                 | `Prebuilt _ ->
                         [([Data], [Data; Trees], init, Linnearizable)]
                 | `Build (_, _, lst) when List.exists is_tree_dependent lst ->
@@ -1632,6 +1633,7 @@ let script_to_string (init : Methods.script) =
                 match meth with
                 | `Branch_and_Bound _ ->
                         "@[Build trees using branch and bound@]"
+                | `Nj -> "@[build trees using neighbor joining@]"
                 | `Prebuilt _ ->
                         "@[load the trees from a file@]"
                 | `Build _
@@ -2053,7 +2055,7 @@ let rec make_remote_files (init : Methods.script) =
     | `Breakinv (a, b, c) -> `Breakinv (mr a, mr b, c)
     | `Chromosome files -> `Chromosome (mrl files)
     | `Genome files -> `Genome (mrl files)
-    | `Prealigned (meth, cost) ->
+    | `Prealigned (meth, cost, gap_opening) ->
             let cost = 
                 match cost with
                 | `Assign_Transformation_Cost_Matrix file -> 
@@ -2076,7 +2078,7 @@ let rec make_remote_files (init : Methods.script) =
                         let files = mrl files in
                         `ComplexTerminals files
             in
-            `Prealigned (meth, cost)
+            `Prealigned (meth, cost, gap_opening)
     | `AnnotatedFiles files ->
             let files = handle_simple_input_list files in
             `AnnotatedFiles files

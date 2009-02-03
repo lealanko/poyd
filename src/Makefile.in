@@ -48,10 +48,11 @@ OCAMLDEP := @OCAMLDEP@ -slash
 OCAMLTOP := @OCAMLTOP@
 OCAMLLEX := @OCAMLLEX@
 OCAMLYACC := @OCAMLYACC@
-MERCURIAL := 4.1.1
+MERCURIAL := 4.1.2
 EXTRAS := @EXTRAS@
 OFLAGS := @OCAMLFLAGS@ 
 NATIVEDYNLINK := @NATIVEDYNLINK@
+USE_NATIVEDYNLINK := @USE_NATIVEDYNLINK@
 
 INCLUDE = `$(OCAMLC) -where`
 
@@ -86,7 +87,7 @@ ifeq ($(USEWIN32), true)
 endif
 
 DEFOPTS :=
-ifeq ($(NATIVEDYNLINK), dynlink.cmxa)
+ifeq ($(USE_NATIVEDYNLINK), true)
 	DEFOPTS := -DUSE_NATIVEDYNLINK $(DEFOPTS)
 endif
 
@@ -245,7 +246,7 @@ TREE = tree.cmo rtree.cmo hash_tbl.cmo gen_rtree.cmo \
 	graphps/graphps.cmo $(TREEOUTPUT) ptree.cmo searchInformation.cmo \
 	chartree.cmo sparceMatrix.cmo unionTree.cmo allDirChar.cmo sampler.cmo \
 	queues.cmo tabus.cmo treeSearch.cmo impliedAlignment.cmo charTransform.cmo \
-	mst.cmo build.cmo 
+	mst.cmo heap.cmo build.cmo 
 
 DISTANCE_LIBS = character.cmo memstack.o add.o nonaddCS8.cmo \
 	nonaddCSc8.o nonaddCS16.cmo nonaddCSc16.o nonaddCS32.cmo nonaddCSc32.o addCS.cmo 
@@ -696,8 +697,7 @@ NOPREPROCESSOR= tabus.ml sampler.ml
 	hennigParser.mli hennigParser.ml hennigLexer.ml nexus.ml nexusParser.mli \
 	nexusParser.ml nexusLexer.ml parser.mli parser.ml intSpec.mli intSpec.ml \
 	alphSpec.mli alphSpec.ml wordSpec.mli wordSpec.ml specIndex.mli specIndex.ml \
-	characSpec.mli characSpec.ml hashedFuncs.mli hashedFuncs.ml methods.mli \
-	methods.ml  
+	characSpec.mli characSpec.ml hashedFuncs.mli hashedFuncs.ml methods.ml  
 	$(OCAMLDEP) $(OCAML_INCLUDES) $(OPTIONSPREPROCESSOR) \
 		$(filter-out poyExtension.cmo $(NOPREPROCESSOR) ,$^) > $@
 
@@ -756,7 +756,7 @@ NOPREPROCESSOR= tabus.ml sampler.ml
 	ncursesML.ml ncursesML.mli status.ml sampler.mli sampler.ml \
 	queues.mli queues.ml tabus.mli tabus.ml treeSearch.mli treeSearch.ml \
 	impliedAlignment.mli impliedAlignment.ml charTransform.mli \
-	charTransform.ml mst.mli mst.ml build.mli build.ml
+	charTransform.ml mst.mli mst.ml heap.ml build.mli build.ml
 	$(OCAMLDEP) $(OCAML_INCLUDES: -unsafe=) $(NOPREPROCESSOR) > $@
 	$(OCAMLDEP) $(OCAML_INCLUDES) $(OPTIONSPREPROCESSOR) \
 		$(filter-out poyExtension.cmo $(NOPREPROCESSOR) ,$^) >> $@
@@ -766,8 +766,8 @@ NOPREPROCESSOR= tabus.ml sampler.ml
 		$(filter-out poyExtension.cmo $(NOPREPROCESSOR) ,$^) > $@
 
 .depend13: poyExtension.cmo helpIndex.mli helpIndex.ml analyzer.mli analyzer.ml commandLexer.ml \
-	commandLexer.ml poyCommand.mli xslt.mli xslt.ml scripting.mli scripting.ml \
-	arguments.mli arguments.ml phylo.mli phylo.ml main.mli main.ml \
+	commandLexer.ml xslt.mli xslt.ml scripting.mli scripting.ml \
+	arguments.mli arguments.ml phylo.ml main.mli main.ml \
 	test_scripts.ml test_scripts.mli portal.ml portal.mli
 	$(OCAMLDEP) $(OCAML_INCLUDES) $(OPTIONSPREPROCESSOR) \
 		$(filter-out poyExtension.cmo $(NOPREPROCESSOR) ,$^) > $@

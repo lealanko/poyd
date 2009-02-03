@@ -320,8 +320,10 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                     right_parenthesis -> <:expr<`AnnotatedFiles $exSem_of_list
                     a$>> ] |
                 [ LIDENT "prealigned"; ":"; left_parenthesis; a = otherfiles;
-                ","; b = prealigned_costs; right_parenthesis ->
-                    <:expr<`Prealigned ($a$, $b$)>> ] |
+                ","; b = prealigned_costs; ","; LIDENT "gap_opening"; c =
+                    optional_integer; 
+                right_parenthesis ->
+                    <:expr<`Prealigned ($a$, $b$, $c$)>> ] |
                 [ x = otherfiles -> x ]
             ];
         prealigned_costs:
@@ -419,7 +421,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             ];
         join_method:
             [
-                [ LIDENT "sectorial"; x = OPT flex_integer -> 
+                [ LIDENT "sectorial"; x = OPT optional_integer -> 
                     <:expr<`UnionBased $handle_optional x$>> ]|
                 [ LIDENT "all"; x = OPT optional_integer -> <:expr<`AllBased
                 $handle_optional x$>> ] |
@@ -438,7 +440,9 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ x = build_method -> x ] |
                 [ x = join_method -> x ] |
                 [ x = keep_method -> x ] |
-                [ x = cost_calculation -> x ]
+                [ x = cost_calculation -> x ] |
+                [ LIDENT "lookahead"; ":"; x = flex_integer -> 
+                    <:expr<`Lookahead $x$>> ]
             ];
         flex_float:
             [
@@ -478,6 +482,7 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                     <:expr<`Branch_and_Bound $thresh$>> ] |
                 [ LIDENT "constraint_p"; x = OPT optional_string -> 
                     <:expr<`Constraint $handle_optional x$>> ] |
+                [ LIDENT "nj" -> <:expr<`Nj>> ] | 
                 [ LIDENT "_mst" -> <:expr<`Mst>> ] |
                 [ LIDENT "_distances" -> <:expr<`DistancesRnd>> ]
             ];
@@ -966,6 +971,8 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             ];
         sample_method:
             [
+                [ LIDENT "_maxtrees"; ":"; x = flex_integer ->
+                    <:expr<`MaxTreesEvaluated $x$>> ] |
                 [ LIDENT "timeout"; ":"; x = flex_float -> 
                     <:expr<`TimeOut $x$>> ] |
                 [ LIDENT "timedprint"; ":"; left_parenthesis; x = flex_float; ","; 

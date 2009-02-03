@@ -664,6 +664,7 @@ OCAMLYACC
 OCAMLFLAGS
 EXTRAS
 NATIVEDYNLINK
+USE_NATIVEDYNLINK
 XSLT_CONFIG
 CPP
 GREP
@@ -2567,6 +2568,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 # What are we going to substitute in the Makefile
+
 
 
 
@@ -4694,16 +4696,17 @@ case $OCAMLVERSION in
     3.10.2*)
     ;;
     3.11.*)
+        NATIVEDYNLINK="dynlink.cmxa"
         { echo "$as_me:$LINENO: checking if OCaml supports dynamic linking in this architecture" >&5
 echo $ECHO_N "checking if OCaml supports dynamic linking in this architecture... $ECHO_C" >&6; }
         if ${OCAMLOPT} -shared -o str.cmxs str.cmxa ; then
             { echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
-            NATIVEDYNLINK="dynlink.cmxa"
+            USE_NATIVEDYNLINK="true"
         else 
             { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
-            NATIVEDYNLINK=""
+            USE_NATIVEDYNLINK="true"
         fi;;
     *)
     { echo "$as_me:$LINENO: result: no" >&5
@@ -7304,6 +7307,7 @@ OCAMLYACC!$OCAMLYACC$ac_delim
 OCAMLFLAGS!$OCAMLFLAGS$ac_delim
 EXTRAS!$EXTRAS$ac_delim
 NATIVEDYNLINK!$NATIVEDYNLINK$ac_delim
+USE_NATIVEDYNLINK!$USE_NATIVEDYNLINK$ac_delim
 XSLT_CONFIG!$XSLT_CONFIG$ac_delim
 CPP!$CPP$ac_delim
 GREP!$GREP$ac_delim
@@ -7313,7 +7317,7 @@ subdirs!$subdirs$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 71; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 72; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

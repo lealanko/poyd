@@ -1,5 +1,5 @@
 OCAML :=@OCAML@
-MERCURIAL := 4.1.1
+MERCURIAL := 4.1.2
 
 .PHONY: clean distclean version
 

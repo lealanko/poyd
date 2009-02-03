@@ -78,7 +78,7 @@ type simple_input = [
 
 type input = [
     | simple_input
-    | `Prealigned of (simple_input * prealigned_costs)
+    | `Prealigned of (simple_input * prealigned_costs * int)
     | `AnnotatedFiles of simple_input list
 ]
 
@@ -351,11 +351,13 @@ type build_method = [
     | `Wagner_Distances of build_strategy
     | `Wagner_Ordered of build_strategy
     | `Build_Random of build_strategy
+    | `Nj
     | `Prebuilt of filename ]
 
 type parallelizable_build = build_method
 
 type build = [
+    | `Nj
     | `Prebuilt of filename
     | `Build of int * build_method * cost_calculation list
     | `Build_Random of build_strategy
@@ -415,6 +417,7 @@ type samples = [
     | `KeepBestTrees 
     | `AllVisited of string option
     | `PrintTrajectory of string option
+    | `MaxTreesEvaluated of int
     | `TimeOut of timer 
     | `TimedPrint of (float * string option)
     | `UnionStats of (string option * int)
