@@ -176,7 +176,7 @@ let files =
 let replacer (command, message, filename_fixer, counter) filename =
     let initial_filename = "FILENAME" ^ string_of_int counter in
     let replacer = 
-        String.concat "" ["sed -e s,"; initial_filename; ","; filename; ","] 
+        String.concat "" ["sed -e 's,"; initial_filename; ","; filename; ",'"] 
     in
     let local_fix x = 
         Str.global_replace (Str.regexp initial_filename) filename x
@@ -205,10 +205,7 @@ let rec all_files_execution executer acc lst =
             executer (append_all_output filename_fixer) command message
             check_cost cost_less filename_fixer
 
-let test_program =
-    match Sys.os_type with
-    | "Win32" -> " | poy_test.exe "
-    | _ -> " | ./poy_test "
+let test_program = "./poy_test.native"
 
 let () =
     let executer append_output command message check_cost check_cost_less
@@ -223,18 +220,21 @@ let () =
             | Some a ->
                     let a = filename_fixer a
                     and b = filename_fixer b in
-                    match Unix.system ("sed -i \"\" -e '/Estimated/d; /Automated Search/d' " ^ a) with
+                    match Unix.system ("sed -i -e '/Estimated/d; /Automated Search/d' " ^ a) with
                     | Unix.WEXITED 0 -> 
-                            (match Unix.system ("sed -i \"\" -e '/Estimated/d; /Automated Search/d' " ^ b) with
+                            (match Unix.system ("sed -i -e '/Estimated/d; /Automated Search/d' " ^ b) with
                             | Unix.WEXITED 0 ->
                                     (match Unix.system ("diff --strip-trailing-cr -E -B -w -b -u " ^ a ^ " " ^
                                             b) with
                                     | Unix.WEXITED 0 -> true
                                     | _ -> false)
                             | _ -> false)
-                   | _ -> false
+                   | _ -> 
+                           prerr_string ("Failed executing sed in " ^ a);
+                           prerr_newline ();
+                           false
         in
-        let prefix = command ^ test_program in
+        let prefix = command ^ " | " ^ test_program in
         let execution_line =
             match check_cost, check_cost_less with
             | None, None -> prefix 
@@ -295,6 +295,6 @@ let () =
                 exit_code := 1
     in
     all_files_execution executer ("cat " ^ !command ^
-    " | sed -e s,test.xml," ^ default_report ^ ",", !message, (fun x -> x), 1)
+    " | sed -e 's,test.xml," ^ default_report ^ ",'", !message, (fun x -> x), 1)
     files;
     exit !exit_code

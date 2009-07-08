@@ -42,7 +42,7 @@ let minor_version = 1
 let release_version = 2
 let patch_version = Str.global_replace (Str.regexp " +") ""  BuildNumber.build
 type release_options = Development | Candidate of int | Official
-let release_option = Candidate 2
+let release_option = Candidate 3
 
 let ( --> ) a b = b a
 let append a b = b ^ a
@@ -77,9 +77,8 @@ let version_string = option_to_string small_version_string
 
 
 let string = "@[@[Welcome to @{<b>POY@} " ^ version_string ^ "@]@." ^
-                     rephrase ("@[compiled" ^ CompileFlags.time
-                      ^ "with parallel " ^ is_true CompileFlags.str_parallel
-                      ^ ", interface " ^ get_interface CompileFlags.str_interface
-                      ^ ", graphics " ^ get_graphics CompileFlags.str_graphics ^
+                     rephrase ("@[compiled " ^ CompileFlags.time
+                      ^ " with parallel " ^ is_true CompileFlags.str_parallel
+                      ^ ", interface " ^ get_interface CompileFlags.str_interface ^
                       "@]@,@[" ^
                      "POY version " ^ version_string ^ ", Copyright (C) 2007, 2008 Andres Varon, Le Sy Vinh, Illya Bomash, Ward Wheeler, and the American Museum of Natural History. POY 4.0 comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under the GNU General Public License Version 2, June 1991.@]@]")

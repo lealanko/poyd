@@ -331,14 +331,10 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ LIDENT "tcm"; ":";  x = STRING ->
                     <:expr<(`Assign_Transformation_Cost_Matrix (`Local
                     $str:x$))>> ] |
-                [ LIDENT "tcm"; ":"; left_parenthesis; x = INT; ","; y = INT; 
-                    right_parenthesis -> 
-                        <:expr<`Create_Transformation_Cost_Matrix ($int:x$,
-                        $int:y$)>> ] |
-                [ LIDENT "tcm"; ":"; left_parenthesis; x = cur_expr; ","; y = cur_expr; 
-                    right_parenthesis -> 
+                [ LIDENT "tcm"; ":"; left_parenthesis; x = flex_integer; ","; y
+                = flex_integer; right_parenthesis -> 
                         <:expr<`Create_Transformation_Cost_Matrix ($x$,
-                        $y$)>> ] | 
+                        $y$)>> ] |
                 [ LIDENT "tcm"; ":";  x = cur_expr ->
                     <:expr<(`Assign_Transformation_Cost_Matrix (`Local
                     $x$))>> ]
@@ -575,10 +571,22 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
                 [ ":"; LIDENT "consensus" -> <:expr<`Consensus>> ] |
                 [ ":"; x = flex_string -> <:expr<`InputFile $x$ >> ]
             ];
+        support_files :
+            [ 
+                [ x = flex_string -> exSem_of_list [ <:expr<`Local $x$>> ] ] | 
+                [ left_parenthesis; 
+                    x = LIST1 [ y = flex_string -> <:expr<`Local $y$>> ] SEP ",";
+                    right_parenthesis ->  exSem_of_list x ]
+            ];
         support_names:
             [
-                [ LIDENT "bremer"; ":"; x = flex_string -> <:expr<`Bremer (Some
-            [(`Local $x$)])>>] |
+                [ LIDENT "bremer"; ":"; LIDENT "of_file"; ":"; 
+                    left_parenthesis; f = flex_string; ","; c = flex_integer; ",";
+                    x = support_files; right_parenthesis ->
+                        <:expr<`Bremer (Some
+                        (`UseGivenTree (`Local $f$, $c$), $x$))>>] |
+                [ LIDENT "bremer"; ":"; x = support_files -> 
+                        <:expr<`Bremer (Some (`UseLoadedTree, $x$))>>] |
                 [ LIDENT "bremer" -> <:expr<`Bremer None>> ] |
                 [ LIDENT "jackknife"; y = OPT [ x = summary_class -> x ] -> 
                     match y with
@@ -772,6 +780,8 @@ module POYLanguage (Syntax : Camlp4Syntax) = struct
             [
                 [ LIDENT "locus_inversion"; ":"; c = flex_integer -> 
                       <:expr<`Locus_Inversion $c$>> ]  |
+                [ LIDENT "locus_dcj"; ":"; c = flex_integer -> 
+                      <:expr<`Locus_DCJ $c$>> ]  |
                 [ LIDENT "locus_breakpoint"; ":"; c = flex_integer -> 
                       <:expr<`Locus_Breakpoint $c$>> ]  |
                 [ LIDENT "chrom_breakpoint"; ":"; c = flex_integer -> 

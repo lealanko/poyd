@@ -45,7 +45,7 @@ fi
 # computer 
 echo "Making ${test_program}"
 cd ./src
-if make clean &> ../test/make.log && make depend &>../test/make.log && make poy_test &> ../test/make.log
+if make clean &> ../test/make.log && make depend &>../test/make.log && ocamlbuild poy_test.native &> ../test/make.log && cp poy_test.native poy_test
 then
     echo "Finished making ${test_program}"
 else

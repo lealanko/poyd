@@ -460,14 +460,6 @@ val pre_order_edge_visit :
 val print_tree : int -> ('a, 'b) p_tree -> unit
 val print_forest : ('a, 'b) p_tree -> unit
 val make_disjoint_tree : 'a All_sets.IntegerMap.t -> ('a, 'b) p_tree
-val build_consensus :
-  int ->
-  int ->
-  int ->
-  ('a, 'b) p_tree list ->
-  int * Gen_rtree.g_rtree * (int, int) Hashtbl.t *
-  (int, int) Hashtbl.t
-
 
 module Search (Node : NodeSig.S) 
     (Edge : Edge.EdgeSig with type n = Node.n) (Tree_Ops : Tree_Operations with type a = Node.n with
@@ -538,6 +530,7 @@ val consensus :
     ('a, 'b) p_tree list -> int -> string Parser.Tree.t
 
 val add_tree_to_counters :
+    ?flag_collapsable:int ->
     (int -> int -> bool) -> int Tree.CladeFPMap.t ->
     Tree.u_tree -> int Tree.CladeFPMap.t
 
@@ -570,7 +563,9 @@ val extract_bremer :  (All_sets.Integers.elt -> string) ->
 * The resulting tree assigns to each branch the minimum cost found for a tree
 * not containing the child clade of the branch within [sets]. *)
 val bremer :
-    (int -> string) -> int -> Tree.u_tree -> 
+    (int -> int -> bool) -> 
+    (int -> string) -> Data.d -> int -> [ `Parsed of string Parser.Tree.t | `Loaded of
+    Tree.u_tree ] -> 
               ((string Parser.Tree.t * string) -> (int * Tree.CladeFP.CladeSet.t)) ->
           Parser.filename list -> 
               string Parser.Tree.t
