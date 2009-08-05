@@ -86,7 +86,7 @@
         \argumentdefinition{threshold}{\obligatory{\poyfloat}}
             {The numerical value specifies the extra cost over the current best
             tree that makes another tree acceptable for the lookahead list. This 
-            parameter is only useful if~\nccross{lookahead} is used.}
+            parameter is only useful if~\nccross{lookahead}{lookahead} is used.}
             {buildthreshold}
             
         \argumentdefinition{trees}{\obligatory{\poyint}}
@@ -1466,8 +1466,8 @@ The \poycommand{calculate\_support} command does not output support values by de
                 cost regimes, a list of excluded
                 characters, and a list of input files. If the report is directed
                 to a file with extension ``nex'' or ``nexus'' then
-                the output is suitable for a nexus file (including the #NEXUS
-                beginning). Hennig format is produced if the report is directed
+                the output is suitable for a nexus file (including the NEXUS
+                header). Hennig format is produced if the report is directed
                 to a file with extension ``ss'' or ``hen'' or ``hennig''.}
                 {data}
 
@@ -1613,7 +1613,7 @@ The \poycommand{calculate\_support} command does not output support values by de
                 To print the bremer supports of a tree that does not exists in
                 memory (or a consensus tree)
                 stored in a file, \poyargument{bremer} accepts the value
-                \poyargument{in\_file:(\poystring, \poyint, files)}, where the
+                \poyargument{of\_file:(\poystring, \poyint, files)}, where the
                 first argument value is the file containing the tree for which
                 bremer supports should be computed, the second argument is the
                 cost of the tree, and the files is that described in the
