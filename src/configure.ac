@@ -61,7 +61,7 @@ AC_SUBST(OCAMLTOP)
 AC_SUBST(OCAMLLEX)
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLBUILD)
-
+AC_SUBST(MERCURIAL)
 AC_SUBST(LIBS)
 AC_SUBST(OCAMLFLAGS)
 AC_SUBST(EXTRAS)
@@ -106,9 +106,9 @@ AC_ARG_WITH(extras, [AS_HELP_STRING([--with-extras],
             [Add the following object files to the final linking rules (needed for windows).])],
             [EXTRAS=$withval],[])
 
+AC_CHECK_PROGS([MERCURIAL], [hg])
 
-
-
+AC_ARG_WITH(version-number, [AS_HELP_STRING([--with-version-number], [Use the configuration provided version number (used for release purposes only).])], [MERCURIAL="echo $withval"],[MERCURIAL="$MERCURIAL id -i"])
 
 AC_ARG_WITH(ocaml-flags, [AS_HELP_STRING([--with-ocaml-flags], 
             [Add the following flags to the ocaml compiler.])],
@@ -265,7 +265,7 @@ AC_FUNC_STAT
 AC_CHECK_FUNCS([floor gettimeofday memset pow sqrt sin exp])
 
 CC_VERSION="`$CC --version`"
-
+POY_VERSION_NUMBER="`$MERCURIAL`"
 
 
 AC_CONFIG_FILES([Makefile _tags myocamlbuild.ml buildNumber.ml compileFlags.ml])

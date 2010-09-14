@@ -15,12 +15,12 @@ AC_SUBST(USEGRAPHICS)
 AC_SUBST(USEPARALLEL)
 AC_SUBST(DOCSTRING)
 AC_SUBST(OCAMLFLAGS)
-
+AC_SUBST(MERCURIAL)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAML)
 AC_SUBST(OCAMLBUILD)
 
-
+AC_CHECK_PROGS([MERCURIAL], [hg])
 AC_CHECK_PROGS([OCAMLC], [ocamlc.opt ocamlc])
 AC_CHECK_PROGS([OCAMLBUILD], [ocamlbuild.native ocamlbuild])
 AC_CHECK_PROGS([OCAML], [ocaml])
@@ -43,7 +43,7 @@ AC_ARG_WITH([extras], [Add the following object files to the final linking rules
 AC_ARG_WITH(ocaml-flags, [Add the following flags to the ocaml compiler.],
             [OCAMLFLAGS=$withval],[])
 
-
+AC_ARG_WITH(version-number, [AS_HELP_STRING([--with-version-number], [Use the configuration provided version number (used for release purposes only).])], [MERCURIAL="echo $withval"],[MERCURIAL="$MERCURIAL id -i"])
 
 
 AC_ARG_ENABLE([mpi], [AS_HELP_STRING([--enable-mpi], 
