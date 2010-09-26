@@ -1,0 +1,15 @@
+**/autom4te.cache
+**/configure
+**/config.log
+**/config.status
+**/autom4te.cache
+**/Makefile
+VERSION
+src/_build
+src/_tags
+src/config.h
+src/myocamlbuild.ml
+src/buildNumber.ml
+src/compileFlags.ml
+**/*.byte
+**/*.native
