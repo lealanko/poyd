@@ -217,7 +217,7 @@ case $OCAMLVERSION in
             ;;
         esac
         ;;
-    3.11.*)
+    3.11.* | 3.12.*)
         NATIVEDYNLINK="dynlink.cmxa"
         AC_MSG_CHECKING([if OCaml supports dynamic linking in this architecture])
         if ${OCAMLOPT} -shared -o str.cmxs str.cmxa ; then
