@@ -36,14 +36,14 @@ let is_true str = if Str.string_match truere str 0 then  "on" else "off"
 let rephrase str = Str.global_replace (Str.regexp " +") "@ " str
 
 (* The Version Values *)
-let name = "Spirit"
+let name = "Yog-Sothoth"
 let major_version = 4
-let minor_version = 1
+let minor_version = 1001
 let release_version = 2
 let release_bugpatch = 1
 let patch_version = Str.global_replace (Str.regexp " +") ""  BuildNumber.build
 type release_options = Development | Candidate of int | Official
-let release_option = Official
+let release_option = Development
 
 let ( --> ) a b = b a
 let append a b = b ^ a
