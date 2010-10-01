@@ -392,6 +392,15 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n) (Edge : Edge.
     type c = CScrp.cs
     type tree = (a, b) Ptree.p_tree 
 
+
+    let msg fmt = 
+	Printf.ksprintf (Status.user_message Status.Information) fmt
+    
+
+    let print_run tag run = 
+	msg "%s: run.trees length %d" tag (Sexpr.length run.trees)
+
+
     module Kml = struct
         exception IllegalCVS
 
@@ -3169,6 +3178,7 @@ let compute_other_rank bit = world_size --> complete_mask --> mask_bit bit
 
 END
 let rec folder (run : r) meth = 
+    msg "now executing %s" (Analyzer.script_to_string meth);
     check_ft_queue run;
     match meth with
     (* The following methods are only used by the parallel execution *)
@@ -3546,8 +3556,11 @@ END
             let timer = Timer.start () in
             for adv = 1 to times do
 		Rng.forked (fun () ->
+		    print_run "ParallelPipeline 1" !run;
                     run := folder !run (`Set ([`Data], name));
+		    print_run "ParallelPipeline 2" !run;
                     run := List.fold_left folder !run for_each;
+		    print_run "ParallelPipeline 3" !run;
                     let msg = Timer.status_msg (Timer.wall timer) adv times in
                     Status.full_report ~adv ~msg st);
             done;
@@ -3569,6 +3582,7 @@ END
     | #Methods.transform as meth ->
             process_transform run meth
     | #Methods.build as meth ->
+	    print_run "Build" run;
             let build_initial = Build.build_initial_trees in
             (match MainBuild.get_transformations meth with
             | [] ->
