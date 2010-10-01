@@ -2128,12 +2128,16 @@ let update_mergingscript folder mergingscript run tmp =
     let tmp = { tmp with trees = `Empty; stored_trees = tmp.trees } in
     tmp
 
-let on_each_tree folder set_data dosomething mergingscript run tree =
+let on_each_tree_aux folder set_data dosomething mergingscript run tree =
     let tmp = { run with trees = `Empty } in
     let tmp = folder tmp set_data in
     let tmp = { tmp with trees = `Single tree } in
     let tmp = List.fold_left folder tmp dosomething in
     update_mergingscript folder mergingscript run tmp
+
+let on_each_tree folder set_data dosomething mergingscript run tree =
+    Rng.forked (fun () ->
+	on_each_tree_aux folder set_data dosomething mergingscript run tree)
 
 let emit_identifier =
     let identifier = ref (-1) in
@@ -3541,10 +3545,11 @@ END
             let for_each = todo @ composer in
             let timer = Timer.start () in
             for adv = 1 to times do
-                run := folder !run (`Set ([`Data], name));
-                run := List.fold_left folder !run for_each;
-                let msg = Timer.status_msg (Timer.wall timer) adv times in
-                Status.full_report ~adv ~msg st;
+		Rng.forked (fun () ->
+                    run := folder !run (`Set ([`Data], name));
+                    run := List.fold_left folder !run for_each;
+                    let msg = Timer.status_msg (Timer.wall timer) adv times in
+                    Status.full_report ~adv ~msg st);
             done;
             run := folder !run (`Discard ([`Data], name));
             Status.finished st;
