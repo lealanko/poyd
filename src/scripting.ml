@@ -396,9 +396,36 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n) (Edge : Edge.
     let msg fmt = 
 	Printf.ksprintf (Status.user_message Status.Information) fmt
     
+    let print_hash label obj = 
+	msg "%s: hash %08x" label (Hashtbl.hash obj)
 
-    let print_run tag run = 
-	msg "%s: run.trees length %d" tag (Sexpr.length run.trees)
+    let compare_runs tag r1 r2 =
+	if r1 = r2 then
+	  msg "%s: no change" tag
+	else 
+	  let cmp label f1 f2 =
+	      if f1 <> f2 then
+		msg "%s: %s has changed" tag label
+	  in 
+	  begin
+	      cmp "trees" r1.trees r2.trees;
+	      cmp "data" r1.data r2.data;
+	      cmp "nodes" r1.nodes r2.nodes;
+	      cmp "characters" r1.characters r2.characters;
+	      cmp "bremer_support" r1.bremer_support r2.bremer_support;
+	      cmp "jackknife_support" r1.jackknife_support r2.jackknife_support;
+	      cmp "bootstrap_support" r1.bootstrap_support r2.bootstrap_support;
+	      cmp "runtime_store" r1.runtime_store r2.runtime_store;
+	      cmp "data_store" r1.data_store r2.data_store;
+	      cmp "bremer_store" r1.bremer_store r2.bremer_store;
+	      cmp "jackknife_store" r1.jackknife_store r2.jackknife_store;
+	      cmp "bootstrap_store" r1.bootstrap_store r2.bootstrap_store;
+	      cmp "tree_store" r1.tree_store r2.tree_store;
+	      cmp "queue" r1.queue r2.queue;
+	      cmp "stored_trees" r1.stored_trees r2.stored_trees;
+	      cmp "original_trees" r1.original_trees r2.original_trees;
+	      cmp "search_results" r1.search_results r2.search_results
+	  end
 
 
     module Kml = struct
@@ -2146,7 +2173,7 @@ let on_each_tree_aux folder set_data dosomething mergingscript run tree =
 
 let on_each_tree folder set_data dosomething mergingscript run tree =
     Rng.forked (fun () ->
-	on_each_tree_aux folder set_data dosomething mergingscript run tree)
+        on_each_tree_aux folder set_data dosomething mergingscript run tree)
 
 let emit_identifier =
     let identifier = ref (-1) in
@@ -3177,8 +3204,19 @@ let mask_bit bit complete_mask =
 let compute_other_rank bit = world_size --> complete_mask --> mask_bit bit
 
 END
-let rec folder (run : r) meth = 
-    msg "now executing %s" (Analyzer.script_to_string meth);
+
+let rec dbg_folder (run : r) meth =
+    let scrdsc = Analyzer.script_to_string meth
+    in
+    msg "folder ->: %s" scrdsc;
+    let run_ = folder run meth
+    in
+    compare_runs "folder --" run run_;
+    msg "folder <-: %s" scrdsc;
+    run_
+and folder (run : r) meth = 
+    let folder = dbg_folder
+    in
     check_ft_queue run;
     match meth with
     (* The following methods are only used by the parallel execution *)
@@ -3555,12 +3593,9 @@ END
             let for_each = todo @ composer in
             let timer = Timer.start () in
             for adv = 1 to times do
-		Rng.forked (fun () ->
-		    print_run "ParallelPipeline 1" !run;
+                Rng.forked (fun () ->
                     run := folder !run (`Set ([`Data], name));
-		    print_run "ParallelPipeline 2" !run;
                     run := List.fold_left folder !run for_each;
-		    print_run "ParallelPipeline 3" !run;
                     let msg = Timer.status_msg (Timer.wall timer) adv times in
                     Status.full_report ~adv ~msg st);
             done;
@@ -3582,7 +3617,6 @@ END
     | #Methods.transform as meth ->
             process_transform run meth
     | #Methods.build as meth ->
-	    print_run "Build" run;
             let build_initial = Build.build_initial_trees in
             (match MainBuild.get_transformations meth with
             | [] ->
@@ -4252,6 +4286,8 @@ END
                         in
                         let () = Status.user_message Status.Error msg in
                         run
+
+let folder = dbg_folder
               
 
 let deal_with_error output_file run tmp err =
