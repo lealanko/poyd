@@ -1774,14 +1774,17 @@ let script_to_string (init : Methods.script) =
     | `GatherBootstrap -> "@[Exchange Bootstrap values with other processes@]" 
     | `SelectYourTrees -> "@[Each processor selects the trees it will work on@]"
     | `Skip
+	    -> "@[Skip@]"
     | `StoreTrees
+	    -> "@[StoreTrees@]"
     | `UnionStored
+	    -> "@[UnionStored@]"
     | `OnEachTree _
+	    -> "@[OnEachTree@]"
     | `ParallelPipeline _
-    | `GetStored -> 
-            (* These are produced by the analyzer itself, so they can't occur in
-            * a script and make no sense by themselves *)
-            ""
+	    -> "@[ParallelPipeline@]"
+    | `GetStored
+	    -> "@[GetStored@]"
 
 
 let colors fo item = 

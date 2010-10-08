@@ -913,6 +913,8 @@ module Make (NodeH : NodeSig.S with type other_n = Node.Standard.n) (EdgeH : Edg
         let from_h_to_s = replace_contents TOS.downpass TOS.uppass NodeS.taxon_code
 
         let build_initial_trees trees data n b =
+	    Status.user_message Status.Information
+		(Printf.sprintf "building from %d trees" (Sexpr.length trees));
             if Data.has_dynamic data then
                 DH.build_initial_trees trees data n b
             else
