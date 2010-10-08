@@ -1,4 +1,6 @@
 
+type t = Random.State.t
+
 type 'a result = Succ of 'a | Fail of exn
 
 let finally thunk end_thunk =
