@@ -1,5 +1,8 @@
-val fork : unit -> Random.State.t
 
-val with_state : Random.State.t -> (unit -> 'a) -> 'a
+type t = Random.State.t
+
+val fork : unit -> t
+
+val with_state : t -> (unit -> 'a) -> 'a
 
 val forked : (unit -> 'a) -> 'a
