@@ -225,6 +225,8 @@ val empty : unit -> r
 
 val args : string array
 
+val folder : r -> script -> r
+
 val run : 
     ?folder:(r -> script -> r) ->
     ?output_file:string -> ?start:r -> script list -> r
@@ -328,7 +330,8 @@ module Make
     (Edge : Edge.EdgeSig with type n = Node.n)
     (TreeOps : 
         Ptree.Tree_Operations with type a = Node.n with type b = Edge.e)
-    (CScrp : CharacterScripting.S with type n = Node.n) : 
+    (CScrp : CharacterScripting.S with type n = Node.n)
+    (B : Batch.S with type a = Node.n with type b = Edge.e with type c = CScrp.cs) :
         S with type a = Node.n with type b = Edge.e with type c = CScrp.cs
 
 (** {2 Scripting in Ocaml} 
