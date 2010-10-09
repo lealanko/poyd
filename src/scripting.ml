@@ -262,6 +262,8 @@ module type S = sig
 
     val args : string array
 
+    val folder : r -> script -> r
+
     val run : 
         ?folder:(r -> script -> r) ->
         ?output_file:string -> ?start:r -> script list -> r
@@ -356,6 +358,8 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n) (Edge : Edge.
         Ptree.Tree_Operations with type a =
             Node.n with type b = Edge.e)
     (CScrp : CharacterScripting.S with type n = Node.n)
+    (B : Batch.S 
+     with type a = Node.n with type b = Edge.e with type c = CScrp.cs)
     = struct
     type a = Node.n
     type b = Edge.e
@@ -3508,22 +3512,12 @@ END
             let run = folder run (`Discard ([`Data], name)) in
             run
     | `ParallelPipeline (times, todo, composer, continue) ->
-            let name = emit_identifier () in
-            let run = folder run (`Store ([`Data], name)) in
-            let st = Status.create "Running Pipeline" (Some times) "times" in
-            let run = ref run in
-            let for_each = todo @ composer in
-            let timer = Timer.start () in
-            for adv = 1 to times do
-		Rng.forked (fun () ->
-                    run := folder !run (`Set ([`Data], name));
-                    run := List.fold_left folder !run for_each;
-                    let msg = Timer.status_msg (Timer.wall timer) adv times in
-                    Status.full_report ~adv ~msg st);
-            done;
-            run := folder !run (`Discard ([`Data], name));
-            Status.finished st;
-            List.fold_left folder !run continue
+            let trees = B.generate_trees 
+		~n_trees:times ~generate:todo 
+		~composer:composer ~initial_state:run
+	    in
+	    let run1 = { run with trees } in
+            List.fold_left folder run1 continue
     (* The following methods are user friendly *)
     | #Methods.tree_handling as meth ->
             warn_if_no_trees_in_memory run.trees;
@@ -4227,7 +4221,7 @@ let run ?(folder=folder) ?(output_file="ft_poy.out") ?(start=(empty ())) lst =
         let my_folder printit run h =
             if ndebug_no_catch
             then begin
-                let run = folder run h in
+		let run = folder run h in
                 if printit then
                     Status.user_message (Status.SearchReport)
                     (SearchInformation.show_information
