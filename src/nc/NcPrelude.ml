@@ -1,8 +1,10 @@
+module B = Batteries_uni
+
 include Lwt
 
 include NcLwt
-include BatStd
 
+include B.Std
 
 module IO = Lwt_io
 
@@ -18,10 +20,15 @@ type 'a cond = 'a Cond.t
 module Seq = NcSequence
 type 'a seq = 'a Seq.t
 
-module List = BatList
-module Enum = BatEnum
+module List = B.List
 
-module Hashtbl = BatHashtbl
+module Enum = B.Enum
+type 'a enum = 'a Enum.t
+
+module Map = B.Map
+type ('k, 'v) map = ('k, 'v) Map.t
+
+module Hashtbl = B.Hashtbl
 type ('k, 'v) hashtbl = ('k, 'v) Hashtbl.t
 
 type obj = Obj.t

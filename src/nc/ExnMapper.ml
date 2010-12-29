@@ -1,12 +1,11 @@
-
+open NcPrelude
 
 type descriptor = {
     name : string
 }
 
-let table : (string * int, descriptor) Hashtbl.t =
-    Hashtbl.create 7;;
-
+let table =
+    Hashtbl.create 7
 
 let descriptor (exn : exn) : descriptor =
     Obj.obj (Obj.field (Obj.repr exn) 0)
@@ -17,7 +16,6 @@ let set_descriptor exn dtor : unit =
 let size (exn : exn) : int =
     Obj.size (Obj.repr exn)
 
-
 let register exn = 
     let d = descriptor exn in
     Hashtbl.add table (d.name, size exn) d
@@ -25,12 +23,13 @@ let register exn =
 let immigrate exn =
     let d = descriptor exn in
     let key = (d.name, size exn) in
-    if Hashtbl.mem table key then
-        let d2 = Hashtbl.find table (d.name, size exn) in
-        set_descriptor exn d2
-        
-    
-    
+      try
+        let d2 = Hashtbl.find table key in
+	let exn2 = Obj.obj <| Obj.dup (Obj.repr exn) in
+          set_descriptor exn2 d2;
+	  exn2
+      with Not_found -> 
+	  raise <| Invalid_argument "unregistered exception"
 
 let _ =
     List.iter register

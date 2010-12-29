@@ -1,3 +1,2 @@
-<*.ml>: package(lwt.unix), package(batteries), thread
-<ncConnection.ml>: package(uuidm)
-<*.byte>: thread, package(lwt.unix), package(lwt.extra), package(uuidm), package(batteries)
+<*.ml>: package(lwt.unix), package(batteries), package(react), package(uuidm), thread
+<*.byte>: thread, package(lwt.unix), package(lwt.extra), package(uuidm), package(batteries), package(react)
