@@ -1,7 +1,5 @@
 open NcPrelude
 
-include ConnectionDefs
+include module type of ConnectionDefs
 
-val connect : Unix.sockaddr -> Domain.Map.t signal -> t lwt
-
-val listen : Unix.sockaddr -> Domain.Map.t signal -> listener lwt
+module Make(Args : ARGS) : S

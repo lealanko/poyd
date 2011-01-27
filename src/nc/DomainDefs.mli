@@ -32,7 +32,13 @@ module type LOCAL = sig
     include DOMAIN
     val register : ('a -> 'r lwt) -> (d, 'a, 'r) handle
     val unregister : (d, 'a, 'r) handle -> unit
-    val set_root : string -> 'a -> unit
 end
+
+module type REQUEST = sig
+    include HANDLE
+    val v : a
+end
+
+type 'r request = (module REQUEST with type r = 'r)
 
 type local = (module LOCAL)

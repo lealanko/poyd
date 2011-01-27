@@ -27,7 +27,6 @@ let parse_argv argv =
 
 
 
-
 let get_addr host port = 
     Lwt_unix.gethostbyname host >>= fun entry ->
     return (Unix.ADDR_INET (Array.get entry.Unix.h_addr_list 0, port))
@@ -37,15 +36,20 @@ let server host port =
     let f x = 
         Lwt_log.debug_f "f(%d)" x >>= fun () ->
         return (x * x) in
-    let f_h = NcHandle.create f in
-    NcConnection.set_root "f" f_h;
+    let module LocalDomain = Domain.Local(Unit) in
+    let local_domain = (LocalDomain : Domain.DOMAIN) in
+    let domains = 
+        Signal.const (Domain.Map.insert Domain.Map.empty local_domain) in
     get_addr host port >>= fun addr ->
-    let listener = NcConnection.create_listener addr in
+    let listener = Connection.create_listener addr domains in
+    let module L = (val listener : Connection.LISTENER) in
+    L.set_root "f" f;
     halt ()
 
 let client host port =
     get_addr host port >>= fun addr ->
-    NcConnection.connect addr >>= fun conn ->
+    Connection.connect addr >>= fun conn ->
+    let d = Domain.Map.get lookup
     NcConnection.get_root conn "f" >>= fun f_h ->
     NcHandle.apply f_h 7 >>= fun r ->
     IO.printl (string_of_int r)

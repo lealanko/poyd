@@ -1,3 +1,4 @@
+
 module B = Batteries_uni
 
 include Lwt
@@ -28,13 +29,16 @@ type 'a enum = 'a Enum.t
 module Map = B.Map
 type ('k, 'v) map = ('k, 'v) Map.t
 
+module Interfaces = B.Interfaces
+
 module Hashtbl = B.Hashtbl
 type ('k, 'v) hashtbl = ('k, 'v) Hashtbl.t
 
 type obj = Obj.t
 
+module String = B.String
 
-module Option = BatOption
+module Option = B.Option
 
 module Mutex = Lwt_mutex
 
@@ -44,7 +48,14 @@ module Signal = React.S
 type 'a signal = 'a Signal.t
 type 'a event = 'a Event.t
 
-module Set = BatSet
+module Set = B.Set
 type 'a set = 'a Set.t
 
 type sockaddr = Unix.sockaddr
+
+module type UNIT = sig end
+module Unit = struct end
+
+module Legacy = B.Legacy
+
+module Int = B.Int

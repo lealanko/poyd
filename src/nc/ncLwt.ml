@@ -52,3 +52,13 @@ let detach thunk =
 		Lwt_log.debug_f ~exn "detached thunk failed!" >>= fun () ->
 		fail exn))
 
+let no_cancel t =
+    let t2, k2 = wait () in
+    t >>- k2;
+    t2
+
+let block t =
+    finalize
+        (fun () -> protected t)
+        (fun () -> no_cancel t >|= ignore)
+    

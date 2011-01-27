@@ -1,10 +1,8 @@
 open NcPrelude
+open NcDefs
+open Type
 
 include ConnectionDefs
-
-module Mgr = NcTaskMgr
-
-type rqid = int
 
 let section = Lwt_log.Section.make "NcConnection"
 
@@ -17,232 +15,265 @@ let pprint printer () v =
     printer false outc v;
     BatIO.close_out out
 
-module type APPLY = sig
-    include Domain.HANDLE
-    val arg : a
-end
+type 'r request =
+    | QueryId of id_query * ('r, bool) teq
+    | GetRoot of 'r id 
+    | Apply of 'r application
+    | Ping of ('r, unit) teq
 
-type apply = (module APPLY)
-
-type request = [
-  | `Domains of Domain.k list
-  | `Apply of apply
-  | `Ping
-  | `Cancel of rqid
-  | `Close
-]
-
-let request_printer paren out = 
-    let open BatIO in
-	function
-	  | `Domains keys ->
-		()
-	  | `Close -> nwrite out "`Close"
-b	  | `Apply a -> 
-	      printf out "`Apply (_, _)"
-	  | `Ping -> nwrite out "`Ping"
-	  | `Cancel rqid -> printf out "`Cancel %d" rqid
-
-type response = [
-  | `OK of obj
-  | `Error of exn
-]
-
-let response_printer paren out =
-    let open BatIO in
-	function 
-	  | `OK v -> nwrite out "`OK _"
-	  | `Error _ -> nwrite out "`Error"
-
-type message = [
-    | `Request of rqid * request
-    | `Response of rqid * response
-]
-
-let message_printer paren out =
-    let open BatIO in
-	function
-	  | `Request (rqid, rq) ->
-	      printf out "Request (%d, %a)" 
-		  rqid
-		  (request_printer false) rq
-	  | `Response (rqid, resp) ->
-	      printf out "Response (%d, %a)"
-		  rqid
-		  (response_printer false) resp
-
-type t = {
-    in_ch : IO.input_channel;
-    out_ch : IO.output_channel;
-    mutable next_rqid : rqid;
-
-    remote_domains : Domain.Map.t signal;
-    local_domains : Domain.Map.t signal;
-
-    pending_remote : (rqid, response mvar) Hashtbl.t;
-    pending_local : (rqid, response lwt) Hashtbl.t;
-    local_mgr : Mgr.t;
-    remote_mgr : Mgr.t;
-}
-
-module type ARGS = sig
-    val local_domains : Domain.Map.t signal
-    val in_ch : IO.input_channel
-    val out_ch : IO.output_channel
-    val addr : Unix.sockaddr
-end
-
-module Connection (Args : ARGS) = struct
-    open Args
-
-    let write_msg (msg : message) =
-	dbg "write_msg: %a" (pprint message_printer) msg >>= fun () ->
-	IO.write_value out_ch msg
-
-    let read_msg () : message lwt =
-	IO.read_value in_ch >>= fun msg ->
-	dbg "read_msg: %a" (pprint message_printer) msg;
-	return msg
-
-    let remote_domains, set_remote_domains = Signal.create Domain.Map.empty
-
-    module RemoteDomain (K : Domain.KEY) : Domain.DOMAIN = struct
-	include K
-	let invoke (type a_) (type r_) h a =
-	    let module Apply = struct
-		include K
-		type a = a_
-		type r = r_
-		let h = h
-		let arg = a
-	    end in
-	    request (`Apply (module Apply : APPLY))
+module Message(LocalId : TYPE1)(RemoteId : TYPE1) = struct
+    module type CANCEL = sig
+        type a
+        val cancel_id : a LocalId.t1
     end
 
-    let make_remote_domain k =
-	let module K = (val k : Domain.KEY) in
-	let module R = RemoteDomain(K) in
-	(module R : Domain.DOMAIN)
+    module type RESPONSE = sig
+        type r
+        val return_id : r RemoteId.t1
+        val retval : (r, exn) result
+    end
 
-	
-    let do_request rq = 
-	let rqid = !next_rqid in
-	incr next_rqid;
-	let mv = MVar.create_empty () in
-	Hashtbl.add conn.pending_remote rqid mv;
-	finalize (fun () ->
-	    dbg "-> %d Request" rqid >>= fun () ->
-	    write_msg conn (Request (rqid, rq)) >>= fun () ->
-	    MVar.take mv >>= function
-	      | `OK r -> 
-		  dbg "<- %d OK" rqid >>= fun () ->
-		  return r
-	      | `Error exn -> 
-		  dbg "<- %d Error" rqid >>= fun () ->
-		  fail (NcExn.immigrate exn))
-	    (fun () ->
-		return (Hashtbl.remove conn.pending_remote rqid))
+    module type REQUEST_MSG = sig
+        type r
+        val rq : r request
+        val return_id : r LocalId.t1
+    end
 
-    let request rq =
-	Mgr.task local_mgr (fun () -> do_request conn rq)
+    type t = 
+        | Request of (module REQUEST_MSG)
+        | Close
+        | Cancel of (module CANCEL)
+        | Response of (module RESPONSE)
+
+    let mk_cancel (type a_) id =
+        Cancel (module struct
+            type a = a_
+            let cancel_id = id
+        end : CANCEL)
+
+    let mk_response (type r_) rid ret =
+        Response (module struct
+            type r = r_
+            let return_id = rid
+            let retval = ret
+        end : RESPONSE)
+
+    let mk_request (type r_) rq_ rid =
+        Request (module struct
+            type r = r_
+            let rq = rq_
+            let return_id = rid
+        end : REQUEST_MSG)
+                
+end
+
+
+module Make (Args : ARGS) = struct
+    open Args
+
+    module OutEntry = struct
+        type ('a, 'b) t2 = ('a, exn) result mvar
+    end
+
+    module OutMap = PolyMap.MakeLocal(OutEntry)
+
+    module LocalMsgId = struct
+        type 'a t1 = ('a, unit) OutMap.K.t2
+    end
+
+
+    module InEntry = struct
+        type ('a, 'b) t2 = 'a lwt
+    end
+
+    module InMap = PolyMap.MakeLocal(InEntry)
+
+    module RemoteMsgId = struct
+        type 'a t1 = ('a, unit) InMap.K.t2
+    end
+
+    module OutMsg = Message(LocalMsgId)(RemoteMsgId)
+
+    module InMsg = Message(RemoteMsgId)(LocalMsgId)
+
+    let out_map = ref OutMap.empty
+    let in_map = ref InMap.empty
+
+    let write_msg (msg : OutMsg.t) =
+	IO.write_value out_ch msg
+
+    let read_msg () : InMsg.t lwt =
+	IO.read_value in_ch >>= fun msg ->
+	return msg
+
+    module OutboundMgr = TaskMgr.Make(Unit)
+    module InboundMgr = TaskMgr.Make(Unit)
+
+    let rec do_request_out rq =
+        let id = OutMap.K.generate () in
+        let mv = MVar.create_empty () in
+        out_map := OutMap.put !out_map id mv;
+        finalize (fun () ->
+            let msg = OutMsg.mk_request rq id in
+            block (write_msg msg) >>= fun () ->
+            let rec take () = catch
+                (fun () -> MVar.take mv)
+                (function 
+                  | Canceled ->
+                      no_cancel (write_msg (OutMsg.mk_cancel id)) >>= fun _ ->
+                      take ()
+                  | exn -> fail exn) in
+            take () >>= function
+              | Ok v ->
+                  return v
+              | Bad exn ->
+                  fail exn)
+            (fun () ->
+                out_map := OutMap.delete !out_map id;
+                return ())
+
+    let request_out rq =
+	OutboundMgr.task (fun () -> do_request_out rq)
+
+    let get_root key =
+        request_out (GetRoot key)
+
+    let apply app =
+        request_out (Apply app)
+
+    module UnitT = struct
+        type ('a, 'b) t1 = unit
+    end
+
+    module IdSet = PolyMap.MakeGlobal(UnitT)
+
+    let pending_ids = 
+        ref IdSet.empty
+
+    (* An optimization for root/domain discovery: keep track of the
+       inbound queries already running, and don't send them outbound:
+       since the remote peer asked for it already, bouncing the query
+       back can't do any good. *)
+    let query_id idq =
+        let module IdQ = (val idq : ID_QUERY) in
+        if IdSet.have !pending_ids IdQ.qid
+        then 
+            return false
+        else
+            request_out (QueryId (idq, eq_refl))
+
+    let shutdown () : unit lwt =
+	IO.close in_ch <&> IO.close out_ch
+
+
+    let handle_request : 'r request -> 'r lwt = function
+        | GetRoot rkey ->
+            LocalPort.get_root rkey
+	| Apply apply ->
+            LocalPort.apply apply
+	| QueryId(idq, teq) -> 
+            let module IdQ = (val idq : ID_QUERY) in
+            if IdSet.have !pending_ids IdQ.qid
+            then 
+                return (cast_back teq false)
+            else begin
+                pending_ids := IdSet.put !pending_ids IdQ.qid ();
+                LocalPort.query_domain id >>= fun b ->
+                pending_ids := IdSet.delete !pending_ids IdQ.qid;
+                return (cast_back teq b)
+            end
+	| Ping teq -> 
+            return (cast_back teq ())
+	              
+    let handle_message (msg : InMsg.t) : unit lwt = 
+        let open InMsg in 
+            match msg with
+	    | Response respm -> begin
+                let module R = (val respm : RESPONSE) in
+                try
+                    let mv = OutMap.get !out_map R.return_id in
+                    out_map := OutMap.delete !out_map R.return_id;
+                    MVar.put mv R.retval
+                with 
+                | Not_found ->
+                    (* Response to unknown request *)
+		    return ()
+            end
+	    | Request rqmsg ->
+                let module R = (val rqmsg : REQUEST_MSG) in
+	        InboundMgr.task (fun () ->
+                    try_bind (fun () ->
+                        fix (fun t ->
+                            in_map := InMap.put !in_map R.return_id t;
+                            finalize (fun () ->
+                                handle_request R.rq)
+                                (fun () ->
+                                    in_map := InMap.delete !in_map R.return_id;
+                                    return ())))
+                        (fun ret -> return (Ok ret))
+                        (fun exn -> return (Bad exn))
+                    >>= fun ret ->
+		    write_msg (OutMsg.mk_response R.return_id ret))
+	    | Close -> 
+                OutboundMgr.close ();
+                return ()
+	    | Cancel cm ->
+                let module Cancel = (val cm : CANCEL) in
+	        let t = InMap.get !in_map Cancel.cancel_id in
+	        match state t with
+	        | Sleep -> begin
+		    cancel t;
+		    match state t with
+		    | Fail Canceled -> return ()
+		    | _ -> fail (Failure "cancelling failed")
+	        end
+	        | _ -> fail (Failure "not cancellable")
+                    
+    let finish = 
+        finalize (fun () ->
+            OutboundMgr.finish <&> InboundMgr.finish)
+            (fun () ->
+                Lwt_io.close in_ch <&> Lwt_io.close out_ch)
 
     let close () =
-	detach (fun () -> request `Close);
-	Mgr.close local_mgr
+        (* First ensure we won't send any more apply requests. *)
+        OutboundMgr.close ();
+        (* Then send the close request. The request is our promise we
+           won't call further, the response is the peer's promise they
+           won't either. *)
+        write_msg OutMsg.Close >>= fun () ->
+        (* Now we can stop accepting incoming calls. *)
+	InboundMgr.close ();
+        (* Finally wait until all remaining calls are processed. *)
+        finish >>= fun () ->
+        (* And close the handles. This triggers on_shutdown. *)
+        Lwt_io.close in_ch <&> Lwt_io.close out_ch
 
-    let shutdown () =
-	IO.close in_ch >>= fun () ->
-	IO.close out_ch
+    let abort () =
+        Lwt_io.abort in_ch <&> Lwt_io.abort out_ch
 
-    let unit = Obj.repr ()
-
-    let handle_request = function
-	| `Close -> 
+    let _ =
+        let on_read_exn exn =
+            (* Ensure no new remote requests are made. *)
+            OutboundMgr.close ();
+            (* Abort all the current ones. *)
+            let visit rqid mv =
+                detach (fun () ->
+                    Lwt_mvar.put mv (Bad exn)) in
+            OutMap.iter !out_map { OutMap.visit };
+            (* Send cancel to all tasks that are still running.
+               This should just be inbound. *)
+            cancel finish;
+            return () in
+        let rec handle_msg msg =
 	    detach (fun () -> 
-		(close conn
-		 <&> Mgr.close conn.local_mgr) >>= fun () ->
-		shutdown conn);
-	    return unit
-	| `Domains keys ->
-	    let ekeys = BatList.enum keys in
-	    let edoms = Enum.map make_remote_domain ekeys in
-	    let doms = Domain.Map.of_enum edoms in
-	    set_remote_domains doms;
-	    return unit
-	| `Apply apply ->
-	    let module Apply = (val apply : APPLY) in
-	    let locals = Signal.value local_domains in
-	    let dom = Domain.Map.find Apply.key in
-	    let module Domain = (val dom : DOMAIN with type d = Apply.d) in
-	    Domain.invoke Apply.h Apply.arg >>= fun r ->
-	    return (Obj.repr r)
-	| `Ping -> 
-	    return unit
-	| `Cancel rqid -> 
-	    let t = Hashtbl.find conn.pending_local rqid in
-	    match state t with
-	    | Sleep -> begin
-		cancel t;
-		match state t with
-		| Fail Canceled -> return unit
-		| _ -> fail (Failure "cancelling failed")
-	    end
-	    | _ -> fail (Failure "not cancellable")
-	    
-    let handle_message = function
-	| `Response (rqid, resp) ->
-	    let p = pending_remotes in
-	    if Hashtbl.mem p rqid then 
-		let mv = Hashtbl.find p rqid in
-		MVar.put mv resp
-	    else
-		return ()
-	| `Request (rqid, rq) ->
-	    Mgr.task remote_mgr (fun () ->
-		let t = handle_request rq in
-		Hashtbl.add pending_local rqid t;
-		finalize (const t)
-		    (fun () -> 
-			return (Hashtbl.remove pending_local rqid))
-		>>= fun resp ->
-		write_msg (`Response (rqid, resp)))
-
-    let rec read_loop () =
-	read_msg () >>= fun msg ->
-	detach (fun () -> 
-	    dbg "handling: %a" (pprint message_printer) msg >>= fun () ->
-	    handle_message msg);
-	read_loop ()
-
-    let _ = detach read_loop
-
-    let notify_local_domains m =
-	
-	    
-    let create chans =
-	let conn = make chans in
-	detach (fun () -> read_loop conn);
-	detach (fun () -> request conn (`IAm local_domain));
-	conn
-	    
-    let connect addr = 
-	IO.open_connection addr >>= fun chans ->
-	return (create chans)
-
-
+	        handle_message msg);
+	    loop ()
+        and loop () = 
+            try_bind 
+                read_msg
+                handle_msg
+                on_read_exn in
+        detach loop
 end
-
-module Listener = struct
-    type t = IO.server
-	    
-    let create_listener addr = 
-	IO.establish_server addr
-	    (fun chans ->
-		ignore (create chans))
-	    
-end
-
-let apply conn h v =
-    request conn (`Apply (Obj.magic h, Obj.repr v)) >>= fun o ->
-    return (Obj.obj o)
-	
+        

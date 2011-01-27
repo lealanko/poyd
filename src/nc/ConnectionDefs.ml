@@ -1,16 +1,15 @@
 open NcPrelude
-
-module type CONNECTION = sig
-    val remote_domains : Domain.Map.t signal
+open NcDefs
+module type S = sig
+    include PORT
     val close : unit -> unit lwt
-    val abort : unit -> unit
+    val abort : unit -> unit lwt
 end
 
-type t = (module CONNECTION)
+type t = (module S)
 
-module type LISTENER = sig
-    val open_connections : t set signal
-    val close : unit -> unit
+module type ARGS = sig
+    val in_ch : IO.input_channel
+    val out_ch : IO.output_channel
+    module LocalPort : PORT
 end
-
-type listener = (module LISTENER)

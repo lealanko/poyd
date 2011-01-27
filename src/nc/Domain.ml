@@ -1,61 +1,67 @@
 open NcPrelude
+open NcDefs
+open Type
 
-type key_i = Uuidm.t
-type handle_i = int
+module LocalDomain(Unit : UNIT) : LOCAL_DOMAIN = struct
+            
+        module HandleValue = struct
+            type ('a, 'b) t2 = 'a -> 'b lwt
+        end
+        module HandleMap = PolyMap.MakeLocal(HandleValue)
+            
+        module T2 = Type2(HandleMap.K)
+        type d = T2.d
+        let id = PolyMap.UuidKey.generate ()
+                
+        let handles = ref HandleMap.empty
+            
+        let register_handle f =
+            let k = HandleMap.K.generate () in
+            handles := HandleMap.put !handles k f;
+            cast_back T2.eqd k
+                
+        let invoke k arg =
+            let f = HandleMap.get !handles (cast T2.eqd k) in
+            f arg
+        
 
-module rec Defs : module type of DomainDefs 
-    with type 'd key = key_i
-    and type ('d, 'a, 'r) handle = handle_i
-= Defs
-include Defs
+        module RootValue = struct
+            type ('a, 'b) t2 = 'a
+        end
+        module RootMap = PolyMap.MakeGlobal(RootValue)
+            
+        let roots = ref RootMap.empty
+        let set_root k v = roots := RootMap.put !roots k v
+        let get_root k = 
+            return (RootMap.get !roots k)
+    end 
 
+module DomainPort(D : DOMAIN) : PORT = struct
+    module RequestValue = struct
+        type ('a, 'b) t2 = (module APPLICATION with type d = 'a)
+    end
+    module Cast = PolyMap.UuidKey.Cast2(RequestValue)
 
-let handle (type d_) (type a_) (type r_) key h =
-    let module H = struct
-	type d = d_
-	type a = a_
-	type r = r_
-	let key = key
-	let h = h
-    end in
-      (module H : HANDLE with type a = a_ and type r = r_)
+    let query_id idq = 
+        let module IdQ = (val idq : ID_QUERY) in
+        match Cast.typematch IdQ.id D.id with
+        | Some _ -> return true
+        | None -> try_bind
+            (fun () -> D.get_root IdQ.id)
+              (fun _ -> return true)
+              (function 
+                | Not_found -> return false
+                | exn -> fail exn)
 
-module Map = struct
-    type t = (key_i, obj) B.Map.t
-    let empty = B.Map.empty
-    let add (type dd) t dom =
-	let module D = (val dom : DOMAIN with type d = dd) in
-	  B.Map.add D.key (Obj.repr dom) t
-    let find t key =
-	let o = B.Map.find key t in
-	  Obj.obj o
-    let remove t key = 
-	B.Map.remove key t
+    let get_root = D.get_root
+
+    let apply (type r_) app =
+        let module R = (val app : APPLICATION with type r = r_) in
+        let rq_ = (module R : APPLICATION with type d = R.d) in
+        match Cast.typematch R.id D.id with
+        | None -> fail Not_found
+        | Some eq -> 
+            let rq2 = cast eq rq_ in
+            let module R2 = (val rq2 : APPLICATION with type d = D.d) in
+            D.invoke R2.handle R2.arg
 end
-
-let local () =
-    let module L = struct
-	type d
-	let key = Uuidm.create `V4
-	let handles = Hashtbl.create 7
-	let roots = Hashtbl.create 7
-	let next_h = ref 1
-	let register f =
-	    let h = !next_h in
-	    let _ = incr next_h in
-	      Hashtbl.add handles h (Obj.magic f);
-	      h
-	let unregister h =
-	    Hashtbl.remove handles h
-	let invoke h a =
-	    let f = Hashtbl.find handles h in
-	    Obj.obj (f (Obj.repr a))
-	let set_root rid v =
-	    Hashtbl.add roots rid (Obj.repr v)
-	let root rid =
-	    Obj.obj (Hashtbl.find roots rid)
-	let _ = Hashtbl.add handles 0 (Obj.magic root)
-    end in
-      (module L : LOCAL)
-
-let root = 0
