@@ -37,17 +37,12 @@ module LocalDomain(Unit : UNIT) : LOCAL_DOMAIN = struct
     end 
 
 module DomainPort(D : DOMAIN) : PORT = struct
-    module RequestValue = struct
-        type ('a, 'b) t2 = (module APPLICATION with type d = 'a)
-    end
-    module Cast = PolyMap.UuidKey.Cast2(RequestValue)
 
-    let query_id idq = 
-        let module IdQ = (val idq : ID_QUERY) in
-        match Cast.typematch IdQ.id D.id with
+    let query_id id qid =
+        match PolyMap.UuidKey.typematch id D.id with
         | Some _ -> return true
         | None -> try_bind
-            (fun () -> D.get_root IdQ.id)
+            (fun () -> D.get_root id)
               (fun _ -> return true)
               (function 
                 | Not_found -> return false
@@ -55,13 +50,15 @@ module DomainPort(D : DOMAIN) : PORT = struct
 
     let get_root = D.get_root
 
-    let apply (type r_) app =
-        let module R = (val app : APPLICATION with type r = r_) in
-        let rq_ = (module R : APPLICATION with type d = R.d) in
-        match Cast.typematch R.id D.id with
+    let apply (type d) (type a) (type r) 
+            (id : d id) (handle : (d, a, r) local_handle) (arg : a) : r lwt =
+        let module RequestValue = struct
+            type ('d, 'b_) t2 = ('d, a, r) local_handle
+        end in
+        let module Cast = PolyMap.UuidKey.Cast2(RequestValue) in
+        match Cast.typematch id D.id with
         | None -> fail Not_found
         | Some eq -> 
-            let rq2 = cast eq rq_ in
-            let module R2 = (val rq2 : APPLICATION with type d = D.d) in
-            D.invoke R2.handle R2.arg
+            let handle_ = cast eq handle in
+            D.invoke handle_ arg
 end

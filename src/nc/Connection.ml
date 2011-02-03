@@ -15,10 +15,30 @@ let pprint printer () v =
     printer false outc v;
     BatIO.close_out out
 
+
+module type ID_QUERY = struct
+    type d
+    val id : d id
+    val qid : qid
+end
+
+type id_query = (module ID_QUERY)
+
+module type APPLY = struct
+    type d
+    type a 
+    type r
+    val id : d id
+    val handle : (d, a, r) local_handle
+    val arg : a
+end
+
+type 'r apply = (module APPLY with type r = 'r)
+
 type 'r request =
     | QueryId of id_query * ('r, bool) teq
     | GetRoot of 'r id 
-    | Apply of 'r application
+    | Apply of 'r apply
     | Ping of ('r, unit) teq
 
 module Message(LocalId : TYPE1)(RemoteId : TYPE1) = struct
@@ -138,8 +158,16 @@ module Make (Args : ARGS) = struct
     let get_root key =
         request_out (GetRoot key)
 
-    let apply app =
-        request_out (Apply app)
+    let apply (type d) (type a) (type r) id h a =
+        let module Apply = struct
+            type d = d_
+            type a = a_
+            type r = r_
+            let id = id
+            let handle = h
+            let arg = a
+        end in
+        request_out (Apply (module Apply : APPLY with type r = r_))
 
     module UnitT = struct
         type ('a, 'b) t1 = unit
@@ -154,23 +182,26 @@ module Make (Args : ARGS) = struct
        inbound queries already running, and don't send them outbound:
        since the remote peer asked for it already, bouncing the query
        back can't do any good. *)
-    let query_id idq =
-        let module IdQ = (val idq : ID_QUERY) in
-        if IdSet.have !pending_ids IdQ.qid
+    let query_id (type d_) id qid =
+        if IdSet.have !pending_ids qid
         then 
             return false
         else
-            request_out (QueryId (idq, eq_refl))
+            let module IdQ = struct 
+                type d = d_ let id = id let qid = qid 
+            end in
+            request_out (QueryId ((module IdQ : ID_QUERY), eq_refl))
 
     let shutdown () : unit lwt =
 	IO.close in_ch <&> IO.close out_ch
 
 
-    let handle_request : 'r request -> 'r lwt = function
+    let handle_request (type r_) : r_ request -> r_ lwt = function
         | GetRoot rkey ->
             LocalPort.get_root rkey
 	| Apply apply ->
-            LocalPort.apply apply
+            let module Apply = (val apply : APPLY with type r = r_) in
+            LocalPort.apply Apply.id Apply.handle Apply.arg
 	| QueryId(idq, teq) -> 
             let module IdQ = (val idq : ID_QUERY) in
             if IdSet.have !pending_ids IdQ.qid
@@ -178,7 +209,7 @@ module Make (Args : ARGS) = struct
                 return (cast_back teq false)
             else begin
                 pending_ids := IdSet.put !pending_ids IdQ.qid ();
-                LocalPort.query_domain id >>= fun b ->
+                LocalPort.query_id IdQ.id IdQ.qid >>= fun b ->
                 pending_ids := IdSet.delete !pending_ids IdQ.qid;
                 return (cast_back teq b)
             end

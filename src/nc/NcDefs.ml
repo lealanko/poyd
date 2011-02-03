@@ -29,18 +29,11 @@ end
 
 type 'r application = (module APPLICATION with type r = 'r)
 
-type qid = (unit, unit) PolyMap.UuidKey.t2
-
-module type ID_QUERY = sig
-    include ANY_ID
-    val qid : qid
-end
-
-type id_query = (module ID_QUERY)
+type qid = Uuidm.t
 
 module type PORT = sig
-    val query_id : id_query -> bool lwt
-    val apply : 'a application -> 'a lwt
+    val query_id : 'a id -> qid -> bool lwt
+    val apply : 'd id -> ('d, 'a, 'r) local_handle -> 'a -> 'r lwt
     val get_root : 'a id -> 'a lwt
 end
 
