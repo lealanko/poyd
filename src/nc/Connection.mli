@@ -1,5 +1,6 @@
 open NcPrelude
+open NcDefs
 
 include module type of ConnectionDefs
 
-module Make(Args : ARGS) : S
+val make : IO.input_channel -> IO.output_channel -> port -> connection

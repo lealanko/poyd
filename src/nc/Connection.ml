@@ -16,7 +16,7 @@ let pprint printer () v =
     BatIO.close_out out
 
 
-module type ID_QUERY = struct
+module type ID_QUERY = sig
     type d
     val id : d id
     val qid : qid
@@ -24,7 +24,7 @@ end
 
 type id_query = (module ID_QUERY)
 
-module type APPLY = struct
+module type APPLY = sig
     type d
     type a 
     type r
@@ -87,6 +87,12 @@ module Message(LocalId : TYPE1)(RemoteId : TYPE1) = struct
                 
 end
 
+
+module type ARGS = sig
+    val in_ch : IO.input_channel
+    val out_ch : IO.output_channel
+    module LocalPort : PORT
+end
 
 module Make (Args : ARGS) = struct
     open Args
@@ -158,7 +164,7 @@ module Make (Args : ARGS) = struct
     let get_root key =
         request_out (GetRoot key)
 
-    let apply (type d) (type a) (type r) id h a =
+    let apply (type d_) (type a_) (type r_) id h a =
         let module Apply = struct
             type d = d_
             type a = a_
@@ -170,20 +176,17 @@ module Make (Args : ARGS) = struct
         request_out (Apply (module Apply : APPLY with type r = r_))
 
     module UnitT = struct
-        type ('a, 'b) t1 = unit
+        type ('a, 'b) t2 = unit
     end
 
-    module IdSet = PolyMap.MakeGlobal(UnitT)
-
-    let pending_ids = 
-        ref IdSet.empty
+    let pending_queries = Hashtbl.create 17
 
     (* An optimization for root/domain discovery: keep track of the
        inbound queries already running, and don't send them outbound:
        since the remote peer asked for it already, bouncing the query
        back can't do any good. *)
     let query_id (type d_) id qid =
-        if IdSet.have !pending_ids qid
+        if Hashtbl.mem pending_queries qid
         then 
             return false
         else
@@ -204,13 +207,18 @@ module Make (Args : ARGS) = struct
             LocalPort.apply Apply.id Apply.handle Apply.arg
 	| QueryId(idq, teq) -> 
             let module IdQ = (val idq : ID_QUERY) in
-            if IdSet.have !pending_ids IdQ.qid
+            if Hashtbl.mem pending_queries IdQ.qid
             then 
                 return (cast_back teq false)
             else begin
-                pending_ids := IdSet.put !pending_ids IdQ.qid ();
-                LocalPort.query_id IdQ.id IdQ.qid >>= fun b ->
-                pending_ids := IdSet.delete !pending_ids IdQ.qid;
+                Hashtbl.add pending_queries IdQ.qid ();
+                finalize 
+                    (fun () ->
+                        LocalPort.query_id IdQ.id IdQ.qid)
+                    (fun () ->
+                        Hashtbl.remove pending_queries IdQ.qid;
+                        return ())
+                >>= fun b ->
                 return (cast_back teq b)
             end
 	| Ping teq -> 
@@ -308,3 +316,11 @@ module Make (Args : ARGS) = struct
         detach loop
 end
         
+let make in_ch out_ch port = 
+    let module Args = struct
+        let in_ch = in_ch
+        let out_ch = out_ch
+        module LocalPort = (val port : PORT)
+    end in
+    let module C = Make(Args) in
+    (module C : CONNECTION)

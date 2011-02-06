@@ -62,3 +62,21 @@ end
 
 type listener = (module LISTENER)
 
+module type CONNECTION = sig
+    include PORT
+    val close : unit -> unit lwt
+    val abort : unit -> unit lwt
+    val finish : unit lwt
+end
+
+module type ROUTER = sig
+    include PORT
+    type link
+    val link : port -> link lwt
+    val unlink : link -> unit lwt
+end
+
+type router = (module ROUTER)
+
+type connection = (module CONNECTION)
+

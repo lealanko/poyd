@@ -2,39 +2,38 @@ open NcPrelude
 open NcDefs
 open Type
 
-module LocalDomain(Unit : UNIT) : LOCAL_DOMAIN = struct
-            
-        module HandleValue = struct
-            type ('a, 'b) t2 = 'a -> 'b lwt
-        end
-        module HandleMap = PolyMap.MakeLocal(HandleValue)
-            
-        module T2 = Type2(HandleMap.K)
-        type d = T2.d
-        let id = PolyMap.UuidKey.generate ()
-                
-        let handles = ref HandleMap.empty
-            
-        let register_handle f =
-            let k = HandleMap.K.generate () in
-            handles := HandleMap.put !handles k f;
-            cast_back T2.eqd k
-                
-        let invoke k arg =
-            let f = HandleMap.get !handles (cast T2.eqd k) in
-            f arg
+let local () = (module struct
+    module HandleValue = struct
+        type ('a, 'b) t2 = 'a -> 'b lwt
+    end
+    module HandleMap = PolyMap.MakeLocal(HandleValue)
         
-
-        module RootValue = struct
-            type ('a, 'b) t2 = 'a
-        end
-        module RootMap = PolyMap.MakeGlobal(RootValue)
+    module T2 = Type2(HandleMap.K)
+    type d = T2.d
+    let id = PolyMap.UuidKey.generate ()
+        
+    let handles = ref HandleMap.empty
+        
+    let register_handle f =
+        let k = HandleMap.K.generate () in
+        handles := HandleMap.put !handles k f;
+        cast_back T2.eqd k
             
-        let roots = ref RootMap.empty
-        let set_root k v = roots := RootMap.put !roots k v
-        let get_root k = 
-            return (RootMap.get !roots k)
-    end 
+    let invoke k arg =
+        let f = HandleMap.get !handles (cast T2.eqd k) in
+        f arg
+            
+            
+    module RootValue = struct
+        type ('a, 'b) t2 = 'a
+    end
+    module RootMap = PolyMap.MakeGlobal(RootValue)
+        
+    let roots = ref RootMap.empty
+    let set_root k v = roots := RootMap.put !roots k v
+    let get_root k = 
+        return (RootMap.get !roots k)
+end : DOMAIN)
 
 module DomainPort(D : DOMAIN) : PORT = struct
 
@@ -62,3 +61,8 @@ module DomainPort(D : DOMAIN) : PORT = struct
             let handle_ = cast eq handle in
             D.invoke handle_ arg
 end
+
+let port d = 
+    let module D = (val d : DOMAIN) in
+    let module P = DomainPort(D) in
+    (module P : PORT)

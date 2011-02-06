@@ -1,54 +1,35 @@
-module type S = sig
+open NcPrelude
+open NcDefs
 
-    val close : unit -> unit lwt
+let listen listen_addr local_port = (module struct
 
-end
-
-
-
-
-module type LISTENER_ARGS = sig
-    val local_domains : Domain.Map.m signal
-    val listen_addr : Unix.sockaddr
-end
-
-module Listener(LArgs : LISTENER_ARGS) : LISTENER = struct
-    let change_event, send_change = Event.create ()
-
-    let roots, set_roots = Signal.create (Map.empty)
-
-    let open_connections = 
-        Signal.fold (fun old c -> c old) Set.empty change_event
+    let connections = Lwt_sequence.create ()
 
     let serve (in_ch, out_ch) =
-        let module CArgs = struct
-            include LArgs
-            let in_ch = in_ch
-            let out_ch = out_ch
-            let roots = roots
-        end in
-        let module C = Connection(CArgs) in
-        let c = (module C : CONNECTION) in
-        send_change (Set.add c);
         detach (fun () ->
-            finalize (fun () -> C.finish)
-                (fun () ->
-                    return (send_change (Set.remove c))))
+            let c = Connection.make in_ch out_ch local_port in
+            let node = Lwt_sequence.add_l c connections in
+            let module C = (val c : CONNECTION) in
+            C.finish >>= fun () ->
+            Lwt_sequence.remove node;
+            return ())
+        
+    let server = Lwt_io.establish_server listen_addr serve
 
-    let server = Lwt_io.establish_server LArgs.listen_addr serve
-
-    let set_root k v =
-        set_roots (Map.add k (Obj.repr v) (Signal.value roots))
-
-    let close () = 
-        Lwt_io.shutdown_server server
-end
-
-let listen listen_addr local_domains =
-    let module LArgs = struct
-        let local_domains = local_domains
-        let listen_addr = listen_addr
-    end in
-    let module L = Listener(LArgs) in
-    (module L : LISTENER)
+    let close () =
+        (* There is almost a race condition here since we cannot wait
+           until the socket has been closed. *)
+        Lwt_io.shutdown_server server;
+        Lwt_sequence.fold_r (fun c t ->
+            let module C = (val c : CONNECTION) in
+            C.close () <&> t)
+            connections (return ())
+            
+    let abort () =
+        Lwt_io.shutdown_server server;
+        Lwt_sequence.fold_r (fun c t ->
+            let module C = (val c : CONNECTION) in
+            C.abort () <&> t)
+            connections (return ())
+end : LISTENER)
 
