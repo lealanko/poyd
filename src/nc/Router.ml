@@ -3,6 +3,8 @@
 open NcPrelude
 open NcDefs
 
+module L = (val Log.make "Router" : Log.S)
+
 let make () = (module struct
     module Seq = Lwt_sequence
     type link = port Seq.node
@@ -16,6 +18,7 @@ let make () = (module struct
 
     let query_ports id qid =
         let ports = Seq.fold_r (fun a l -> a :: l) ports [] in
+        let _ = L.dbg "ports: %s" (dump ports) in
         let query_port p =
             let module P = (val p : PORT) in
             catch (fun () -> P.query_id id qid)
@@ -23,6 +26,10 @@ let make () = (module struct
         Lwt_list.filter_p query_port ports >>= function 
           | [] -> fail Not_found
           | p :: _ -> return p
+
+    let query_ports id qid =
+        L.trace (fun () -> query_ports id qid) "query_ports"
+
 
     let lookup_id (type a) (id : a id) (qid : qid) : port lwt = 
         try
@@ -51,6 +58,10 @@ let make () = (module struct
                 pending_queries := QIdSet.remove qid !pending_queries;
                 return ())
 
+    let query_id id qid =
+        L.trace (fun () -> query_id id qid) "query_id"
+
+
     let link (port : port) : link lwt =
         return (Seq.add_r port ports)
 
@@ -64,7 +75,9 @@ let make () = (module struct
 
             
     let get_root id =
+        L.dbg "begin get_root" >>= fun () ->
         lookup_id id (Uuidm.create `V4) >>= fun port ->
+        L.dbg "got root" >>= fun () ->
         let module Port = (val port : PORT) in
         Port.get_root id
 

@@ -5,6 +5,7 @@ include module type of PolyMapDefs
 module UuidKey : sig
     include KEY
     val unsafe_of_string : string -> ('a, 'b) t2
+    val to_uuid : ('a, 'b) t2 -> Uuidm.t
 end
 
 module MakeGlobal(V : TYPE2) : 

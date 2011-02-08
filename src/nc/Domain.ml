@@ -2,6 +2,8 @@ open NcPrelude
 open NcDefs
 open Type
 
+module L = (val Log.make "Domain" : Log.S)
+
 let local () = (module struct
     module HandleValue = struct
         type ('a, 'b) t2 = 'a -> 'b lwt
@@ -33,7 +35,7 @@ let local () = (module struct
     let set_root k v = roots := RootMap.put !roots k v
     let get_root k = 
         return (RootMap.get !roots k)
-end : DOMAIN)
+end : LOCAL_DOMAIN)
 
 module DomainPort(D : DOMAIN) : PORT = struct
 
@@ -46,6 +48,10 @@ module DomainPort(D : DOMAIN) : PORT = struct
               (function 
                 | Not_found -> return false
                 | exn -> fail exn)
+
+    let query_id id qid = 
+        L.trace (fun () -> query_id id qid) "query_id"
+
 
     let get_root = D.get_root
 

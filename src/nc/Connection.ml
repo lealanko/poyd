@@ -4,10 +4,7 @@ open Type
 
 include ConnectionDefs
 
-let section = Lwt_log.Section.make "NcConnection"
-
-let dbg fmt = 
-    Lwt_log.debug_f ~section fmt
+module L = (val Log.make "Connection" : Log.S)
 
 let pprint printer () v =
     let out = BatIO.output_string () in
@@ -24,6 +21,31 @@ end
 
 type id_query = (module ID_QUERY)
 
+let pp f fmt =
+    Format.fprintf f ("@[" ^^ fmt ^^ "@]@ ")
+
+
+let pr_any f v =
+    pp f "%s" (BatStd.dump v)
+let pr_qid f qid =
+    pp f "\"%s\"" (Uuidm.to_string qid)
+let pr_id f v =
+    pr_qid f (PolyMap.UuidKey.to_uuid v)
+
+let pr_struct f mems =
+    pp f "struct@;<1 1>@[%t@]end" 
+        (fun f ->
+            List.iter (fun p -> p f) mems)
+
+let memp n pr v f =
+    pp f "let %s = %a@ " n pr v
+
+let pr_idq f idq =
+    let module IdQuery = (val idq : ID_QUERY) in
+    pr_struct f [
+        memp "id" pr_id IdQuery.id;
+        memp "qid" pr_qid IdQuery.qid]
+
 module type APPLY = sig
     type d
     type a 
@@ -35,11 +57,25 @@ end
 
 type 'r apply = (module APPLY with type r = 'r)
 
+let pr_apply (type r_) f app =
+    let module App = (val app : APPLY with type r = r_) in
+    pr_struct f [
+        memp "id" pr_id App.id;
+        memp "handle" pr_any App.handle;
+        memp "arg" pr_any App.arg]
+
 type 'r request =
     | QueryId of id_query * ('r, bool) teq
     | GetRoot of 'r id 
     | Apply of 'r apply
     | Ping of ('r, unit) teq
+
+let pr_request f = function
+    | QueryId(idq,_) -> pp f "QueryId(%a,_)" pr_idq idq
+    | GetRoot(id) -> pp f "GetRoot(%a)" pr_id id
+    | Apply(app) -> pp f "Apply(%a)" pr_apply app
+    | Ping(_) -> pp f "Ping(_)"
+
 
 module Message(LocalId : TYPE1)(RemoteId : TYPE1) = struct
     module type CANCEL = sig
@@ -126,11 +162,14 @@ module Make (Args : ARGS) = struct
     let in_map = ref InMap.empty
 
     let write_msg (msg : OutMsg.t) =
-	IO.write_value out_ch msg
+	IO.write_value ~flags:[Marshal.Closures] out_ch msg
 
     let read_msg () : InMsg.t lwt =
 	IO.read_value in_ch >>= fun msg ->
 	return msg
+
+    let read_msg () =
+        L.trace read_msg "read_msg ()"
 
     module OutboundMgr = TaskMgr.Make(Unit)
     module InboundMgr = TaskMgr.Make(Unit)
@@ -140,6 +179,7 @@ module Make (Args : ARGS) = struct
         let mv = MVar.create_empty () in
         out_map := OutMap.put !out_map id mv;
         finalize (fun () ->
+           (*  L.dbg "send request: %a" pr_request rq >>= fun () -> *)
             let msg = OutMsg.mk_request rq id in
             block (write_msg msg) >>= fun () ->
             let rec take () = catch
@@ -158,8 +198,14 @@ module Make (Args : ARGS) = struct
                 out_map := OutMap.delete !out_map id;
                 return ())
 
+    let do_request_out rq =
+        L.trace (fun () -> do_request_out rq) "do_request_out %a" pr_request rq
+
     let request_out rq =
 	OutboundMgr.task (fun () -> do_request_out rq)
+
+    let request_out rq =
+        L.trace (fun () -> request_out rq) "request_out %a" pr_request rq
 
     let get_root key =
         request_out (GetRoot key)
@@ -195,6 +241,9 @@ module Make (Args : ARGS) = struct
             end in
             request_out (QueryId ((module IdQ : ID_QUERY), eq_refl))
 
+    let query_id id qid = 
+        L.trace (fun () -> query_id id qid) "query_id %a %a" pr_id id pr_qid qid
+
     let shutdown () : unit lwt =
 	IO.close in_ch <&> IO.close out_ch
 
@@ -223,7 +272,10 @@ module Make (Args : ARGS) = struct
             end
 	| Ping teq -> 
             return (cast_back teq ())
-	              
+
+    let handle_request rq =
+	L.trace (fun () -> handle_request rq) "handle_request %a" pr_request rq
+
     let handle_message (msg : InMsg.t) : unit lwt = 
         let open InMsg in 
             match msg with
@@ -254,8 +306,7 @@ module Make (Args : ARGS) = struct
                     >>= fun ret ->
 		    write_msg (OutMsg.mk_response R.return_id ret))
 	    | Close -> 
-                OutboundMgr.close ();
-                return ()
+                OutboundMgr.close ()
 	    | Cancel cm ->
                 let module Cancel = (val cm : CANCEL) in
 	        let t = InMap.get !in_map Cancel.cancel_id in
@@ -276,13 +327,13 @@ module Make (Args : ARGS) = struct
 
     let close () =
         (* First ensure we won't send any more apply requests. *)
-        OutboundMgr.close ();
+        OutboundMgr.close () >>= fun () ->
         (* Then send the close request. The request is our promise we
            won't call further, the response is the peer's promise they
            won't either. *)
         write_msg OutMsg.Close >>= fun () ->
         (* Now we can stop accepting incoming calls. *)
-	InboundMgr.close ();
+	InboundMgr.close () >>= fun () -> 
         (* Finally wait until all remaining calls are processed. *)
         finish >>= fun () ->
         (* And close the handles. This triggers on_shutdown. *)
@@ -293,8 +344,9 @@ module Make (Args : ARGS) = struct
 
     let _ =
         let on_read_exn exn =
+            L.dbg "read exn" >>= fun () ->
             (* Ensure no new remote requests are made. *)
-            OutboundMgr.close ();
+            OutboundMgr.close () >>= fun () ->
             (* Abort all the current ones. *)
             let visit rqid mv =
                 detach (fun () ->
@@ -323,4 +375,7 @@ let make in_ch out_ch port =
         module LocalPort = (val port : PORT)
     end in
     let module C = Make(Args) in
-    (module C : CONNECTION)
+    return (module C : CONNECTION)
+
+let make in_ch out_ch port =
+    L.trace (fun () -> make in_ch out_ch port) "make"

@@ -32,6 +32,7 @@ module UuidKey = struct
         Uuidm.create `V4
     let unsafe_of_string s =
         Uuidm.create (`V5 (Uuidm.nil, s))
+    let to_uuid u = u
 end
 
 

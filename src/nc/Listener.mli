@@ -1,3 +1,3 @@
 open NcDefs
 
-val listen : Unix.sockaddr -> port -> listener 
+val listen : Unix.sockaddr -> router -> listener 

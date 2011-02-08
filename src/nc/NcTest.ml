@@ -1,11 +1,15 @@
 
 open NcPrelude
 
+let section = Lwt_log.Section.make "NcTest"
+
 type opts = {
     server : bool;
     port : int;
     host : string;
 }
+
+let dbg fmt = Lwt_log.debug_f ~section fmt
 
 let parse_argv argv =
     let open BatOptParse in
@@ -13,7 +17,6 @@ let parse_argv argv =
     and serverp = StdOpt.store_true () 
     and port = StdOpt.int_option () 
     and host = StdOpt.str_option ~default:"localhost" ()
-    and help = StdOpt.help_option ()
     in
     OptParser.add p ~short_name:'s' serverp;
     OptParser.add p ~short_name:'p' port;
@@ -31,27 +34,26 @@ let get_addr host port =
     Lwt_unix.gethostbyname host >>= fun entry ->
     return (Unix.ADDR_INET (Array.get entry.Unix.h_addr_list 0, port))
 
-
 let server host port =
     let f x = 
-        Lwt_log.debug_f "f(%d)" x >>= fun () ->
+        dbg "f(%d)" x >>= fun () ->
         return (x * x) in
-    let module LocalDomain = Domain.Local(Unit) in
-    let local_domain = (LocalDomain : Domain.DOMAIN) in
-    let domains = 
-        Signal.const (Domain.Map.insert Domain.Map.empty local_domain) in
     get_addr host port >>= fun addr ->
-    let listener = Connection.create_listener addr domains in
-    let module L = (val listener : Connection.LISTENER) in
-    L.set_root "f" f;
+    API.listen addr >>= fun () ->
+    let h = API.publish f in
+    API.set_root "f" h >>= fun () ->
     halt ()
 
 let client host port =
+    dbg "begin client" >>= fun _ ->
     get_addr host port >>= fun addr ->
-    Connection.connect addr >>= fun conn ->
-    let d = Domain.Map.get lookup
-    NcConnection.get_root conn "f" >>= fun f_h ->
-    NcHandle.apply f_h 7 >>= fun r ->
+    dbg "begin connect" >>= fun _ ->
+    API.connect addr >>= fun () ->
+    dbg "begin get_root" >>= fun _ ->
+    API.get_root "f" >>= fun f ->
+    dbg "got root" >>= fun _ ->
+    API.(!!) f 7 >>= fun r ->
+    dbg "got result" >>= fun _ ->
     IO.printl (string_of_int r)
     
 
