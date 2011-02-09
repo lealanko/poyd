@@ -1,0 +1,6 @@
+version = "0.0.0"
+description = "Distributed programming library"
+archive(byte) = "NcAll.cma"
+archive(native) = "NcAll.cmxa"
+exists_if = "NcAll.cma"
+requires = "lwt lwt.unix batteries uuidm"

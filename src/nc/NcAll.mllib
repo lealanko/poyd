@@ -10,9 +10,12 @@ PolyMap
 NcDefs
 Domain
 Router
+ConnectionDefs
 Connection
 Listener
 LocalRouter
 Log
+TaskMgrDefs
+TaskMgr
 API
 

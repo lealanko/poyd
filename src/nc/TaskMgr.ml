@@ -17,10 +17,8 @@ module Make(Arg : UNIT) = struct
         let l = lazy (wakeup finish_waker ()) in
         fun () -> Lazy.force l
 
-    let finish_task do_cancel node =
+    let finish_task node =
         Seq.remove node;
-        let cancel = Seq.get node in
-        if do_cancel then cancel ();
         if !state = Closed && Seq.is_empty cancels then 
             notify_finish ()
 
@@ -31,19 +29,24 @@ module Make(Arg : UNIT) = struct
             fix (fun t ->
                 let node = Seq.push cancels (fun () -> cancel t) in
                 finalize (thunk)
-                    (fun () -> return (finish_task false node)))
+                    (fun () -> return (finish_task node)))
 
     let close () = 
         L.dbg "close" >>= fun () ->
         state := Closed;
+        if Seq.is_empty cancels then 
+            notify_finish ();
         return ()
             
     let abort () =
         L.dbg "abort" >>= fun () ->
         state := Closed;
-        Seq.iter_node_l (finish_task true) cancels;
+        Seq.iter_s (fun c ->
+            L.dbg "canceling" >>= fun () ->
+            c ();
+            return ()) cancels >>= fun () ->
+        notify_finish ();
         return ()
-
 
     let _ = on_cancel finish (fun () -> detach abort)
 

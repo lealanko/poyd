@@ -17,10 +17,13 @@ let graft (k : 'a cont) (v : 'a) : 'b lwt =
 let on_cancel_w (k : 'a cont) (f : unit -> unit) : unit =
     Lwt.on_cancel (waiter_of_wakener k) f
 
-let tie (t : 'a lwt) (k : 'a cont) : unit =
+let tie_nocancel (t : 'a lwt) (k : 'a cont) : unit =
     ignore (try_bind (fun () -> t)
 		(fun a -> wakeup k a; return ())
-		(fun exn -> wakeup_exn k exn; return ()));
+		(fun exn -> wakeup_exn k exn; return ()))
+
+let tie (t : 'a lwt) (k : 'a cont) : unit =
+    tie_nocancel t k;
     on_cancel_w k (fun () -> cancel t)
 
 let ( >>- ) = tie
@@ -61,4 +64,17 @@ let block t =
     finalize
         (fun () -> protected t)
         (fun () -> no_cancel t >|= ignore)
-    
+
+let wait_thread (t : unit lwt) : unit lwt =
+    let t2 = 
+        protected 
+            (catch 
+                 (fun () -> t)
+                 (function
+                   | Canceled -> return ()
+                   | exn -> fail exn)) in
+    on_cancel t2 (fun () -> cancel t);
+    t2
+
+
+                            

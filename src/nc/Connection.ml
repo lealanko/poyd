@@ -101,6 +101,12 @@ module Message(LocalId : TYPE1)(RemoteId : TYPE1) = struct
         | Cancel of (module CANCEL)
         | Response of (module RESPONSE)
 
+    let pr f = function
+        | Request(_) -> pp f "Request(_)"
+        | Close -> pp f "Close"
+        | Cancel(_) -> pp f "Cancel(_)"
+        | Response(_) -> pp f "Response(_)"
+
     let mk_cancel (type a_) id =
         Cancel (module struct
             type a = a_
@@ -164,12 +170,19 @@ module Make (Args : ARGS) = struct
     let write_msg (msg : OutMsg.t) =
 	IO.write_value ~flags:[Marshal.Closures] out_ch msg
 
+    let write_msg msg =
+        L.trace (fun () -> write_msg msg) "write_msg %a" OutMsg.pr msg
+
+    let read_msg () : InMsg.t lwt =
+	IO.read_value in_ch >>= fun msg ->
+	return msg
+
     let read_msg () : InMsg.t lwt =
 	IO.read_value in_ch >>= fun msg ->
 	return msg
 
     let read_msg () =
-        L.trace read_msg "read_msg ()"
+        L.trace ~pr:InMsg.pr read_msg "read_msg"
 
     module OutboundMgr = TaskMgr.Make(Unit)
     module InboundMgr = TaskMgr.Make(Unit)
@@ -318,10 +331,16 @@ module Make (Args : ARGS) = struct
 		    | _ -> fail (Failure "cancelling failed")
 	        end
 	        | _ -> fail (Failure "not cancellable")
-                    
+                 
+    let mgr_finish = OutboundMgr.finish <&> InboundMgr.finish   
+
+
+    (* This contraption makes sure that if finish is cancelled, then
+       mgr_finish is cancelled too, but if mgr_finish is cancelled
+       independently, then finish returns normally. *)
     let finish = 
-        finalize (fun () ->
-            OutboundMgr.finish <&> InboundMgr.finish)
+        finalize (fun () -> 
+            wait_thread mgr_finish)
             (fun () ->
                 Lwt_io.close in_ch <&> Lwt_io.close out_ch)
 
@@ -354,7 +373,7 @@ module Make (Args : ARGS) = struct
             OutMap.iter !out_map { OutMap.visit };
             (* Send cancel to all tasks that are still running.
                This should just be inbound. *)
-            cancel finish;
+            cancel mgr_finish;
             return () in
         let rec handle_msg msg =
 	    detach (fun () -> 

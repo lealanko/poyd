@@ -1,6 +1,7 @@
-include Lwt_sequence
-
+open Lwt
 open NcLwt
+
+include Lwt_sequence
 
 let push s v = add_r v s
 let try_pop = take_opt_l
@@ -18,3 +19,6 @@ let take_all seq =
 	l := get node :: !l;
 	remove node) seq;
     !l
+
+let iter_s f seq =
+    fold_r (fun e k () -> f e >>= k) seq return ()

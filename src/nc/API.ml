@@ -52,14 +52,17 @@ let connections = Lwt_sequence.create ()
 let connect addr =
     Lwt_io.open_connection addr >>= fun (in_ch, out_ch) ->
     Connection.make in_ch out_ch router_port >>= fun conn ->
+    let node = Lwt_sequence.add_l conn connections in
     let module C = (val conn : CONNECTION) in
     let port = (module C : PORT) in
     detach (fun () ->
         R.link port >>= fun link ->
-        C.finish >>= fun () ->
-        R.unlink link);
-    return ()
-
+        finalize (fun () -> C.finish)
+            (fun () ->
+                Lwt_sequence.remove node;
+                R.unlink link));
+    return () 
+        
 let get_root str = 
     let id = PolyMap.UuidKey.unsafe_of_string str in
     R.get_root id
@@ -76,5 +79,8 @@ let listen addr =
     let _node = Lwt_sequence.add_l listener listeners in
     return ()
 
-    
+let _ = Lwt_main.at_exit (fun () ->
+    Seq.iter_s (fun conn ->
+        let module C = (val conn : CONNECTION) in
+        C.close ()) connections)
     
