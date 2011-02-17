@@ -1,5 +1,4 @@
-
-open NcPrelude
+open FundPrelude
 
 let section = Lwt_log.Section.make "NcTest"
 
@@ -28,31 +27,22 @@ let parse_argv argv =
         host = Opt.get host;
     }
 
-
-
-let get_addr host port = 
-    Lwt_unix.gethostbyname host >>= fun entry ->
-    return (Unix.ADDR_INET (Array.get entry.Unix.h_addr_list 0, port))
-
-let server host port =
+let server port =
     let f x = 
         dbg "f(%d)" x >>= fun () ->
         return (x * x) in
-    get_addr host port >>= fun addr ->
-    API.listen addr >>= fun () ->
-    let h = API.publish f in
-    API.set_root "f" h >>= fun () ->
+    Fund.listen ~local:true ~port () >>= fun () ->
+    let h = Fund.publish f in
+    Fund.set_root "f" h >>= fun () ->
     halt ()
 
 let client host port =
-    dbg "begin client" >>= fun _ ->
-    get_addr host port >>= fun addr ->
     dbg "begin connect" >>= fun _ ->
-    API.connect addr >>= fun () ->
+    Fund.connect ~host ~port () >>= fun () ->
     dbg "begin get_root" >>= fun _ ->
-    API.get_root "f" >>= fun f ->
+    Fund.get_root "f" >>= fun f ->
     dbg "got root" >>= fun _ ->
-    API.(!!) f 7 >>= fun r ->
+    Fund.(!!) f 7 >>= fun r ->
     dbg "got result" >>= fun _ ->
     IO.printl (string_of_int r)
     
@@ -60,7 +50,7 @@ let client host port =
 let main_ () =
     let opts = parse_argv Sys.argv in
     if opts.server then
-        server opts.host opts.port
+        server opts.port
     else
         client opts.host opts.port
 

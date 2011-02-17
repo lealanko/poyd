@@ -1,10 +1,8 @@
-open NcPrelude
-open NcDefs
-open Type
+open FundPrelude
+open FundDefs
+open FundType
 
-include ConnectionDefs
-
-module L = (val Log.make "Connection" : Log.S)
+module L = (val FundLog.make "Connection" : FundLog.S)
 
 let pprint printer () v =
     let out = BatIO.output_string () in
@@ -30,7 +28,7 @@ let pr_any f v =
 let pr_qid f qid =
     pp f "\"%s\"" (Uuidm.to_string qid)
 let pr_id f v =
-    pr_qid f (PolyMap.UuidKey.to_uuid v)
+    pr_qid f (FundPolyMap.UuidKey.to_uuid v)
 
 let pr_struct f mems =
     pp f "struct@;<1 1>@[%t@]end" 
@@ -143,7 +141,7 @@ module Make (Args : ARGS) = struct
         type ('a, 'b) t2 = ('a, exn) result mvar
     end
 
-    module OutMap = PolyMap.MakeLocal(OutEntry)
+    module OutMap = FundPolyMap.MakeLocal(OutEntry)
 
     module LocalMsgId = struct
         type 'a t1 = ('a, unit) OutMap.K.t2
@@ -154,7 +152,7 @@ module Make (Args : ARGS) = struct
         type ('a, 'b) t2 = 'a lwt
     end
 
-    module InMap = PolyMap.MakeLocal(InEntry)
+    module InMap = FundPolyMap.MakeLocal(InEntry)
 
     module RemoteMsgId = struct
         type 'a t1 = ('a, unit) InMap.K.t2
@@ -184,8 +182,8 @@ module Make (Args : ARGS) = struct
     let read_msg () =
         L.trace ~pr:InMsg.pr read_msg "read_msg"
 
-    module OutboundMgr = TaskMgr.Make(Unit)
-    module InboundMgr = TaskMgr.Make(Unit)
+    module OutboundMgr = FundTaskMgr.Make(Unit)
+    module InboundMgr = FundTaskMgr.Make(Unit)
 
     let rec do_request_out rq =
         let id = OutMap.K.generate () in
@@ -255,7 +253,7 @@ module Make (Args : ARGS) = struct
             request_out (QueryId ((module IdQ : ID_QUERY), eq_refl))
 
     let query_id id qid = 
-        L.trace (fun () -> query_id id qid) "query_id %a %a" pr_id id pr_qid qid
+        L.trace2 "query_id" query_id id ~p1:pr_id qid ~p2:pr_qid
 
     let shutdown () : unit lwt =
 	IO.close in_ch <&> IO.close out_ch

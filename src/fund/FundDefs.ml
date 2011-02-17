@@ -1,8 +1,8 @@
 
-open NcPrelude
-open Type
+open FundPrelude
+open FundType
 
-type 'd id = ('d, unit) PolyMap.UuidKey.t2
+type 'd id = ('d, unit) FundPolyMap.UuidKey.t2
 
 type ('d, 'a, 'b) local_handle = ('d, 'a, 'b) type2
 
@@ -31,6 +31,7 @@ module type LOCAL_DOMAIN = sig
     include DOMAIN
     val set_root : 'a id -> 'a -> unit
     val register_handle : ('a -> 'r lwt) -> (d, 'a, 'r) local_handle
+    val unregister_handle : (d, 'a, 'r) local_handle -> unit
 end
 
 module type LISTENER = sig

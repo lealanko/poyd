@@ -1,6 +1,6 @@
 
-open Type
-include module type of PolyMapDefs
+open FundType
+include module type of FundPolyMapDefs
 
 module UuidKey : sig
     include KEY

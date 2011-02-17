@@ -1,7 +1,7 @@
 
-open NcPrelude
-include PolyMapDefs
-open Type
+open FundPrelude
+include FundPolyMapDefs
+open FundType
 module type FULL_KEY = sig
     include KEY
     module Ord : Interfaces.OrderedType

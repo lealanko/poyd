@@ -1,5 +1,5 @@
 
-open Type
+open FundType
 
 module type KEY = sig
     include TYPE2

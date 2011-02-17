@@ -1,9 +1,21 @@
-open NcPrelude
+open FundPrelude
+
+type ftr = Format.formatter
+
+
 
 module type S = sig
-    val dbg : ('a, Format.formatter, unit, unit lwt) format4 -> 'a
-    val trace : (unit -> 'a lwt) -> ?pr:(Format.formatter -> 'a -> unit) ->
-        ('b, Format.formatter, unit, 'a lwt) format4 -> 'b
+    val dbg : ('a, ftr, unit, unit lwt) format4 -> 'a
+    val trace : ?pr:(ftr -> 'a -> unit) -> (unit -> 'a lwt) ->
+        ('b, ftr, unit, 'a lwt) format4 -> 'b
+    val trace2 : 
+        ?pr:(ftr -> 'r -> unit) ->
+        ?p1:(ftr -> 'a -> unit) ->
+        ?p2:(ftr -> 'b -> unit) ->
+        string ->
+        ('a -> 'b -> 'r lwt) ->
+        'a -> 'b -> 'r lwt
+
 end
 
 type t = (module S)
@@ -32,7 +44,7 @@ let make secname = (module struct
     let dbg fmt = 
         ksprintf fmt (fun s -> Lwt_log.debug ~section s)
 
-    let trace thunk ?(pr=pr_any) fmt = 
+    let trace ?(pr=pr_any) thunk fmt = 
         ksprintf fmt (fun s ->
             Lwt_log.debug_f ~section "-> %s" s >>= fun () ->
             try_bind thunk
@@ -43,6 +55,10 @@ let make secname = (module struct
                 (fun exn ->
                     Lwt_log.debug_f ~section ~exn "<# %s" s >>= fun () ->
                     fail exn))
+
+    let trace2 ?pr ?(p1=pr_any) ?(p2=pr_any) s f a1 a2 =
+        trace ?pr (fun () -> f a1 a2) "@[%s %a %a@]" s p1 a1 p2 a2
+        
         
 end : S)
             

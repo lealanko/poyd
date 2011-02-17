@@ -1,16 +1,16 @@
 
 
-open NcPrelude
-open NcDefs
+open FundPrelude
+open FundDefs
 
-module L = (val Log.make "Router" : Log.S)
+module L = (val FundLog.make "Router" : FundLog.S)
 
 let make () = (module struct
     module Seq = Lwt_sequence
     type link = port Seq.node
     let ports = Seq.create ()
 
-    module RouteTable = PolyMap.MakeGlobal(struct
+    module RouteTable = FundPolyMap.MakeGlobal(struct
         type ('a, 'b) t2 = port
     end)
 

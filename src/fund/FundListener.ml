@@ -1,5 +1,5 @@
-open NcPrelude
-open NcDefs
+open FundPrelude
+open FundDefs
 
 let listen listen_addr router = (module struct
     module R = (val router : ROUTER)
@@ -7,7 +7,7 @@ let listen listen_addr router = (module struct
 
     let serve (in_ch, out_ch) =
         detach (fun () ->
-            Connection.make in_ch out_ch local_port >>= fun c ->
+            FundConnection.make in_ch out_ch local_port >>= fun c ->
             let module C = (val c : CONNECTION) in
             let port = (module C : PORT) in
             R.link port >>= fun link ->

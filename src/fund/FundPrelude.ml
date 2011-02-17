@@ -3,7 +3,7 @@ module B = Batteries_uni
 
 include Lwt
 
-include NcLwt
+include FundLwt
 
 include B.Std
 
@@ -18,7 +18,7 @@ type 'a mvar = 'a MVar.t
 module Cond = Lwt_condition
 type 'a cond = 'a Cond.t
 
-module Seq = NcSequence
+module Seq = FundSequence
 type 'a seq = 'a Seq.t
 
 module List = B.List

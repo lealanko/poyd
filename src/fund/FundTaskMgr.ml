@@ -1,7 +1,7 @@
-open NcPrelude
-include TaskMgrDefs
+open FundPrelude
+include FundTaskMgrDefs
 
-module L = (val Log.make "TaskMgr" : Log.S)
+module L = (val FundLog.make "TaskMgr" : FundLog.S)
 
 type state = 
     | Running
@@ -52,4 +52,4 @@ module Make(Arg : UNIT) = struct
 
 end
 
-let _ = ExnMapper.register MgrClosed
+let _ = FundExnMapper.register MgrClosed
