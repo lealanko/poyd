@@ -1,0 +1,6 @@
+version = "0.0.0"
+description = "Distributed programming library"
+archive(byte) = "Fund.cma"
+archive(native) = "Fund.cmxa"
+exists_if = "Fund.cma"
+requires = "lwt.unix batteries uuidm"
