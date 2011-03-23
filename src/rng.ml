@@ -15,7 +15,7 @@ let finally thunk end_thunk =
     | Succ res -> res
     | Fail exn -> raise exn
 
-let fork () = Random.State.make (Array.init 55 (fun _ -> Random.bits ()))
+let fork s = Random.State.make (Array.init 55 (fun _ -> Random.State.bits s))
 
 let with_state s thunk =
   let old_state = Random.get_state ()
@@ -23,4 +23,4 @@ let with_state s thunk =
   Random.set_state s;
   finally thunk (fun () -> Random.set_state old_state)
 
-let forked thunk = with_state (fork ()) thunk
+let forked thunk = with_state (fork (Random.get_state ())) thunk

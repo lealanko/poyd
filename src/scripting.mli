@@ -331,7 +331,7 @@ module Make
     (TreeOps : 
         Ptree.Tree_Operations with type a = Node.n with type b = Edge.e)
     (CScrp : CharacterScripting.S with type n = Node.n)
-    (B : Batch.S with type a = Node.n with type b = Edge.e with type c = CScrp.cs) :
+    (B : Batch.S with type T.a = Node.n with type T.b = Edge.e with type T.c = CScrp.cs) :
         S with type a = Node.n with type b = Edge.e with type c = CScrp.cs
 
 (** {2 Scripting in Ocaml} 

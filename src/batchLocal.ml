@@ -1,28 +1,26 @@
 module Make (P : Scripting.S) : 
-    Batch.S with type a = P.a with type b = P.b with type c = P.c = 
+    Batch.S with module T = P =
 struct
-    type a = P.a
-    type b = P.b
-    type c = P.c
-	    
+    module T = P
+    include Batch.Base(T)
     type trees = (a, b) Ptree.p_tree Sexpr.t
 
     let info fmt = 
 	Printf.ksprintf (Status.user_message Status.Information) fmt
 
-    let generate_trees ~n_trees ~generate ~composer ~initial_state =
+    let generate_trees {rng; n_trees; generate; composer; initial_state} =
 	let st = 
 	    Status.create "Running Pipeline" (Some n_trees) "times" in
 	let timer =
 	    Timer.start () 
 	in
 	let rngs : Rng.t array =
-	    Array.init n_trees (fun _ -> Rng.fork ()) 
+	    Array.init n_trees (fun _ -> Rng.fork rng) 
 	in
 	let run0 = { initial_state with ScriptingTypes.stored_trees = `Empty }
 	in
-	let make_one (rng : Rng.t) : trees =
-	    Rng.with_state rng (fun () ->
+	let make_one (subrng : Rng.t) : trees =
+	    Rng.with_state subrng (fun () ->
 		info "Rng hash: %d" (Hashtbl.hash (Random.get_state ()));
 		let run1 =
 		    List.fold_left P.folder run0 generate 
@@ -41,13 +39,13 @@ struct
 		trees)
 	in
 	let all_trees = 
-	    Array.fold_left (fun trees rng -> 
-		Sexpr.union (make_one rng) trees)
+	    Array.fold_left (fun trees subrng -> 
+		Sexpr.union (make_one subrng) trees)
 		`Empty
 		rngs
 	in
 	begin
 	    Status.finished st;
-	    all_trees
+	    { trees = all_trees }
 	end
 end

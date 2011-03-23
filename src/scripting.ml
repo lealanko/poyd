@@ -359,7 +359,7 @@ module Make (Node : NodeSig.S with type other_n = Node.Standard.n) (Edge : Edge.
             Node.n with type b = Edge.e)
     (CScrp : CharacterScripting.S with type n = Node.n)
     (B : Batch.S 
-     with type a = Node.n with type b = Edge.e with type c = CScrp.cs)
+     with type T.a = Node.n with type T.b = Edge.e with type T.c = CScrp.cs)
     = struct
     type a = Node.n
     type b = Edge.e
@@ -3512,11 +3512,15 @@ END
             let run = folder run (`Discard ([`Data], name)) in
             run
     | `ParallelPipeline (times, todo, composer, continue) ->
-            let trees = B.generate_trees 
-		~n_trees:times ~generate:todo 
-		~composer:composer ~initial_state:run
+            let trees = B.((generate_trees {
+                rng = Random.get_state ();
+                n_trees = times;
+                generate = todo;
+                composer = composer;
+                initial_state = run;
+            }).trees)
 	    in
-	    let run1 = { run with trees } in
+	    let run1 = { run with trees = trees } in
             List.fold_left folder run1 continue
     (* The following methods are user friendly *)
     | #Methods.tree_handling as meth ->
