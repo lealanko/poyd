@@ -1,4 +1,4 @@
-module Make (P : Scripting.S) : 
+module Make (P : ScriptingTypes.S) : 
     Batch.S with module T = P =
 struct
     module T = P
