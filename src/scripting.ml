@@ -19,7 +19,7 @@
 
 let () = SadmanOutput.register "Scripting" "$Revision: 2856 $"
 
-open ScriptingTypes
+include ScriptingTypes
 
 module IntSet = All_sets.Integers
 
