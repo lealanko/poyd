@@ -19,7 +19,7 @@
 
 (** {1 Scripting POY} *)
 
-open ScriptingTypes
+include module type of ScriptingTypes
 
 val build_has : Methods.cost_calculation -> Methods.build -> bool
 
