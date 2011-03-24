@@ -21,6 +21,8 @@
 
 include module type of ScriptingTypes
 
+module type S = ScriptingTypes.S
+
 val build_has : Methods.cost_calculation -> Methods.build -> bool
 
 module type S = sig
