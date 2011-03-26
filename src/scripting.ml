@@ -65,16 +65,16 @@ let build_has item = function
 
 
 
-module Make (Node : NodeSig.S with type other_n = Node.Standard.n) (Edge : Edge.EdgeSig with type n = Node.n) 
-    (TreeOps : 
-        Ptree.Tree_Operations with type a =
-            Node.n with type b = Edge.e)
-    (CScrp : CharacterScripting.S with type n = Node.n)
-    = struct
-    type a = Node.n
-    type b = Edge.e
-    type c = CScrp.cs
-    type tree = (a, b) Ptree.p_tree 
+module Make 
+    (T : TYPES)
+    (Node : NodeSig.S with type n = T.a with type other_n = Node.Standard.n) 
+    (Edge : Edge.EdgeSig with type n = T.a with type e = T.b) 
+    (TreeOps : Ptree.Tree_Operations with type a = T.a with type b = T.b)
+    (CScrp : CharacterScripting.S with type n = T.a with type cs = T.c) 
+    = 
+struct
+    module T = T
+    include Defs(T)
 
     module Kml = struct
         exception IllegalCVS
@@ -928,7 +928,6 @@ module D = Diagnosis.Make (Node) (Edge) (TreeOps)
 module S = Supports.Make (Node) (Edge) (TreeOps)
 
 
-type r = (a, b, c) run
 
     type plugin_function = Methods.script Methods.plugin_arguments -> r -> r
 
@@ -942,10 +941,6 @@ type r = (a, b, c) run
         end else
             Hashtbl.add plugins name f
 
-type minimum_spanning_tree = tree 
-type build = minimum_spanning_tree list
-type minimum_spanning_family = minimum_spanning_tree list
-type build_optimum = tree list
 
 let ndebug = true
 let ndebug_no_catch = true
@@ -1247,8 +1242,6 @@ let load_data (meth : Methods.input) data nodes =
     let data = annotated_reader data meth in
     let data = Data.categorize (Data.remove_taxa_to_ignore data) in
     Node.load_data data
-
-type script = Methods.script
 
 let process_input run (meth : Methods.input) =
     let d, nodes = load_data meth run.data run.nodes in

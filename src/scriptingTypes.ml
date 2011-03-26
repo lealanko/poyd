@@ -32,12 +32,26 @@ type ('a, 'b, 'c) run = {
     search_results : search_results;
 }
 
-module type S = sig
-        type a 
-        type b
-        type c
+module type TYPES = sig
+    type a
+    type b
+    type c
+end
 
-type tree = (a, b) Ptree.p_tree 
+module Defs(T : TYPES) = struct
+    include T
+    type tree = (a, b) Ptree.p_tree 
+    type r = (a, b, c) run
+    type minimum_spanning_tree = tree 
+    type build = minimum_spanning_tree list
+    type minimum_spanning_family = minimum_spanning_tree list
+    type build_optimum = tree list
+    type script = Methods.script
+end
+
+module type S = sig
+    module T : TYPES
+    include module type of Defs(T)
 
     module Kml : sig
         type phylogeny = tree
@@ -54,7 +68,7 @@ type tree = (a, b) Ptree.p_tree
 
             (* Estimate the horizontal distance between points, in meters *)
             val horizontal_distance : point -> point -> float
-            
+                
             (* Calculate a point located in the center between two points *)
             val center_points : point -> point -> point
 
@@ -75,7 +89,7 @@ type tree = (a, b) Ptree.p_tree
             val min_date : date -> date -> date
 
             (* Produce a hash table of terminals and their corresponding samples, as
-            * read from a csv file *)
+             * read from a csv file *)
             val csv : string -> (Xml.unstructured, sample) Hashtbl.t
         end
 
@@ -83,65 +97,65 @@ type tree = (a, b) Ptree.p_tree
             (* A module to easily process trees for KML generation *)
 
             (* POY uses internally a relatively complex data structure to hold the
-            * trees, this is a sipmlified version that has all the information in XML
-            * like format. Only binary trees are alowed, and each is a tuple, consisting
-            * of the contents of the vertex in the phylogenetic tree, and the temporal
-            * and geographic information associated with it. The leaves are exactly the
-            * input data, while the interior vertices are computed by POY or user
-            * provided plugins. *)
+             * trees, this is a sipmlified version that has all the information in XML
+             * like format. Only binary trees are alowed, and each is a tuple, consisting
+             * of the contents of the vertex in the phylogenetic tree, and the temporal
+             * and geographic information associated with it. The leaves are exactly the
+             * input data, while the interior vertices are computed by POY or user
+             * provided plugins. *)
             type simplified_topology = (Xml.xml * TemporalGIS.sample) Parser.Tree.t
 
             (* The represenatation of the name of a node. We don't use plain strings
-            * because they would make the generation of the XML a little bit too verbose
-            * *)
+             * because they would make the generation of the XML a little bit too verbose
+             * *)
             type node_name = Xml.unstructured 
 
             (* The topology of a tree, with the simplified version of the topology, and
-            * quick access to the nodes of the tree, and the ancestors. This suplies
-            * some functions that the simplified_topology can nos perform (like finding
-            * the ancestor of a tree or quickly reaching a particular vertex of the
-            * tree). *)
+             * quick access to the nodes of the tree, and the ancestors. This suplies
+             * some functions that the simplified_topology can nos perform (like finding
+             * the ancestor of a tree or quickly reaching a particular vertex of the
+             * tree). *)
             type topology =
-                { ancestors : (Xml.unstructured, Xml.xml Xml.contents option) Hashtbl.t;
-                nodes : (Xml.unstructured, Xml.xml) Hashtbl.t;
-                topo : simplified_topology }
+                    { ancestors : (Xml.unstructured, Xml.xml Xml.contents option) Hashtbl.t;
+                      nodes : (Xml.unstructured, Xml.xml) Hashtbl.t;
+                      topo : simplified_topology }
 
 
             (* The default tree adjustment function *)
             val adjust_tree : simplified_topology -> simplified_topology
 
             (* [process data csv phylogeny] producess a topology consisting of the
-            * contents computed in the [phylogeny] tree, with temporal and geographic
-            * information contained in the CSV file [csv], and all the data
-            * representation [data]. *)
+             * contents computed in the [phylogeny] tree, with temporal and geographic
+             * information contained in the CSV file [csv], and all the data
+             * representation [data]. *)
             val process : Data.d -> string -> phylogeny -> topology
 
             (* [ancestor topology vertex] gets the ancestor of the [vertex] in the
-            * [topology]. The output is optional as the root of the tree has no
-            * ancestor. *)
+             * [topology]. The output is optional as the root of the tree has no
+             * ancestor. *)
             val ancestor : topology -> node_name -> Xml.xml Xml.contents option
 
             (* [children topology vertex] gets the pair of the vertex [vertex] in the
-            * [topology]. The output is optional as the leaves of the tree have no
-            * children. *)
+             * [topology]. The output is optional as the leaves of the tree have no
+             * children. *)
             val children : topology -> node_name -> (node_name * node_name) option
 
             (* [sister topology vertex] gets the sister group of the [vertex] in the
-            * [topology] (that is, the other child of the ancestor of [vertex]). 
-            * The output is optional as the root has no sister. *)
+             * [topology] (that is, the other child of the ancestor of [vertex]). 
+             * The output is optional as the root has no sister. *)
             val sister : topology -> node_name ->  node_name option
 
             (** [node topology vertex] extracts all the data about [vertex] contained 
-            * in the original phylogeny as stored in [topology]. *)
+                * in the original phylogeny as stored in [topology]. *)
             val node : topology -> node_name -> Xml.xml
 
 
             (** [is_root topology vertex] is true iff [vertex] is the root of the
-            * [topology] *)
+                * [topology] *)
             val is_root : topology -> node_name -> bool
 
             (** [extract_gis simplified_topology] extracts the temporal and gis
-            * information stored in the root vertex of the [simplified_topology]. *)
+                * information stored in the root vertex of the [simplified_topology]. *)
             val extract_gis : simplified_topology -> TemporalGIS.sample
 
         end
@@ -150,31 +164,31 @@ type tree = (a, b) Ptree.p_tree
             (** The following types are needed to produce a Plugin for POY. *)
 
             (** [node_information data topology vertex] produces an HTML-equivalent
-            * structure with the information that should be printed about the [vertex] in
-            * the [topology]. [data] is provided in case the specification of some of
-            * the characters in [vertex] or the [vertex] itself is needed. *)
+                * structure with the information that should be printed about the [vertex] in
+                * the [topology]. [data] is provided in case the specification of some of
+                * the characters in [vertex] or the [vertex] itself is needed. *)
             type node_information = 
-                Data.d -> KTree.topology -> Xml.unstructured -> 
+                    Data.d -> KTree.topology -> Xml.unstructured -> 
                     [ Xml.unstructured | Xml.xml Xml.structured ]
 
             (** [create_node node_information data topology vertex parent_sample
-            *   child1_sample child2_sample vertex_sample] produces the XML structure
-            *   with the representation of [vertex] in the KML file. The information
-            *   about the vertex should be generated and enclosed in a CDATA using the
-            *   [node_information] function provided in the argument. The
-            *   [parent_sample], [child1_sample], and [child2_sample] are provided for
-            *   convenience, as the main goal of this function is to print the node and
-            *   edges connected with it. *)
+                *   child1_sample child2_sample vertex_sample] produces the XML structure
+                *   with the representation of [vertex] in the KML file. The information
+                *   about the vertex should be generated and enclosed in a CDATA using the
+                *   [node_information] function provided in the argument. The
+                *   [parent_sample], [child1_sample], and [child2_sample] are provided for
+                *   convenience, as the main goal of this function is to print the node and
+                *   edges connected with it. *)
             type create_node =
                     node_information -> Data.d -> KTree.topology ->
                     Xml.xml -> TemporalGIS.sample option -> 
-                        TemporalGIS.sample option ->
-                        TemporalGIS.sample option ->TemporalGIS.sample -> 
-                            Xml.xml Sexpr.t
+                    TemporalGIS.sample option ->
+                    TemporalGIS.sample option ->TemporalGIS.sample -> 
+                    Xml.xml Sexpr.t
 
 
             (** [adjust_tree simple_topology] beautifies the location of the vertices in
-             * the tree *)
+                * the tree *)
             type adjust_tree = KTree.simplified_topology -> KTree.simplified_topology
 
             (** [styles ()] produces all the styles used in the KML. *)
@@ -196,19 +210,19 @@ type tree = (a, b) Ptree.p_tree
             val default : plugin
 
             (** [register_plugin name plugin] registers the [plugin] under the [name]
-             * provided. This plugin will be usable in the user interface using the
-             * command report (kml:name). *)
+                * provided. This plugin will be usable in the user interface using the
+                * command report (kml:name). *)
             val register_plugin : string -> plugin -> unit
 
             (** [has_plugin name] is [true] iff [register_plugin name plugin] has been
-            * called before *)
+                * called before *)
             val has_plugin : string -> bool
 
             (** [kml ?plugin name output data csv tree] dumps in the file [output] a
-            * KML file using the [plugin] selected for the tree [tree] and using the
-            * [csv] file with the geographic and temporal information. The KML will be
-            * registerd with the [name] provided. If not [plugin] is given, then
-            * [default] is selected .*)
+                * KML file using the [plugin] selected for the tree [tree] and using the
+                * [csv] file with the geographic and temporal information. The KML will be
+                * registerd with the [name] provided. If not [plugin] is given, then
+                * [default] is selected .*)
             val kml : ?plugin:string -> string -> string -> Data.d -> string ->
                 phylogeny Sexpr.t -> unit
 
@@ -218,48 +232,39 @@ type tree = (a, b) Ptree.p_tree
         end
     end
 
-type r = (a, b, c) run
-
     val register_function : 
         string -> (Methods.script Methods.plugin_arguments -> r -> r) -> unit
 
-type minimum_spanning_tree = tree 
-type build = minimum_spanning_tree list
-type minimum_spanning_family = minimum_spanning_tree list
-type build_optimum = tree list
+    val empty : unit -> r
+        
+    val args : string array
+        
+    val run : 
+        ?folder:(r -> script -> r) ->
+        ?output_file:string -> ?start:r -> script list -> r
 
-type script = Methods.script
+    val update_mergingscript : (r -> script -> r) -> script list -> r -> r -> r
 
-val empty : unit -> r
+    val process_input : r -> 
+        Methods.input -> r
 
-val args : string array
+    val get_dump : ?file:string -> unit -> r * script list
 
-val run : 
-    ?folder:(r -> script -> r) ->
-    ?output_file:string -> ?start:r -> script list -> r
+    val restart : ?file:string -> unit -> r
 
-val update_mergingscript : (r -> script -> r) -> script list -> r -> r -> r
+    val process_random_seed_set : r -> int -> r
 
-val process_input : r -> 
-    Methods.input -> r
+    val console_run : string -> unit
 
-val get_dump : ?file:string -> unit -> r * script list
+    val parsed_run : script list -> unit
 
-val restart : ?file:string -> unit -> r
+    val channel_run : in_channel -> unit
 
-val process_random_seed_set : r -> int -> r
+    val get_console_run : unit -> r
 
-val console_run : string -> unit
+    val update_trees_to_data : ?classify:bool -> bool -> bool -> r -> r
 
-val parsed_run : script list -> unit
-
-val channel_run : in_channel -> unit
-
-val get_console_run : unit -> r
-
-val update_trees_to_data : ?classify:bool -> bool -> bool -> r -> r
-
-val set_console_run : r -> unit
+    val set_console_run : r -> unit
 
     module PhyloTree : sig
         type phylogeny = (a, b) Ptree.p_tree
@@ -278,7 +283,7 @@ val set_console_run : r -> unit
         (* Modifying a tree *)
         val join : 
             Tree.join_jxn -> Tree.join_jxn -> phylogeny -> 
-                phylogeny * Tree.join_delta
+            phylogeny * Tree.join_delta
         val break : Tree.break_jxn -> phylogeny -> phylogeny * Tree.break_delta
         val reroot : Tree.edge -> phylogeny -> phylogeny
 
