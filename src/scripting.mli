@@ -27,13 +27,13 @@ val build_has : Methods.cost_calculation -> Methods.build -> bool
 
 
 module Make 
-    (Node : NodeSig.S with type other_n = Node.Standard.n) 
-    (Edge : Edge.EdgeSig with type n = Node.n)
-    (TreeOps : 
-        Ptree.Tree_Operations with type a = Node.n with type b = Edge.e)
-    (CScrp : CharacterScripting.S with type n = Node.n)
-    (B : Batch.S with type T.a = Node.n with type T.b = Edge.e with type T.c = CScrp.cs) :
-        S with type a = Node.n with type b = Edge.e with type c = CScrp.cs
+    (T : TYPES)
+    (Node : NodeSig.S with type n = T.a with type other_n = Node.Standard.n) 
+    (Edge : Edge.EdgeSig with type n = T.a with type e = T.b) 
+    (TreeOps : Ptree.Tree_Operations with type a = T.a with type b = T.b)
+    (CScrp : CharacterScripting.S with type n = T.a with type cs = T.c)
+    (B : Batch.S with module T = T)
+    : S with module T = T
 
 (** {2 Scripting in Ocaml} 
  *

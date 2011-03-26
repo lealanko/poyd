@@ -22,19 +22,21 @@ module Edges = Edge.LazyEdge
 module TreeOps = AllDirChar.F
 module CharOps = AllDirChar.CharScripting
 
-module DummyTypes  = struct
+module Types = struct
     type a = Nodes.n
     type b = Edges.e
     type c = CharOps.cs
 end
 
-module DummyBatch = Batch.Dummy (DummyTypes)
+module DummyBatch = Batch.Dummy (Types)
 
-module BatchM = Scripting.Make (Nodes) (Edges) (TreeOps) (CharOps) (DummyBatch)
+module BatchM = 
+    Scripting.Make (Types) (Nodes) (Edges) (TreeOps) (CharOps) (DummyBatch)
 
 module LocalBatch = BatchLocal.Make (BatchM)
 
-module M = Scripting.Make (Nodes) (Edges) (TreeOps) (CharOps) (LocalBatch)
+module M = 
+    Scripting.Make (Types) (Nodes) (Edges) (TreeOps) (CharOps) (LocalBatch)
 
 open M
 include M
