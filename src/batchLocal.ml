@@ -1,12 +1,12 @@
-module Make (P : ScriptingTypes.S) : 
-    Batch.S with module T = P =
+module Make (M : ScriptingTypes.S) : 
+    Batch.S with module T = M.T =
 struct
-    module T = P
-    include Batch.Base(T)
-    type trees = (a, b) Ptree.p_tree Sexpr.t
+    module T = M.T
+    include Batch.Defs(T)
 
     let info fmt = 
 	Printf.ksprintf (Status.user_message Status.Information) fmt
+    type trees = M.tree Sexpr.t
 
     let generate_trees {rng; n_trees; generate; composer; initial_state} =
 	let st = 
@@ -23,10 +23,10 @@ struct
 	    Rng.with_state subrng (fun () ->
 		info "Rng hash: %d" (Hashtbl.hash (Random.get_state ()));
 		let run1 =
-		    List.fold_left P.folder run0 generate 
+		    List.fold_left M.folder run0 generate 
 		in
 		info "Generated, now running compose";
-		let run2 = List.fold_left P.folder run1 composer 
+		let run2 = List.fold_left M.folder run1 composer 
 		in
 		let adv = Status.get_achieved st + 1
 		in
