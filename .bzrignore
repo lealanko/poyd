@@ -5,8 +5,7 @@
 **/autom4te.cache
 **/Makefile
 VERSION
-src/_build
-src/_tags
+**/_build
 src/config.h
 src/myocamlbuild.ml
 src/buildNumber.ml
