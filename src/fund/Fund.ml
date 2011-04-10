@@ -29,7 +29,7 @@ module R = FundLocalRouter
 
 let local_link = R.link local_port
 
-let (!!) (type a_) (type r_) h =
+let ($) (type a_) (type r_) h =
     let module H = (val h : HANDLE with type a = a_ and type r = r_) in
     R.apply H.id H.handle
     
@@ -58,6 +58,10 @@ let withdraw (type a_) (type r_) h =
     | Some eq ->
         let handle = FundType.cast eq H.handle in
         D.unregister_handle handle
+
+let with_handle f body =
+    let h = publish f in
+    finalize (fun () -> body h) (fun () -> withdraw h; return ())
 
 let connections = Lwt_sequence.create ()
 

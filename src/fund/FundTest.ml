@@ -42,7 +42,7 @@ let client host port =
     dbg "begin get_root" >>= fun _ ->
     Fund.get_root "f" >>= fun f ->
     dbg "got root" >>= fun _ ->
-    Fund.(!!) f 7 >>= fun r ->
+    Fund.($) f 7 >>= fun r ->
     dbg "got result" >>= fun _ ->
     IO.printl (string_of_int r)
     

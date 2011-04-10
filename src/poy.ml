@@ -84,6 +84,8 @@ let script = match MainUtil.load_script !Arguments.input with
 (*** Begin output. *)
 let () = MainUtil.begin_sadman ()
 
+let () = Phylo.initialize_seed ()
+
 IFDEF USEPARALLEL THEN
 let _ =
     let tsize = Mpi.comm_size Mpi.comm_world in

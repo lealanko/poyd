@@ -2,11 +2,15 @@ open FundPrelude
 
 type ('a, 'r) handle
 
-val (!!) : ('a, 'r) handle -> 'a -> 'r lwt
+val ($) : ('a, 'r) handle -> 'a -> 'r lwt
 
 val publish : ('a -> 'r lwt) -> ('a, 'r) handle
 val publish2: ('a -> 'b -> 'r lwt) -> (('a * 'b), 'r) handle
 val publish3 : ('a -> 'b -> 'c -> 'r lwt) -> (('a * 'b * 'c), 'r) handle
+
+val withdraw : ('a, 'r) handle -> unit
+
+val with_handle : ('a -> 'r lwt) -> (('a, 'r) handle -> 'b lwt) -> 'b lwt
 
 val connect : 
     ?addr:Unix.sockaddr -> 
