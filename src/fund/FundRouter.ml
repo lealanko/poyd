@@ -5,6 +5,7 @@ open FundDefs
 
 module L = (val FundLog.make "Router" : FundLog.S)
 
+(* Todo: add handle id into the error *)
 exception RouteError
 
 let make () = (module struct

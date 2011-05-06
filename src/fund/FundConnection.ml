@@ -27,8 +27,8 @@ let pp f fmt =
     Format.fprintf f ("@[" ^^ fmt ^^ "@]@ ")
 
 
-let pr_any f v =
-    pp f "%s" (BatStd.dump v)
+let pr_any = FundLog.pr_any
+
 let pr_qid f qid =
     pp f "\"%s\"" (Uuidm.to_string qid)
 let pr_id f v =
