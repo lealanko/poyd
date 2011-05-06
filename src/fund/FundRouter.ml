@@ -5,6 +5,8 @@ open FundDefs
 
 module L = (val FundLog.make "Router" : FundLog.S)
 
+exception RouteError
+
 let make () = (module struct
     module Seq = Lwt_sequence
     type link = port Seq.node
@@ -24,7 +26,7 @@ let make () = (module struct
             catch (fun () -> P.query_id id qid)
                 (fun _ -> return false) in
         Lwt_list.filter_p query_port ports >>= function 
-          | [] -> fail Not_found
+          | [] -> fail RouteError
           | p :: _ -> return p
 
     let query_ports id qid =

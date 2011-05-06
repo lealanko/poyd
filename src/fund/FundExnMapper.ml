@@ -20,7 +20,7 @@ let register exn =
     let d = descriptor exn in
     Hashtbl.add table (d.name, size exn) d
 
-let immigrate exn =
+let immigrate ?(strict=false) exn =
     let d = descriptor exn in
     let key = (d.name, size exn) in
       try
@@ -29,7 +29,10 @@ let immigrate exn =
           set_descriptor exn2 d2;
 	  exn2
       with Not_found -> 
-	  raise <| Invalid_argument "unregistered exception"
+          if strict then
+	      raise <| Invalid_argument "unregistered exception"
+          else
+              exn
 
 let _ =
     List.iter register
@@ -44,5 +47,7 @@ let _ =
          Stack_overflow;
          Sys_blocked_io;
          Assert_failure ("", 0, 0);
-         Undefined_recursive_module ("", 0, 0)]
+         Undefined_recursive_module ("", 0, 0);
+         Pervasives.Exit;
+        ]
     

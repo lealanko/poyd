@@ -1,5 +1,8 @@
 open FundPrelude
 
+exception RouteError
+exception ConnectionError of exn
+
 type ('a, 'r) handle
 
 val ($) : ('a, 'r) handle -> 'a -> 'r lwt
@@ -12,14 +15,17 @@ val withdraw : ('a, 'r) handle -> unit
 
 val with_handle : ('a -> 'r lwt) -> (('a, 'r) handle -> 'b lwt) -> 'b lwt
 
+type connection
+
 val connect : 
     ?addr:Unix.sockaddr -> 
     ?host:string ->
     ?port:int ->
     ?path:string ->
     unit ->
-    unit lwt
-(* val disconnect : Unix.sockaddr -> unit lwt *)
+    connection lwt
+
+val disconnect : connection -> unit lwt
 
 val get_root : string -> 'a lwt
 
