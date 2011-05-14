@@ -42,12 +42,6 @@ module Option = B.Option
 
 module Mutex = Lwt_mutex
 
-module Event = React.E
-module Signal = React.S
-
-type 'a signal = 'a Signal.t
-type 'a event = 'a Event.t
-
 module Set = B.Set
 type 'a set = 'a Set.t
 

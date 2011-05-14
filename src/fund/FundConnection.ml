@@ -2,6 +2,10 @@ open FundPrelude
 open FundDefs
 open FundType
 
+exception ConnectionError of exn
+
+let () = FundExnMapper.register (ConnectionError End_of_file)
+
 module L = (val FundLog.make "Connection" : FundLog.S)
 
 let pprint printer () v =
@@ -23,8 +27,8 @@ let pp f fmt =
     Format.fprintf f ("@[" ^^ fmt ^^ "@]@ ")
 
 
-let pr_any f v =
-    pp f "%s" (BatStd.dump v)
+let pr_any = FundLog.pr_any
+
 let pr_qid f qid =
     pp f "\"%s\"" (Uuidm.to_string qid)
 let pr_id f v =
@@ -166,7 +170,10 @@ module Make (Args : ARGS) = struct
     let in_map = ref InMap.empty
 
     let write_msg (msg : OutMsg.t) =
-	IO.write_value ~flags:[Marshal.Closures] out_ch msg
+        catch (fun () ->
+	    IO.write_value ~flags:[Marshal.Closures] out_ch msg)
+            (fun exn ->
+                fail (ConnectionError exn))
 
     let write_msg msg =
         L.trace (fun () -> write_msg msg) "write_msg %a" OutMsg.pr msg
@@ -200,11 +207,7 @@ module Make (Args : ARGS) = struct
                       no_cancel (write_msg (OutMsg.mk_cancel id)) >>= fun _ ->
                       take ()
                   | exn -> fail exn) in
-            take () >>= function
-              | Ok v ->
-                  return v
-              | Bad exn ->
-                  fail exn)
+            take () >>= run_result)
             (fun () ->
                 out_map := OutMap.delete !out_map id;
                 return ())
@@ -295,7 +298,10 @@ module Make (Args : ARGS) = struct
                 try
                     let mv = OutMap.get !out_map R.return_id in
                     out_map := OutMap.delete !out_map R.return_id;
-                    MVar.put mv R.retval
+                    let ret = match R.retval with 
+                        | Ok v -> Ok v
+                        | Bad exn -> Bad (FundExnMapper.immigrate exn) in
+                    MVar.put mv ret
                 with 
                 | Not_found ->
                     (* Response to unknown request *)
@@ -367,11 +373,13 @@ module Make (Args : ARGS) = struct
             (* Abort all the current ones. *)
             let visit rqid mv =
                 detach (fun () ->
-                    Lwt_mvar.put mv (Bad exn)) in
-            OutMap.iter !out_map { OutMap.visit };
+                    L.dbg "cancel request %a" pr_any rqid >>= fun () ->
+                    Lwt_mvar.put mv (Bad (ConnectionError exn))) in
+            OutMap.(iter !out_map { visit });
             (* Send cancel to all tasks that are still running.
-               This should just be inbound. *)
-            cancel mgr_finish;
+               This should just be inbound. 
+            cancel mgr_finish;*)
+            cancel InboundMgr.finish;
             return () in
         let rec handle_msg msg =
 	    detach (fun () -> 
