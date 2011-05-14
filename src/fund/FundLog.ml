@@ -6,6 +6,7 @@ type ftr = Format.formatter
 
 module type S = sig
     val dbg : ('a, ftr, unit, unit lwt) format4 -> 'a
+    val info : ('a, ftr, unit, unit lwt) format4 -> 'a
     val trace : ?pr:(ftr -> 'a -> unit) -> (unit -> 'a lwt) ->
         ('b, ftr, unit, 'a lwt) format4 -> 'b
     val trace2 : 
@@ -20,9 +21,13 @@ end
 
 type t = (module S)
 
-let make secname = (module struct
-    let section = Lwt_log.Section.make secname
+let template = "$(message)"
 
+let default_logger = 
+    Lwt_log.channel ~template ~close_mode:`Keep ~channel:Lwt_io.stderr ()
+
+let make ?(logger=default_logger) secname = (module struct
+    let section = Lwt_log.Section.make secname
 
     let kprs f = 
         let buf = Buffer.create 16 in
@@ -41,19 +46,23 @@ let make secname = (module struct
     let pr_any f v =
         Format.fprintf f "@[%s@]" (BatStd.dump v)
 
-    let dbg fmt = 
-        ksprintf fmt (fun s -> Lwt_log.debug ~section s)
+    let log ~level fmt = 
+        ksprintf fmt (fun s -> Lwt_log.log ~section ~level ~logger s)
+
+    let dbg fmt = log ~level:Lwt_log.Debug fmt
+    let info fmt = log ~level:Lwt_log.Info fmt
 
     let trace ?(pr=pr_any) thunk fmt = 
         ksprintf fmt (fun s ->
-            Lwt_log.debug_f ~section "-> %s" s >>= fun () ->
+            Lwt_log.debug_f ~section ~logger "-> %s" s >>= fun () ->
             try_bind thunk
                 (fun r ->
-                    Lwt_log.debug_f ~section "<- %s: %s" s (prs (fun f -> pr f r))
-                    >>= fun () ->
+                    Lwt_log.debug_f ~section ~logger "@[@]<- %s: %s" s 
+                        (prs (fun f -> pr f r)) >>= fun () ->
                     return r)
                 (fun exn ->
-                    Lwt_log.debug_f ~section ~exn "<# %s" s >>= fun () ->
+                    Lwt_log.debug_f ~section ~logger ~exn "@[@]<# %s" s 
+                    >>= fun () ->
                     fail exn))
 
     let trace2 ?pr ?(p1=pr_any) ?(p2=pr_any) s f a1 a2 =
