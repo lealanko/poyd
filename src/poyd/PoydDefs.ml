@@ -5,6 +5,7 @@ include ScriptingTypes.Defs(Phylo.Types)
 
 module type CLIENT = sig
     type t
+    val get_name : t -> string lwt
     val request_file : t -> string -> string lwt
     val explode_filenames : t -> Parser.filename list -> string list lwt
     val output_status : t -> Status.c -> string -> unit lwt
@@ -15,6 +16,7 @@ type taxon_codes = string All_sets.IntegerMap.t
 module type SERVANT = sig
     module Client : CLIENT
     type t
+    val get_name : t -> string lwt
     val set_client : t -> Client.t -> unit lwt
     val execute_script : t -> script list -> unit lwt
     val set_trees : t -> tree Sexpr.t -> unit lwt

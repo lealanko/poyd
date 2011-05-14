@@ -2,14 +2,6 @@ open Lwt
 open FundLwt
 open Fund
 
-module Master = PoydMasterStub
-
-module ClientStub = PoydClientStub.Make(PoydClientImpl)
-
-let impl = PoydClientImpl.client
-
-let stub = ClientStub.make impl
-
 let () = Status.init ()
 
 let () =
@@ -53,16 +45,27 @@ let host = "localhost"
 let thr = PoydPoy.thread
 
 
+module Master = PoydMasterStub
+
+module C = PoydClientImpl
+module CS = PoydClientStub.Make(C)
+
+module L = (val FundLog.make ~logger:PoydPoy.status_logger "poyd_client" 
+        : FundLog.S)
 
 let main () =
+    C.get_name C.client >>= fun name ->
+    L.info "This is poyd client %s." name >>= fun () ->
+    CS.create C.client >>= fun stub ->
     connect ~host ~port () >>= fun conn ->
+    L.info "Connected to poyd master at %s:%d." host port >>= fun () ->
     get_root "poyd-master" >>= fun master ->
     let run command = PoydThread.callback thr (fun () ->
         Master.run_task master stub command) in
     PoydThread.run thr (fun () ->
         MainUtil.main script run !Arguments.just_exit) >>= fun r ->
     disconnect conn >>= fun () ->
-    Lwt_io.printl "done!" >>= fun () ->
+    L.info "Disconnected from poyd master." >>= fun () ->
     return r
 
 let retcode  = Lwt_main.run (main ())

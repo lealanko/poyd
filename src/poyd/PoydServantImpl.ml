@@ -2,6 +2,8 @@ open PoydDefs
 
 module Client = PoydClientStub
 
+module L = (val FundLog.make "PoydServantImpl" : FundLog.S)
+
 
 type t = unit
 
@@ -10,6 +12,9 @@ let servant = ()
 let current_run = ref (Phylo.empty ())
 
 let thr = PoydPoy.thread
+
+let get_name c =
+    PoydUtil.get_procid ()
 
 let remote_output_status c k msg =
     PoydThread.callback thr (fun () ->
@@ -43,7 +48,9 @@ let set_client _ c = PoydThread.run thr (fun () -> begin
 end)
     
 
-let execute_script _ script = PoydThread.run thr (fun () -> begin
+let execute_script _ script = 
+    L.dbg "RNG hash: %d" (Hashtbl.hash (Random.get_state ())) >>= fun () ->
+    PoydThread.run thr (fun () -> begin
     let new_run = Phylo.run ~start:!current_run script in
     current_run := new_run
 end)

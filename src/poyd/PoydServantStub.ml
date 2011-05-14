@@ -20,13 +20,19 @@ type msg =
     | SetRun of r
     | GetRun of r consumer
             
-type t = (msg, unit) handle
+type t = {
+    name : string;
+    hdl : (msg, unit) handle;
+}
+
+let get_name s =
+    return s.name
 
 let set_client s c =
-    s $ SetClient(c)
+    s.hdl $ SetClient(c)
 
 let execute_script s script =
-    s $ ExecuteScript(script)
+    s.hdl $ ExecuteScript(script)
 
 let tree_producer trees =
     (* Ideally we would iterate the sexpr directly with an explicit stack, 
@@ -45,7 +51,7 @@ let tree_producer trees =
     
 let set_trees_gen storedp s trees =
     with_handle (tree_producer trees)
-        (fun producer -> s $ SetTrees(storedp, producer))
+        (fun producer -> s.hdl $ SetTrees(storedp, producer))
 
 let set_trees =
     set_trees_gen false
@@ -63,7 +69,7 @@ let tree_consumer () =
 let get_trees_gen storedp s =
     let consume, get = tree_consumer () in
     with_handle consume
-        (fun consumer -> s $ GetTrees(storedp, consumer)) >>= fun () ->
+        (fun consumer -> s.hdl $ GetTrees(storedp, consumer)) >>= fun () ->
     get ()
 
 let get_trees =
@@ -73,7 +79,7 @@ let get_stored_trees =
     get_trees_gen true
 
 let set_data s data =
-    s $ SetData(data)
+    s.hdl $ SetData(data)
 
 let get_with_consumer fn =
     let r = ref None in
@@ -81,20 +87,20 @@ let get_with_consumer fn =
     return (BatOption.get !r)
         
 let get_data s =
-    get_with_consumer (fun consumer -> s $ GetData consumer)
+    get_with_consumer (fun consumer -> s.hdl $ GetData consumer)
 
 (* XXX: send in parts! This can be huge. *)
 let set_run s r =
-    s $ SetRun(r)
+    s.hdl $ SetRun(r)
 
 let get_run s =
-    get_with_consumer (fun consumer -> s $ GetRun consumer)
+    get_with_consumer (fun consumer -> s.hdl $ GetRun consumer)
     
 let set_rng s rng =
-    s $ SetRng(rng)
+    s.hdl $ SetRng(rng)
 
 let get_rng s = 
-    get_with_consumer (fun consumer -> s $ GetRng consumer)
+    get_with_consumer (fun consumer -> s.hdl $ GetRng consumer)
 
 let acquire_trees producer = 
     let rec aux acc =
@@ -138,5 +144,9 @@ module Make (Servant : SERVANT with module Client = Client) = struct
             get_rng s >>= fun data ->
             consumer $ data
     let create s = 
-        publish (f s)
+        get_name s >>= fun name ->
+        return {
+            name = name;
+            hdl = publish (f s);
+        }
 end

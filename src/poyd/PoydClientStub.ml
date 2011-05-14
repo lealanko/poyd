@@ -8,7 +8,13 @@ type 'r msg =
     | OutputStatus of Status.c * string * (unit, 'r) teq
     | ExplodeFilenames of Parser.filename list * (string list, 'r) teq
 
-type t = { hdl : 'r . ('r msg, 'r) handle }
+type t = { 
+    name : string;
+    hdl : 'r . ('r msg, 'r) handle 
+}
+
+let get_name c =
+    return c.name
 
 let request_file c path =
     c.hdl $ RequestFile (path, eq_refl)
@@ -33,6 +39,10 @@ module Make(Client : CLIENT) = struct
         | ExplodeFilenames (files, teq) ->
             explode_filenames c files >: teq
 
-    let make c =
-        { hdl = fun (type r) -> Fund.publish (f c) }
+    let create c =
+        get_name c >>= fun name ->
+        return { 
+            name = name;
+            hdl = fun (type r) -> Fund.publish (f c);
+        }
 end

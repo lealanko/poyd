@@ -7,13 +7,12 @@ module Master = PoydMasterStub
 
 let impl = PoydServantImpl.servant
 
-module Maker = PoydServantStub.Make(PoydServantImpl)
-
-let stub = Maker.create impl
+module ServantStub = PoydServantStub.Make(PoydServantImpl)
 
 let port = 7654
 
 let main () =
+    ServantStub.create impl >>= fun stub ->
     connect ~host:"localhost" ~port () >>= fun conn ->
     get_root "poyd-master" >>= fun master ->
     Master.register_servant master stub >>= fun () ->

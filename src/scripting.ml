@@ -2885,18 +2885,7 @@ let compute_other_rank bit = world_size --> complete_mask --> mask_bit bit
 
 END
 
-let rec dbg_folder (run : r) meth =
-    let scrdsc = Analyzer.script_to_string meth
-    in
-    msg "folder ->: %s" scrdsc;
-    let run_ = folder run meth
-    in
-    compare_runs "folder --" run run_;
-    msg "folder <-: %s" scrdsc;
-    run_
-and folder (run : r) meth = 
-    let folder = dbg_folder
-    in
+let folder_f folder (run : r) meth = 
     check_ft_queue run;
     match meth with
     (* The following methods are only used by the parallel execution *)
@@ -3962,7 +3951,19 @@ END
                         let () = Status.user_message Status.Error msg in
                         run
 
-let folder = dbg_folder
+let dbg_folder_f dbg_folder (run : r) meth =
+    let scrdsc = Analyzer.script_to_string meth
+    in
+    msg "folder ->: %s" scrdsc;
+    let run_ = folder_f dbg_folder run meth
+    in
+    compare_runs "folder --" run run_;
+    msg "folder <-: %s" scrdsc;
+    run_
+
+let rec dbg_folder run meth  = dbg_folder_f dbg_folder run meth
+
+let rec folder run meth = folder_f folder run meth
               
 
 let deal_with_error output_file run tmp err =

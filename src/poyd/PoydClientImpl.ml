@@ -35,7 +35,5 @@ let explode_filenames _ files =
     PoydThread.run thr (fun () ->
         PoyParser.explode_filenames files)
 
-        
-
-
- 
+let get_name _ =
+    PoydUtil.get_procid ()
