@@ -43,11 +43,6 @@ let fix (f : 'a lwt -> 'a lwt) : 'a lwt =
     ccc (fun k ->
 	f (waiter_of_wakener k) >>- k)
 
-let result (thunk : unit -> 'a lwt) =
-    catch
-	(fun () -> thunk () >|= fun v -> BatStd.Ok v)
-	(fun exn -> return (BatStd.Bad exn))
-
 let detach thunk =
     ignore (
 	catch thunk
@@ -75,6 +70,21 @@ let wait_thread (t : unit lwt) : unit lwt =
                    | exn -> fail exn)) in
     on_cancel t2 (fun () -> cancel t);
     t2
+
+open BatStd
+
+let result thunk =
+    try_bind thunk
+        (fun ret -> return (Ok ret))
+        (fun exn -> return (Bad exn))
+
+let run_result = function
+    | Ok ret -> return ret
+    | Bad exn -> fail exn
+
+let wakeup_result u = function
+    | Ok ret -> wakeup u ret
+    | Bad exn -> wakeup_exn u exn
 
 
                             

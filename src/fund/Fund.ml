@@ -1,6 +1,9 @@
 open FundPrelude
 open FundDefs
 
+exception ConnectionError = FundConnection.ConnectionError
+exception RouteError = FundRouter.RouteError
+
 module type HANDLE = sig
     type d
     type a
@@ -29,7 +32,7 @@ module R = FundLocalRouter
 
 let local_link = R.link local_port
 
-let (!!) (type a_) (type r_) h =
+let ($) (type a_) (type r_) h =
     let module H = (val h : HANDLE with type a = a_ and type r = r_) in
     R.apply H.id H.handle
     
@@ -58,6 +61,12 @@ let withdraw (type a_) (type r_) h =
     | Some eq ->
         let handle = FundType.cast eq H.handle in
         D.unregister_handle handle
+
+let with_handle f body =
+    let h = publish f in
+    finalize (fun () -> body h) (fun () -> withdraw h; return ())
+
+type connection = FundDefs.connection
 
 let connections = Lwt_sequence.create ()
 
@@ -88,7 +97,11 @@ let connect ?addr ?host ?port ?path () =
             (fun () ->
                 Lwt_sequence.remove node;
                 R.unlink link));
-    return () 
+    return conn
+
+let disconnect conn =
+    let module C = (val conn : CONNECTION) in
+    C.close ()
         
 let get_root str = 
     let id = FundPolyMap.UuidKey.unsafe_of_string str in

@@ -21,6 +21,27 @@ end
 
 type t = (module S)
 
+let kprs f = 
+    let buf = Buffer.create 16 in
+    let formatter = Format.formatter_of_buffer buf in
+    f formatter (fun k ->
+        Format.pp_print_flush formatter ();
+        k (Buffer.contents buf))
+        
+let prs f =
+    kprs (fun formatter k -> f formatter; k identity)
+
+let ksprintf fmt k =
+    kprs (fun formatter k2 ->
+        Format.kfprintf (fun _ -> k2 k) formatter fmt)
+        
+let pr_any f v =
+    let s = try BatStd.dump v
+        with Failure _ -> "<opaque>"
+    in
+    Format.fprintf f "@[%s@]" s
+        
+
 let template = "$(message)"
 
 let default_logger = 
@@ -28,23 +49,6 @@ let default_logger =
 
 let make ?(logger=default_logger) secname = (module struct
     let section = Lwt_log.Section.make secname
-
-    let kprs f = 
-        let buf = Buffer.create 16 in
-        let formatter = Format.formatter_of_buffer buf in
-        f formatter (fun k ->
-            Format.pp_print_flush formatter ();
-            k (Buffer.contents buf))
-
-    let prs f =
-        kprs (fun formatter k -> f formatter; k identity)
-
-    let ksprintf fmt k =
-        kprs (fun formatter k2 ->
-            Format.kfprintf (fun _ -> k2 k) formatter fmt)
-            
-    let pr_any f v =
-        Format.fprintf f "@[%s@]" (BatStd.dump v)
 
     let log ~level fmt = 
         ksprintf fmt (fun s -> Lwt_log.log ~section ~level ~logger s)
