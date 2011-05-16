@@ -41,9 +41,9 @@ module M =
 open M
 include M
 
-let () =
+let welcome () =
     Status.user_message Status.Information Version.string
 
-let seed = truncate (Unix.time ())
-
-let _ = process_random_seed_set (empty ()) seed
+let initialize_seed () =
+    let seed = truncate (Unix.time ()) in
+    process_random_seed_set (empty ()) seed

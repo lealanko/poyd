@@ -543,3 +543,8 @@ let explode_filenames files =
         in
         List.flatten (List.map explode_filename files)
 
+let explode_filenames_fn = ref explode_filenames
+
+let set_explode_filenames_fn fn = explode_filenames_fn := fn
+
+let explode_filenames files = !explode_filenames_fn files
