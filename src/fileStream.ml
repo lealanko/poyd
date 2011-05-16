@@ -399,6 +399,19 @@ ELSE
             opener file
 END
 
+type open_in = { 
+    open_in_fn : 'f 'r . bool -> (string -> 'r) -> ([< `Local of string | `Remote of string] as 'f) -> 'r 
+}
+
+let local_open_in = { open_in_fn = open_in }
+
+let current_open_in = ref local_open_in
+
+let set_current_open_in o = current_open_in := o
+
+let open_in close_it opener fn =
+    (!current_open_in).open_in_fn close_it opener fn
+
 let open_in_bin x = open_in false Pervasives.open_in_bin x
 
 let open_in_gz x = open_in true Gz.open_in x

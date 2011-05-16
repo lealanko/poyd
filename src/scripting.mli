@@ -21,7 +21,7 @@
 
 open ScriptingTypes
 
-module type S = ScriptingTypes.S
+type ('a, 'b, 'c) run = ('a, 'b, 'c) ScriptingTypes.run
 
 val build_has : Methods.cost_calculation -> Methods.build -> bool
 
