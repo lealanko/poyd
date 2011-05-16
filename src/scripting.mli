@@ -19,7 +19,7 @@
 
 (** {1 Scripting POY} *)
 
-include module type of ScriptingTypes
+open ScriptingTypes
 
 type ('a, 'b, 'c) run = ('a, 'b, 'c) ScriptingTypes.run
 
