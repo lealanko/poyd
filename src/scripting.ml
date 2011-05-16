@@ -2595,6 +2595,8 @@ END
             folder r [`Unique]
 
 
+
+
 let rec process_application run item = 
     let run = reroot_at_outgroup run in
     match item with
@@ -2616,7 +2618,7 @@ let rec process_application run item =
                         let () = Methods.cost := meth in
                         process_application run `ReDiagnose
             else run
-    | `Exit -> exit 0
+    | `Exit -> raise (MainUtil.ExitPoy 0)
     | `Version ->
             Status.user_message Status.Information Version.string;
             run
@@ -2883,18 +2885,7 @@ let compute_other_rank bit = world_size --> complete_mask --> mask_bit bit
 
 END
 
-let rec dbg_folder (run : r) meth =
-    let scrdsc = Analyzer.script_to_string meth
-    in
-    msg "folder ->: %s" scrdsc;
-    let run_ = folder run meth
-    in
-    compare_runs "folder --" run run_;
-    msg "folder <-: %s" scrdsc;
-    run_
-and folder (run : r) meth = 
-    let folder = dbg_folder
-    in
+let folder_f folder (run : r) meth = 
     check_ft_queue run;
     match meth with
     (* The following methods are only used by the parallel execution *)
@@ -3489,6 +3480,7 @@ END
     | `ReadScript files ->
             let file_folder run item = 
                 try folder run item with
+                | MainUtil.ExitPoy r as exn -> raise exn
                 | err -> 
                         let msg = StatusCommon.escape (Printexc.to_string err) in
                         Status.user_message Status.Error msg;
@@ -3959,7 +3951,19 @@ END
                         let () = Status.user_message Status.Error msg in
                         run
 
-let folder = dbg_folder
+let dbg_folder_f dbg_folder (run : r) meth =
+    let scrdsc = Analyzer.script_to_string meth
+    in
+    msg "folder ->: %s" scrdsc;
+    let run_ = folder_f dbg_folder run meth
+    in
+    compare_runs "folder --" run run_;
+    msg "folder <-: %s" scrdsc;
+    run_
+
+let rec dbg_folder run meth  = dbg_folder_f dbg_folder run meth
+
+let rec folder run meth = folder_f folder run meth
               
 
 let deal_with_error output_file run tmp err =
@@ -3995,6 +3999,8 @@ let run ?(folder=folder) ?(output_file="ft_poy.out") ?(start=(empty ())) lst =
             with 
             | Error_in_Script (err, run) ->
                     deal_with_error output_file run tmp err
+            | MainUtil.ExitPoy r as exn ->
+                    raise exn
             | err -> 
                     deal_with_error output_file run tmp err
         in
