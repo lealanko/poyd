@@ -98,3 +98,5 @@ val of_channel : Pervasives.in_channel -> spec list
 val guess_class_and_add_file : bool -> bool -> Data.d -> Parser.filename -> Data.d
 
 val explode_filenames : [`Local of string | `Remote of string ] list -> string list
+
+val set_explode_filenames_fn : (Parser.filename list -> string list) -> unit

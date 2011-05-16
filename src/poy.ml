@@ -84,6 +84,8 @@ let script = match MainUtil.load_script !Arguments.input with
 (*** Begin output. *)
 let () = MainUtil.begin_sadman ()
 
+let _ = Phylo.initialize_seed ()
+
 IFDEF USEPARALLEL THEN
 let _ =
     let tsize = Mpi.comm_size Mpi.comm_world in
@@ -109,4 +111,5 @@ let run command =
     Phylo.set_console_run res
 
 
-let _ = MainUtil.main script run !Arguments.just_exit
+let retcode = MainUtil.main script run !Arguments.just_exit
+let _ = exit retcode
