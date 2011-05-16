@@ -95,7 +95,9 @@ let token_regexp = Str.regexp "\\[\\([a-zA-Z_]*\\)\\]"
 (** Catch errors or not;  helpful for debugging *)
 let debug_pass_errors = false
 
-let main script run just_exit =
+exception ExitPoy of int
+
+let main_aux script run just_exit =
     let initial_script = ref script in
     let input = ref "" in
     let proc_command str =
@@ -138,7 +140,8 @@ END
             in
             run command
         with
-        | Camlp4.PreCast.Loc.Exc_located (_, PoyCommand.Exit) -> exit 0
+        | ExitPoy r as exn -> raise exn
+        | Camlp4.PreCast.Loc.Exc_located (_, PoyCommand.Exit) -> raise (ExitPoy 0)
         | Camlp4.PreCast.Loc.Exc_located (a, Stream.Error err) ->
                 let beg = Camlp4.PreCast.Loc.start_off a
                 and en = Camlp4.PreCast.Loc.stop_off a in
@@ -156,7 +159,7 @@ END
                     else all_matches ~group:1 token_regexp err in
                 List.iter HelpIndex.help_if_exists elements;
                 if just_exit || not (Status.is_interactive ()) 
-                    then exit 1
+                    then raise (ExitPoy 1)
                 else ()
         | Sys.Break -> 
                 Status.clear_status_subwindows ();
@@ -186,4 +189,10 @@ IFDEF USEPARALLEL THEN
 ELSE
     Status.main_loop proc_command
 END
-    
+
+let main script run just_exit =
+    try
+        main_aux script run just_exit;
+        0
+    with ExitPoy r -> r
+          
