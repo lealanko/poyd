@@ -5,7 +5,7 @@
 "ocamlmpi" or "camlpdf-0.3" or "grappa" or "gz-0.5.7" or "utils" or "plugins": include
 "fund": include
 "poyd": include
-<**/*.top> or <**/*.native> or <**/*.byte>: use_str, use_unix, use_bigarray, use_zlib, use_gzcaml
+<*.top> or <*.native> or <*.byte>: use_str, use_unix, use_bigarray, use_zlib, use_gzcaml
 "nonaddCSc8.c":use_char8
 "nonaddCSc16.c":use_char16
 "nonaddCSc32.c":use_char32
