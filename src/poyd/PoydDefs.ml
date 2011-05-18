@@ -25,8 +25,8 @@ module type SERVANT = sig
     val get_stored_trees : t -> tree Sexpr.t lwt
     val set_data : t -> Data.d -> unit lwt
     val get_data : t -> Data.d lwt
-    val set_rng : t -> Rng.t -> unit lwt
-    val get_rng : t -> Rng.t lwt
+    val set_rng : t -> PoyRandom.t -> unit lwt
+    val get_rng : t -> PoyRandom.t lwt
     val set_run : t -> r -> unit lwt
     val get_run : t -> r lwt
 (*

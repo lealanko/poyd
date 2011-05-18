@@ -69,7 +69,7 @@ let register_servant m s =
 
 type task_state = {
     run : Phylo.r;
-    rng : Rng.t;
+    rng : PoyRandom.t;
 }
 
 let new_state () = {
