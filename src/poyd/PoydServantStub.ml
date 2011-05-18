@@ -14,8 +14,8 @@ type msg =
     | GetTrees of bool * tree consumer
     | SetData of Data.d
     | GetData of Data.d consumer
-    | SetRng of Rng.t
-    | GetRng of Rng.t consumer
+    | SetRng of PoyRandom.t
+    | GetRng of PoyRandom.t consumer
     (* XXX: these are temporary, should be split *)
     | SetRun of r
     | GetRun of r consumer
