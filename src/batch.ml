@@ -2,7 +2,7 @@ module Defs (T : ScriptingTypes.TYPES) = struct
     module SD = ScriptingTypes.Defs(T)
     open SD
     type generate_trees_arg = {
-        rng : Rng.t;
+        rng : PoyRandom.t;
         n_trees : int;
         generate : Methods.script list;
         composer : Methods.script list;
