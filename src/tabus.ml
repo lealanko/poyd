@@ -21,6 +21,9 @@
  * implemented. The tabu manager specifies the order in which edges are broken by
  * the SPR and TBR search procedures. The list of edges in the tabu should always
  * match the edges in the tree. *)
+
+open PoyPrelude
+
 let () = SadmanOutput.register "Tabus" "$Revision: 2835 $"
 
 (* A module that provides the managers for a local search (rerooting, edge
