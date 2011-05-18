@@ -14,14 +14,14 @@ struct
 	let timer =
 	    Timer.start () 
 	in
-	let rngs : Rng.t array =
-	    Array.init n_trees (fun _ -> Rng.fork rng) 
+	let rngs : PoyRandom.t array =
+	    Array.init n_trees (fun _ -> PoyRandom.fork rng) 
 	in
 	let run0 = { initial_state with ScriptingTypes.stored_trees = `Empty }
 	in
-	let make_one (subrng : Rng.t) : trees =
-	    Rng.with_state subrng (fun () ->
-		info "Rng hash: %d" (Hashtbl.hash (Random.get_state ()));
+	let make_one (subrng : PoyRandom.t) : trees =
+	    PoyRandom.with_state subrng (fun () ->
+		info "PoyRandom hash: %d" (Hashtbl.hash (PoyRandom.get_state ()));
 		let run1 =
 		    List.fold_left M.folder run0 generate 
 		in

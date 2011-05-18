@@ -17,6 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "Hash_tbl" "$Revision: 1644 $"
 
 (** hash_tbl.ml - contains a hash_tbl implementation based on 'A linear time

@@ -25,6 +25,8 @@
     transformations, and applying a transformation or reverse-transformation to
     a tree. *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "CharTransform" "$Revision: 2851 $"
 
 let check_assertion_two_nbrs a b c =

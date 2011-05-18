@@ -17,6 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "Build" "$Revision: 2803 $"
 
 let debug_profile_memory = false
