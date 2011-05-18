@@ -18,8 +18,10 @@
 (* USA                                                                        *)
 
 (* $Id: array_ops.ml 2794 2008-04-30 18:40:51Z andres $ *)
-let () = SadmanOutput.register "Array_ops" "$Revision: 2794 $"
 
+open PoyPrelude
+
+let () = SadmanOutput.register "Array_ops" "$Revision: 2794 $"
 
 exception Empty
 
