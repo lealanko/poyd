@@ -17,6 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "Scripting" "$Revision: 2856 $"
 
 include ScriptingTypes
@@ -1814,7 +1816,7 @@ let on_each_tree_aux folder set_data dosomething mergingscript run tree =
     update_mergingscript folder mergingscript run tmp
 
 let on_each_tree folder set_data dosomething mergingscript run tree =
-    Rng.forked (fun () ->
+    PoyRandom.forked (fun () ->
 	on_each_tree_aux folder set_data dosomething mergingscript run tree)
 
 let emit_identifier =
@@ -3219,7 +3221,7 @@ END
             run
     | `ParallelPipeline (times, todo, composer, continue) ->
             let trees = B.((generate_trees {
-                rng = Random.get_state ();
+                rng = PoyRandom.get_state ();
                 n_trees = times;
                 generate = todo;
                 composer = composer;

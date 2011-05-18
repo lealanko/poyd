@@ -17,6 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "Mst" "$Revision: 1673 $"
 
 type mst = (int * float) list All_sets.IntegerMap.t
