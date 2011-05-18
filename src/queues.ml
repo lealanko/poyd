@@ -21,6 +21,9 @@
  * be searched. *)
 
 (* $Id: queues.ml 2274 2007-10-05 15:49:42Z andres $ *)
+
+open PoyPrelude
+
 let () = SadmanOutput.register "Queues" "$Revision: 2274 $"
 
 (** {1 Types} *)
