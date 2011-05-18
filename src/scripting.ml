@@ -17,6 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "Scripting" "$Revision: 2856 $"
 
 include ScriptingTypes
@@ -1813,7 +1815,7 @@ let on_each_tree_aux folder set_data dosomething mergingscript run tree =
     update_mergingscript folder mergingscript run tmp
 
 let on_each_tree folder set_data dosomething mergingscript run tree =
-    Rng.forked (fun () ->
+    PoyRandom.forked (fun () ->
 	on_each_tree_aux folder set_data dosomething mergingscript run tree)
 
 let emit_identifier =
@@ -3224,7 +3226,7 @@ END
             let for_each = todo @ composer in
             let timer = Timer.start () in
             for adv = 1 to times do
-		Rng.forked (fun () ->
+		PoyRandom.forked (fun () ->
                     run := folder !run (`Set ([`Data], name));
                     run := List.fold_left folder !run for_each;
                     let msg = Timer.status_msg (Timer.wall timer) adv times in

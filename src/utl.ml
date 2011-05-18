@@ -18,6 +18,8 @@
 (* USA                                                                        *)
 (** This module implements basic functions *)
 
+open PoyPrelude
+
 let () = SadmanOutput.register "Utl" "$Revision: 2653 $"
 module IntSet = All_sets.Integers
 
