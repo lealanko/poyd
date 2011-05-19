@@ -13,5 +13,3 @@ val bool : unit -> bool
 val init : int -> unit
 val full_init : int array -> unit
 val bits : unit -> int
-val get_state : unit -> t
-val set_state : t -> unit

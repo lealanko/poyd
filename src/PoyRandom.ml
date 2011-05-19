@@ -36,9 +36,3 @@ let with_state s thunk =
   finally thunk (fun () -> state := old_state)
 
 let forked thunk = with_state (fork ()) thunk
-
-let get_state () =
-    S.copy !state
-
-let set_state s =
-    state := S.copy s
