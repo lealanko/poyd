@@ -95,7 +95,9 @@ let run_task master client cmds =
         Servant.get_name servant >>= fun s_name ->
         let tick = Lwt_unix.sleep backup_interval_seconds in
         let rec loop = function
-            | [] -> return None
+            | [] -> 
+                Servant.final_report servant >>= fun () ->
+                return None
             | cmd :: rest ->
                 L.trace 
                     (fun () -> Servant.execute_script servant [cmd])

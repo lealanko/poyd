@@ -359,7 +359,9 @@ module Files = struct
                   Format.pp_get_margin  fo ()   
               with  Not_found -> Format.get_margin () 
 
+    let get_margin_fn = ref get_margin
 
+    let get_margin filename = !get_margin_fn filename
 
     let openf ?(mode = `Append) name fo_ls = 
         if Hashtbl.mem opened_files name then 
@@ -414,6 +416,9 @@ module Files = struct
                 let _ = openf filename [Margin margin] in
                 ()
 
+    let set_margin_fn = ref set_margin
+
+    let set_margin filename margin = !set_margin_fn filename margin
 
     let flush () = 
         Hashtbl.iter (fun _ (ch, f, _) -> 

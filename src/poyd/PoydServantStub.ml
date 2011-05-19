@@ -10,6 +10,7 @@ type 'a producer = (unit, 'a option) handle
 type msg = 
     | SetClient of Client.t
     | ExecuteScript of script list
+    | FinalReport
     | SetTrees of bool * tree producer
     | GetTrees of bool * tree consumer
     | SetData of Data.d
@@ -33,6 +34,9 @@ let set_client s c =
 
 let execute_script s script =
     s.hdl $ ExecuteScript(script)
+
+let final_report s =
+    s.hdl $ FinalReport
 
 let tree_producer trees =
     (* Ideally we would iterate the sexpr directly with an explicit stack, 
@@ -121,6 +125,8 @@ module Make (Servant : SERVANT with module Client = Client) = struct
             set_client s c
         | ExecuteScript(script) ->
             execute_script s script
+        | FinalReport ->
+            final_report s
         | SetTrees(storedp, producer) ->
             acquire_trees producer >>= fun trees ->
             (if storedp then set_stored_trees else set_trees) s trees

@@ -7,6 +7,8 @@ type 'r msg =
     | RequestFile of string * (string, 'r) teq
     | OutputStatus of Status.c * string * string option * (unit, 'r) teq
     | ExplodeFilenames of Parser.filename list * (string list, 'r) teq
+    | GetMargin of string option * (int, 'r) teq
+    | SetMargin of string option * int * (unit, 'r) teq
 
 type t = { 
     name : string;
@@ -25,6 +27,11 @@ let output_status c t msg filename =
 let explode_filenames c files =
     c.hdl $ ExplodeFilenames (files, eq_refl)
 
+let get_margin c filename = 
+    c.hdl $ GetMargin (filename, eq_refl)
+
+let set_margin c filename margin =
+    c.hdl $ SetMargin (filename, margin, eq_refl)
 
 module Make(Client : CLIENT) = struct
     open Client
@@ -38,6 +45,10 @@ module Make(Client : CLIENT) = struct
             output_status c t msg filename >: teq
         | ExplodeFilenames (files, teq) ->
             explode_filenames c files >: teq
+        | GetMargin (filename, teq) ->
+            get_margin c filename >: teq
+        | SetMargin (filename, margin, teq) ->
+            set_margin c filename margin >: teq
 
     let create c =
         get_name c >>= fun name ->

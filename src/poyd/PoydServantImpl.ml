@@ -20,6 +20,14 @@ let remote_output_status c k msg =
     PoydThread.callback thr (fun () ->
         Client.output_status c k msg !StatusCommon.information_output)
 
+let remote_get_margin c filename =
+    PoydThread.callback thr (fun () ->
+        Client.get_margin c filename)
+
+let remote_set_margin c filename margin =
+    PoydThread.callback thr (fun () ->
+        Client.set_margin c filename margin)
+
 let remote_open_in c close_it opener fn =
     let path = FileStream.filename fn in
     (* XXX: awful kludge, need to at least make sure the temp file gets
@@ -44,6 +52,8 @@ let set_client _ c = PoydThread.run thr (fun () -> begin
     Status.is_parallel 1 (Some (remote_output_status c));
     FileStream.(set_current_open_in 
         { open_in_fn = fun (type t) -> remote_open_in c });
+    StatusCommon.Files.get_margin_fn := remote_get_margin c;
+    StatusCommon.Files.set_margin_fn := remote_set_margin c;
     PoyParser.set_explode_filenames_fn (remote_explode_filenames c)
 end)
     
@@ -51,9 +61,13 @@ end)
 let execute_script _ script = 
     L.dbg "RNG hash: %d" (Hashtbl.hash (Random.get_state ())) >>= fun () ->
     PoydThread.run thr (fun () -> begin
-    let new_run = Phylo.run ~start:!current_run script in
+    let new_run = List.fold_left Phylo.folder !current_run script in
     current_run := new_run
 end)
+
+let final_report _ =
+    PoydThread.run thr (fun () ->
+        Phylo.final_report !current_run)
 
 let set_rng _ rng = PoydThread.run thr (fun () ->
     Random.set_state rng

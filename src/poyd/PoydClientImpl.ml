@@ -38,3 +38,12 @@ let explode_filenames _ files =
 
 let get_name _ =
     PoydUtil.get_procid ()
+
+let get_margin _ filename = 
+    PoydThread.run thr (fun () ->
+        StatusCommon.Files.get_margin filename)
+
+let set_margin _ filename margin = 
+    PoydThread.run thr (fun () ->
+        StatusCommon.Files.set_margin filename margin)
+        
