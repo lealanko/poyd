@@ -3983,6 +3983,11 @@ let deal_with_error output_file run tmp err =
     Status.user_message Status.Error msg;
     raise err
 
+let final_report run =
+    Status.user_message (Status.SearchReport)
+        (SearchInformation.show_information
+             (Some run.trees) (Some run.data) None None)
+    
 let run ?(folder=folder) ?(output_file="ft_poy.out") ?(start=(empty ())) lst =
     (* print_endline "We are at the run in Scripting module";
     Methods.print_script_ls lst; *)
@@ -3992,16 +3997,12 @@ let run ?(folder=folder) ?(output_file="ft_poy.out") ?(start=(empty ())) lst =
             then begin
                 let run = folder run h in
                 if printit then
-                    Status.user_message (Status.SearchReport)
-                    (SearchInformation.show_information
-                    (Some run.trees) (Some run.data) None None);
+                    final_report run;
                 run
             end
             else try 
                 let run = folder run h in
-                Status.user_message (Status.SearchReport)
-                (SearchInformation.show_information
-                (Some run.trees) (Some run.data) None None);
+                final_report run;
                 run
             with 
             | Error_in_Script (err, run) ->

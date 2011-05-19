@@ -5,7 +5,7 @@ open FundType
 
 type 'r msg =
     | RequestFile of string * (string, 'r) teq
-    | OutputStatus of Status.c * string * (unit, 'r) teq
+    | OutputStatus of Status.c * string * string option * (unit, 'r) teq
     | ExplodeFilenames of Parser.filename list * (string list, 'r) teq
 
 type t = { 
@@ -19,8 +19,8 @@ let get_name c =
 let request_file c path =
     c.hdl $ RequestFile (path, eq_refl)
 
-let output_status c t msg =
-    c.hdl $ OutputStatus (t, msg, eq_refl)
+let output_status c t msg filename =
+    c.hdl $ OutputStatus (t, msg, filename, eq_refl)
 
 let explode_filenames c files =
     c.hdl $ ExplodeFilenames (files, eq_refl)
@@ -34,8 +34,8 @@ module Make(Client : CLIENT) = struct
     let f c = function
         | RequestFile (path, teq) -> 
             request_file c path >: teq
-        | OutputStatus (t, msg, teq) -> 
-            output_status c t msg >: teq
+        | OutputStatus (t, msg, filename, teq) -> 
+            output_status c t msg filename >: teq
         | ExplodeFilenames (files, teq) ->
             explode_filenames c files >: teq
 
