@@ -243,8 +243,6 @@ module type S = sig
         ?folder:(r -> script -> r) ->
         ?output_file:string -> ?start:r -> script list -> r
 
-    val folder : r -> script -> r
-
     val update_mergingscript : (r -> script -> r) -> script list -> r -> r -> r
 
     val process_input : r -> 
