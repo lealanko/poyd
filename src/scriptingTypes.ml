@@ -238,6 +238,10 @@ module type S = sig
     val empty : unit -> r
         
     val args : string array
+
+    val folder : r -> script -> r
+
+    val final_report : r -> unit
         
     val run : 
         ?folder:(r -> script -> r) ->
