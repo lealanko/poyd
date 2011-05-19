@@ -8,7 +8,7 @@ module type CLIENT = sig
     val get_name : t -> string lwt
     val request_file : t -> string -> string lwt
     val explode_filenames : t -> Parser.filename list -> string list lwt
-    val output_status : t -> Status.c -> string -> unit lwt
+    val output_status : t -> Status.c -> string -> string option -> unit lwt
 end
 
 type taxon_codes = string All_sets.IntegerMap.t

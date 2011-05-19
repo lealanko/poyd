@@ -18,7 +18,7 @@ let get_name c =
 
 let remote_output_status c k msg =
     PoydThread.callback thr (fun () ->
-        Client.output_status c k msg)
+        Client.output_status c k msg !StatusCommon.information_output)
 
 let remote_open_in c close_it opener fn =
     let path = FileStream.filename fn in

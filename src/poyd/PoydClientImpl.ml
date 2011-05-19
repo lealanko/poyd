@@ -8,8 +8,9 @@ let client = ()
 
 let thr = PoydPoy.thread
 
-let output_status _ c msg =
+let output_status _ c msg filename =
     PoydThread.run thr (fun () ->
+        StatusCommon.set_information_output filename;
         Status.user_message c msg)
 
 let read_channel ch =
