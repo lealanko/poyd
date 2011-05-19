@@ -28,15 +28,7 @@ module Types = struct
     type c = CharOps.cs
 end
 
-module DummyBatch = Batch.Dummy (Types)
-
-module BatchM = 
-    Scripting.Make (Types) (Nodes) (Edges) (TreeOps) (CharOps) (DummyBatch)
-
-module LocalBatch = BatchLocal.Make (BatchM)
-
-module M = 
-    Scripting.Make (Types) (Nodes) (Edges) (TreeOps) (CharOps) (LocalBatch)
+module M = Scripting.Make (Types) (Nodes) (Edges) (TreeOps) (CharOps)
 
 open M
 include M
