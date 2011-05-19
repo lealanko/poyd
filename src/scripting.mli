@@ -32,7 +32,6 @@ module Make
     (Edge : Edge.EdgeSig with type n = T.a with type e = T.b) 
     (TreeOps : Ptree.Tree_Operations with type a = T.a with type b = T.b)
     (CScrp : CharacterScripting.S with type n = T.a with type cs = T.c)
-    (B : Batch.S with module T = T)
     : S with module T = T
 
 (** {2 Scripting in Ocaml} 
