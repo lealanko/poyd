@@ -27,12 +27,12 @@ let finally thunk end_thunk =
     | Succ res -> res
     | Fail exn -> raise exn
 
-let fork s = S.make (Array.init 55 (fun _ -> S.bits s))
+let fork () = S.make (Array.init 55 (fun _ -> S.bits !state))
 
 let with_state s thunk =
   let old_state = !state
   in
-  state := s;
+  state := S.copy s;
   finally thunk (fun () -> state := old_state)
 
-let forked thunk = with_state (fork !state) thunk
+let forked thunk = with_state (fork ()) thunk
