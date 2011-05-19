@@ -3221,7 +3221,7 @@ END
             run
     | `ParallelPipeline (times, todo, composer, continue) ->
             let trees = B.((generate_trees {
-                rng = PoyRandom.get_state ();
+                rng = PoyRandom.fork ();
                 n_trees = times;
                 generate = todo;
                 composer = composer;
