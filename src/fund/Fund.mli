@@ -27,6 +27,8 @@ val connect :
 
 val disconnect : connection -> unit lwt
 
+val wait : connection -> unit lwt
+
 val get_root : string -> 'a lwt
 
 val set_root : string -> 'a -> unit lwt

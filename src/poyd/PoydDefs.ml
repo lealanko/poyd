@@ -8,7 +8,11 @@ module type CLIENT = sig
     val get_name : t -> string lwt
     val request_file : t -> string -> string lwt
     val explode_filenames : t -> Parser.filename list -> string list lwt
-    val output_status : t -> Status.c -> string -> string option -> unit lwt
+    val output_status : t -> Status.c -> string -> unit lwt
+    val set_information_output : t -> string option -> unit lwt
+    val get_margin : t -> string option -> int lwt
+    val set_margin : t -> string option -> int -> unit lwt
+    val wait_finish : t -> unit lwt
 end
 
 type taxon_codes = string All_sets.IntegerMap.t
@@ -19,6 +23,7 @@ module type SERVANT = sig
     val get_name : t -> string lwt
     val set_client : t -> Client.t -> unit lwt
     val execute_script : t -> script list -> unit lwt
+    val final_report : t -> unit lwt
     val set_trees : t -> tree Sexpr.t -> unit lwt
     val set_stored_trees : t -> tree Sexpr.t -> unit lwt
     val get_trees : t -> tree Sexpr.t lwt
@@ -41,5 +46,5 @@ module type MASTER = sig
     module Servant : SERVANT with module Client = Client
     type t
     val register_servant : t -> Servant.t -> unit lwt
-    val run_task : t -> Client.t -> script list -> unit lwt
+    val create_task : t -> Client.t -> (script list, unit) handle lwt
 end
