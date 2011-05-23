@@ -4,4 +4,4 @@ include MASTER
     with module Client = PoydClientStub 
     with module Servant = PoydServantStub
 
-val create : unit -> t
+val create : checkpoint_secs:float -> t

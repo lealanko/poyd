@@ -102,6 +102,10 @@ let connect ?addr ?host ?port ?path () =
 let disconnect conn =
     let module C = (val conn : CONNECTION) in
     C.close ()
+
+let wait conn =
+    let module C = (val conn : CONNECTION) in
+    C.finish
         
 let get_root str = 
     let id = FundPolyMap.UuidKey.unsafe_of_string str in

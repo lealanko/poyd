@@ -8,9 +8,12 @@ let client = ()
 
 let thr = PoydPoy.thread
 
-let output_status _ c msg filename =
+let set_information_output _ filename =
     PoydThread.run thr (fun () ->
-        StatusCommon.set_information_output filename;
+        StatusCommon.set_information_output filename)
+
+let output_status _ c msg =
+    PoydThread.run thr (fun () ->
         Status.user_message c msg)
 
 let read_channel ch =
@@ -38,3 +41,19 @@ let explode_filenames _ files =
 
 let get_name _ =
     PoydUtil.get_procid ()
+
+let get_margin _ filename = 
+    PoydThread.run thr (fun () ->
+        StatusCommon.Files.get_margin filename)
+
+let set_margin _ filename margin = 
+    PoydThread.run thr (fun () ->
+        StatusCommon.Files.set_margin filename margin)
+
+let wait_t, wait_u = task ()      
+  
+let wait_finish _ =
+    wait_t
+
+let finish _ =
+    wakeup wait_u ()
