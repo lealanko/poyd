@@ -510,6 +510,10 @@ let information_output = ref None
 let set_information_output (filename : string option) =
     information_output := filename
 
+let set_information_output_fn = ref set_information_output
+
+let set_information_output filename = !set_information_output_fn filename
+
 let redirect_information () = 
     match !information_output with 
     | None -> false

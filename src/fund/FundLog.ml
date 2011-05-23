@@ -7,6 +7,7 @@ type ftr = Format.formatter
 module type S = sig
     val dbg : ('a, ftr, unit, unit lwt) format4 -> 'a
     val info : ('a, ftr, unit, unit lwt) format4 -> 'a
+    val error : ('a, ftr, unit, unit lwt) format4 -> 'a
     val trace : ?pr:(ftr -> 'a -> unit) -> (unit -> 'a lwt) ->
         ('b, ftr, unit, 'a lwt) format4 -> 'b
     val trace2 : 
@@ -55,6 +56,7 @@ let make ?(logger=default_logger) secname = (module struct
 
     let dbg fmt = log ~level:Lwt_log.Debug fmt
     let info fmt = log ~level:Lwt_log.Info fmt
+    let error fmt = log ~level:Lwt_log.Error fmt
 
     let trace ?(pr=pr_any) thunk fmt = 
         ksprintf fmt (fun s ->
