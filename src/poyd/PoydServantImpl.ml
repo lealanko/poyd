@@ -18,7 +18,7 @@ let get_name c =
 
 let remote_output_status c k msg =
     PoydThread.callback thr (fun () ->
-        Client.output_status c k msg !StatusCommon.information_output)
+        Client.output_status c k msg)
 
 let remote_get_margin c filename =
     PoydThread.callback thr (fun () ->
@@ -44,6 +44,10 @@ let remote_explode_filenames c files =
     PoydThread.callback thr (fun () ->
         Client.explode_filenames c files)
 
+let remote_set_information_output c filename =
+    PoydThread.callback thr (fun () ->
+        Client.set_information_output c filename)
+
 let current_client = ref None
 
 let set_client _ c = PoydThread.run thr (fun () -> begin
@@ -54,6 +58,7 @@ let set_client _ c = PoydThread.run thr (fun () -> begin
         { open_in_fn = fun (type t) -> remote_open_in c });
     StatusCommon.Files.get_margin_fn := remote_get_margin c;
     StatusCommon.Files.set_margin_fn := remote_set_margin c;
+    StatusCommon.set_information_output_fn := remote_set_information_output c;
     PoyParser.set_explode_filenames_fn (remote_explode_filenames c)
 end)
     

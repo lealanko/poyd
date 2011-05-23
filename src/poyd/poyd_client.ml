@@ -4,17 +4,18 @@ open Fund
 
 let () = Status.init ()
 
+let arg_specs = Arguments.parse_list @ PoydArgs.full_specs
+
 let () =
     try
-        Arg.parse_argv Phylo.args Arguments.parse_list Arguments.anon_fun 
-        Arguments.usage 
+        Arg.parse_argv Phylo.args arg_specs Arguments.anon_fun Arguments.usage
     with
     | Arg.Help _ ->
-            Arg.usage Arguments.parse_list Arguments.usage;
+            Arg.usage arg_specs Arguments.usage;
             exit 0
     | Arg.Bad x ->
             prerr_string ("Bad argument: " ^ x);
-            Arg.usage Arguments.parse_list Arguments.usage;
+            Arg.usage arg_specs Arguments.usage;
             exit 1
 
 let () = MainUtil.welcome_msg ()
@@ -39,8 +40,8 @@ let run command =
     Phylo.set_console_run res
 
 
-let port = 7654
-let host = "localhost"
+let port = !PoydArgs.port
+let host = !PoydArgs.host
 
 let thr = PoydPoy.thread
 
@@ -60,10 +61,12 @@ let main () =
     connect ~host ~port () >>= fun conn ->
     L.info "Connected to poyd master at %s:%d." host port >>= fun () ->
     get_root "poyd-master" >>= fun master ->
+    Master.create_task master stub >>= fun task ->
     let run command = PoydThread.callback thr (fun () ->
-        Master.run_task master stub command) in
+        task $ command) in
     PoydThread.run thr (fun () ->
         MainUtil.main script run !Arguments.just_exit) >>= fun r ->
+    C.finish C.client;
     disconnect conn >>= fun () ->
     L.info "Disconnected from poyd master." >>= fun () ->
     return r
