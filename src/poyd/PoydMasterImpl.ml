@@ -3,58 +3,26 @@ open PoydDefs
 
 module L = (val FundLog.make "PoydMasterImpl" : FundLog.S)
 
+module Pool = PoydWorkerPool
+
 
 module Client = PoydClientStub
 module Servant = PoydServantStub
 
-module Registry = struct
-    type t = {
-        cond : unit Lwt_condition.t;
-        mutable set : Servant.t BatSet.t;
-    }
-
-    let create () = { 
-        cond = Lwt_condition.create ();
-        set = BatSet.empty;
-    }
-
-    let add reg srv = 
-        reg.set <- BatSet.add srv reg.set;
-        Lwt_condition.broadcast reg.cond ();
-        return ()
-
-    let rec get reg =
-        try
-            let srv, rest = BatSet.pop reg.set in
-            reg.set <- rest;
-            return srv
-        with Not_found ->
-            Lwt_condition.wait reg.cond >>= fun () ->
-            get reg
-
-    let loan reg fn =
-        get reg >>= fun srv ->
-        result (fun () -> fn srv) >>= fun r ->
-        (match r with
-        | Bad (Fund.RouteError | Fund.ConnectionError _) -> return ()
-        | _ -> add reg srv) >>= fun () ->
-        run_result r
-            
-end
 
 type t = {
-    registry : Registry.t;
+    pool : Pool.t;
     checkpoint_secs : float;
 }
 
 let create ~checkpoint_secs = {
-    registry = Registry.create ();
+    pool = Pool.create ();
     checkpoint_secs = checkpoint_secs;
 }
 
 
 let register_servant m s =
-    Registry.add m.registry s >>= fun () ->
+    Pool.put m.pool s >>= fun () ->
     Servant.get_name s >>= fun name ->
     L.info "Registered servant %s to pool" name
 
@@ -129,7 +97,7 @@ let run_task master task cmds =
               | exn -> fail exn)
     in
     let rec run_cmds state cmds =
-        Registry.get master.registry >>= fun servant ->
+        Pool.get master.pool 0 >>= fun servant ->
         Servant.get_name servant >>= fun s_name ->
         L.info "Task %d: Allocated servant %s" task.id s_name >>= fun () ->
         try_bind 
@@ -140,7 +108,7 @@ let run_task master task cmds =
             (fun () -> 
                 get_state servant >>= fun state ->
                 task.state <- state;
-                Registry.add master.registry servant >>= fun () ->
+                Pool.put master.pool servant >>= fun () ->
                 L.info "Task %d: Released servant %s to pool" task.id s_name)
             (function
               | Restart (rstate, rcmds) ->
@@ -165,7 +133,7 @@ let run_task master task cmds =
                       get_state servant >>= fun state ->
                       task.state <- state;
                       return ()) >>= fun () ->
-                  Registry.add master.registry servant >>= fun () ->
+                  Pool.put master.pool servant >>= fun () ->
                   L.info "Task %d: Released servant %s to pool" task.id s_name >>= fun () ->
                   fail exn)
     in
