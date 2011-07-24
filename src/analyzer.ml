@@ -1499,7 +1499,7 @@ let analyze script =
     let res = List.flatten (List.map analyze scripts) in
     correct_parallel_pipelines_with_internal_transform res
 
-let script_to_string (init : Methods.script) =
+let rec script_to_string (init : Methods.script) =
     match init with
     | #Methods.tree_handling as meth ->
             let res = 
@@ -1689,7 +1689,7 @@ let script_to_string (init : Methods.script) =
     | `Repeat (n, comm) -> 
             (* This is special, as implies concurrency; we will treat it like nothing for
             now though, as nobody knows about it *)
-            ""
+            "@[Repeat:@;<1 2>" ^ scripts_to_string comm ^ "@]"
     | #Methods.report as meth ->
             let res = 
                 match meth with
@@ -1779,12 +1779,19 @@ let script_to_string (init : Methods.script) =
 	    -> "@[StoreTrees@]"
     | `UnionStored
 	    -> "@[UnionStored@]"
-    | `OnEachTree _
-	    -> "@[OnEachTree@]"
-    | `ParallelPipeline _
-	    -> "@[ParallelPipeline@]"
+    | `OnEachTree (dosomething, mergingscript)
+	    -> "@[OnEachTree@;<1 2>@["
+        ^ "@[Job:@ " ^ scripts_to_string dosomething ^ "@]@\n"
+        ^ "@[Merge:@ " ^ scripts_to_string mergingscript ^ "@]@]@]"
+    | `ParallelPipeline (times, todo, composer, continue)
+	    -> "@[ParallelPipeline@;<1 2>@["
+        ^ "@[Todo:@ " ^ scripts_to_string todo ^ "@]@\n"
+        ^ "@[Composer:@ " ^ scripts_to_string composer ^ "@]@]@,"
+        ^ "@[Continue:@ " ^ scripts_to_string continue ^ "@]@]"
     | `GetStored
 	    -> "@[GetStored@]"
+and scripts_to_string s = 
+    "@[<v>" ^ String.concat "@," (List.map script_to_string s) ^ "@]"
 
 
 let colors fo item = 
@@ -1857,10 +1864,6 @@ let rec explain_tree ?(deps=true) fo colors tree =
                 else (lst1, lst2) :: acc
             in
             match x.run, x.children with
-            | `StoreTrees, [child]
-            | `UnionStored, [child]
-            | `OnEachTree _, [child]
-            | `GetStored, [child] -> explain_tree fo colors child;
             | _, children ->
                     colors x.exploders;
                     (* outputlist fo x.thread;*)
@@ -1906,7 +1909,8 @@ let explain_tree filename script =
         --> List.iter 
             (fun t -> explain_tree fo colors t; fo "@,@,") 
     in
-    fo "@]%!";
+    fo (scripts_to_string (analyze script));
+    fo "@]@\n%!";
     output (Buffer.contents buffer)
 
 let my_part mine n a = 
