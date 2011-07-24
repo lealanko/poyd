@@ -36,3 +36,40 @@ let with_state s thunk =
   finally thunk (fun () -> state := old_state)
 
 let forked thunk = with_state (fork ()) thunk
+
+type seed_data = {
+  time : float;
+  pid : int;
+  ppid : int;
+  hostname : string;
+}
+
+let mk_seed_data () =
+  let open Unix in {
+    time = begin
+      try gettimeofday ()
+      with Invalid_argument _ -> time ()
+    end;                                
+    pid = getpid ();
+    ppid = getppid ();
+    hostname = gethostname ();
+  }
+
+open Unix
+
+let sys_state = 
+    let time =
+        try gettimeofday ()
+        with Invalid_argument _ -> time () in
+    let hostname = gethostname () in
+    let fqdn = try
+                   let host = gethostbyname hostname in
+                   host.h_name
+        with Not_found -> hostname in
+    let data = (time, fqdn, Unix.getpid()) in
+    let buf = Marshal.to_string data [] in
+    let arr = Array.make (String.length buf) 0 in
+    for i = 0 to String.length buf - 1 do
+        Array.set arr i (int_of_char (String.get buf i))
+    done;
+    S.make arr
