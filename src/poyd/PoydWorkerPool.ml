@@ -1,10 +1,12 @@
 open PoydPrelude
 
+module L = (val FundLog.make "PoydWorkerPool" : FundLog.S)
+
 type worker = PoydServantStub.t
 
 type consumer = {
     priority : int;
-    cont : worker cont;
+    mutable cont : worker cont option;
 }
 
 module C = struct
@@ -28,19 +30,35 @@ let get p pri =
     try
         let w, rest = BatSet.pop p.available in
         p.available <- rest;
+        L.dbg "Had available, taking directly, now have %d" 
+            (BatSet.cardinal p.available) >>= fun () ->
         return w
     with Not_found ->
+        L.dbg "Didn't have available, now pending" >>= fun () ->
         ccc (fun k ->
-            let con = { priority = pri; cont = k } in
+            let con = { priority = pri; cont = Some k } in
+            on_cancel_w k (fun () -> con.cont <- None);
             p.pending_consumers <- Q.insert p.pending_consumers con)
 
-let put p w = return begin
-    if Q.size p.pending_consumers = 0 then
-        p.available <- BatSet.add w p.available
-    else
+let rec put p w = 
+    if Q.size p.pending_consumers = 0 then begin
+        p.available <- BatSet.add w p.available;
+        L.dbg "No consumers, adding to available, now have %d" 
+            (BatSet.cardinal p.available)
+    end else begin
+        L.dbg "Had consumer, giving directly" >>= fun () ->
         let con = Q.find_min p.pending_consumers in
         p.pending_consumers <- Q.del_min p.pending_consumers;
-        Lwt.wakeup con.cont w end
+        match con.cont with
+        | None -> begin
+            L.dbg "Consumer was canceled, retry" >>= fun () ->
+            put p w
+        end
+        | Some k -> begin 
+            Lwt.wakeup k w;
+            return ()
+        end
+    end
         
         
 

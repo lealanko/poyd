@@ -14,4 +14,7 @@ val init : int -> unit
 val full_init : int array -> unit
 val bits : unit -> int
 
+val set_state : t -> unit
+val get_state : unit -> t
+
 val sys_state : t

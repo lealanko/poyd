@@ -22,12 +22,14 @@ module type SERVANT = sig
     type t
     val get_name : t -> string lwt
     val set_client : t -> Client.t -> unit lwt
-    val execute_script : t -> script list -> unit lwt
+    val begin_script : t -> script list -> unit lwt
     val final_report : t -> unit lwt
-    val set_trees : t -> tree Sexpr.t -> unit lwt
-    val set_stored_trees : t -> tree Sexpr.t -> unit lwt
+    val set_trees : t -> tree Sexpr.t -> unit lwt 
+    val set_stored_trees : t -> tree Sexpr.t -> unit lwt 
     val get_trees : t -> tree Sexpr.t lwt
     val get_stored_trees : t -> tree Sexpr.t lwt
+    val add_trees : t -> tree Sexpr.t -> unit lwt 
+    val add_stored_trees : t -> tree Sexpr.t -> unit lwt 
     val set_data : t -> Data.d -> unit lwt
     val get_data : t -> Data.d lwt
     val set_rng : t -> PoyRandom.t -> unit lwt

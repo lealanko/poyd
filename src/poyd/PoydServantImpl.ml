@@ -63,35 +63,55 @@ let set_client _ c = PoydThread.run thr (fun () -> begin
 end)
     
 
-let execute_script _ script = 
-    L.dbg "RNG hash: %d" (Hashtbl.hash (Random.get_state ())) >>= fun () ->
-    PoydThread.run thr (fun () -> begin
-    let new_run = List.fold_left Phylo.folder !current_run script in
-    current_run := new_run
-end)
+(*
+let begin_script _ script = 
+    L.dbg "RNG hash: %d" (Hashtbl.hash (PoyRandom.get_state ())) >>= fun () ->
+    ccc (fun k ->
+        detach (fun () ->
+            PoydThread.run thr <| fun () -> begin
+                PoydThread.callback thr (fun () -> 
+                    L.dbg "Wakeup return continuation" >>= fun () ->
+                    wakeup k ();
+                    L.dbg "Woke up?" >>= fun () ->
+                    return ());
+                let new_run = List.fold_left Phylo.folder !current_run script in
+                current_run := new_run
+            end))
+*)
+
+let begin_script _ script = 
+    PoydThread.run thr <| fun () ->
+        let new_run = List.fold_left Phylo.folder !current_run script in
+        current_run := new_run
 
 let final_report _ =
     PoydThread.run thr (fun () ->
         Phylo.final_report !current_run)
 
 let set_rng _ rng = PoydThread.run thr (fun () ->
-    Random.set_state rng
+    PoyRandom.set_state rng
 )
 
 let get_rng _ = PoydThread.run thr (fun () ->
-    Random.get_state ()
+    PoyRandom.get_state ()
 )
 
-let get f = PoydThread.run thr (fun () -> f !current_run)
-let set f = PoydThread.run thr (fun () -> current_run := f !current_run)
+let get f = PoydThread.run thr 
+    <| fun () -> f !current_run
+let set f = PoydThread.run thr 
+    <| fun () -> current_run := f !current_run
 
-let set_run _ r = set (fun _ -> r)
-let get_run _ = get (fun r -> r)
-let set_data _ data = set (fun r -> { r with data })
-let get_data _ = get (fun r -> r.data)
-let set_trees _ trees = set (fun r -> { r with trees })
-let set_stored_trees _ stored_trees = set (fun r -> { r with stored_trees })
-let get_trees _ = get (fun r -> r.trees)
-let get_stored_trees _ = get (fun r -> r.stored_trees)
+let set_run _ r = set <| fun _ -> r 
+let get_run _ = get <| fun r -> r
+let set_data _ data = set <| fun r -> { r with data }
+let get_data _ = get <| fun r -> r.data
+let set_trees _ trees = set <| fun r -> { r with trees }
+let set_stored_trees _ stored_trees = set <| fun r -> { r with stored_trees }
+let add_trees _ trees = set <| fun r -> 
+    { r with trees = Sexpr.union r.trees trees }
+let add_stored_trees _ stored_trees = set <| fun r -> 
+    {r with stored_trees = Sexpr.union r.stored_trees stored_trees}
+let get_trees _ = get <| fun r -> r.trees
+let get_stored_trees _ = get <| fun r -> r.stored_trees
 
 

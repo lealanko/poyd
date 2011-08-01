@@ -63,16 +63,16 @@ let make ?(logger=default_logger) secname = (module struct
             Lwt_log.debug_f ~section ~logger "-> %s" s >>= fun () ->
             try_bind thunk
                 (fun r ->
-                    Lwt_log.debug_f ~section ~logger "@[@]<- %s: %s" s 
+                    Lwt_log.debug_f ~section ~logger "<- %s: %s" s 
                         (prs (fun f -> pr f r)) >>= fun () ->
                     return r)
                 (fun exn ->
-                    Lwt_log.debug_f ~section ~logger ~exn "@[@]<# %s" s 
+                    Lwt_log.debug_f ~section ~logger ~exn "<# %s" s 
                     >>= fun () ->
                     fail exn))
 
     let trace2 ?pr ?(p1=pr_any) ?(p2=pr_any) s f a1 a2 =
-        trace ?pr (fun () -> f a1 a2) "@[%s %a %a@]" s p1 a1 p2 a2
+        trace ?pr (fun () -> f a1 a2) "%s %a %a" s p1 a1 p2 a2
         
         
 end : S)

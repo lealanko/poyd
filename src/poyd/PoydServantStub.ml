@@ -9,9 +9,9 @@ type 'a producer = (unit, 'a option) handle
 
 type msg = 
     | SetClient of Client.t
-    | ExecuteScript of script list
+    | BeginScript of script list
     | FinalReport
-    | SetTrees of bool * tree producer
+    | SetTrees of bool * bool * tree producer
     | GetTrees of bool * tree consumer
     | SetData of Data.d
     | GetData of Data.d consumer
@@ -32,8 +32,8 @@ let get_name s =
 let set_client s c =
     s.hdl $ SetClient(c)
 
-let execute_script s script =
-    s.hdl $ ExecuteScript(script)
+let begin_script s script =
+    s.hdl $ BeginScript(script)
 
 let final_report s =
     s.hdl $ FinalReport
@@ -53,15 +53,21 @@ let tree_producer trees =
         end in
     (fun () -> return (get ()))
     
-let set_trees_gen storedp s trees =
+let set_trees_gen storedp addp s trees =
     with_handle (tree_producer trees)
-        (fun producer -> s.hdl $ SetTrees(storedp, producer))
+        (fun producer -> s.hdl $ SetTrees(storedp, addp, producer))
 
 let set_trees =
-    set_trees_gen false
+    set_trees_gen false false
 
 let set_stored_trees =
-    set_trees_gen true
+    set_trees_gen true false
+
+let add_trees =
+    set_trees_gen false true
+
+let add_stored_trees =
+    set_trees_gen true true
 
 let tree_consumer () =
     let lst = ref [] in
@@ -123,13 +129,18 @@ module Make (Servant : SERVANT with module Client = Client) = struct
     let f (s : t) : msg -> unit lwt = function
         | SetClient c ->
             set_client s c
-        | ExecuteScript(script) ->
-            execute_script s script
+        | BeginScript(script) ->
+            begin_script s script
         | FinalReport ->
             final_report s
-        | SetTrees(storedp, producer) ->
+        | SetTrees(storedp, addp, producer) -> begin
             acquire_trees producer >>= fun trees ->
-            (if storedp then set_stored_trees else set_trees) s trees
+            match storedp, addp with
+            | false, false -> set_trees s trees
+            | false, true -> add_trees s trees
+            | true, false -> set_stored_trees s trees
+            | true, true -> add_stored_trees s trees
+        end
         | GetTrees(storedp, consumer) -> 
             (if storedp then get_stored_trees else get_trees) s >>= 
                 fun trees ->

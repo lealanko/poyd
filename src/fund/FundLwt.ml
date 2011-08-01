@@ -43,6 +43,10 @@ let fix (f : 'a lwt -> 'a lwt) : 'a lwt =
     ccc (fun k ->
 	f (waiter_of_wakener k) >>- k)
 
+let choose_split l =
+    nchoose_split l >>= fun ((t :: succ), waiters) -> 
+    return (t, List.map return succ @ waiters)
+
 let detach thunk =
     ignore (
 	catch thunk

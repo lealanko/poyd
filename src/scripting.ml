@@ -3262,13 +3262,16 @@ END
             let run = ref run in
             let for_each = todo @ composer in
             let timer = Timer.start () in
+            print_hash "main rng pre" (PoyRandom.get_state ());
             for adv = 1 to times do
 		PoyRandom.forked (fun () ->
+                    print_hash "forked rng" (PoyRandom.get_state ());
                     run := folder !run (`Set ([`Data], name));
                     run := List.fold_left folder !run for_each;
                     let msg = Timer.status_msg (Timer.wall timer) adv times in
                     Status.full_report ~adv ~msg st);
             done;
+            print_hash "main rng post" (PoyRandom.get_state ());
             run := folder !run (`Discard ([`Data], name));
             Status.finished st;
             List.fold_left folder !run continue

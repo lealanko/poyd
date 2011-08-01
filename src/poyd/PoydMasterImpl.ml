@@ -27,34 +27,18 @@ let register_servant m s =
     L.info "Registered servant %s to pool" name
 
 
-type task_state = {
-    run : Phylo.r;
-    rng : PoyRandom.t;
-}
-
-let new_state () = {
-    run = Phylo.empty ();
-    rng = Random.State.make [| truncate (Unix.time ()) |];
-}
-
-let get_state servant =
-    Servant.get_run servant >>= fun run ->
-    Servant.get_rng servant >>= fun rng ->
-    return { run; rng }
-
-let set_state servant state = 
-    Servant.set_run servant state.run >>= fun () ->
-    Servant.set_rng servant state.rng
-
 type task = {
     id : int;
-    mutable state : task_state;
+    mutable state : PoydState.t;
     mutable client : Client.t;
     mutex : Lwt_mutex.t;
 }
 
-exception Restart of task_state * script list
 
+exception Restart of PoydState.t * script list
+
+        
+        
 let run_task master task cmds =
     let run_tick servant cmds  =
         Servant.get_name servant >>= fun s_name ->
@@ -63,16 +47,28 @@ let run_task master task cmds =
             | [] -> 
                 Servant.final_report servant >>= fun () ->
                 return None
+            | `ParallelPipeline (times, todo, composer, continue) :: rest -> 
+                begin
+                    L.trace (fun () -> PoydState.receive servant)
+                        "Receive state from servant" >>= fun state ->
+                    Pool.put master.pool servant >>= fun () ->
+                    PoydParallel.parallel_pipeline master.pool task.client
+                        state times todo composer >>= fun new_state ->
+                    (* This looks bad, but this is the simplest way to
+                       tell the top loop to get a new servant. *)
+                    fail (Restart (new_state, continue @ rest))
+                end
             | cmd :: rest ->
                 L.trace 
-                    (fun () -> Servant.execute_script servant [cmd])
+                    (fun () -> Servant.begin_script servant [cmd])
                     "execute_script: %s"
                     (Analyzer.script_to_string cmd) >>= fun () ->
                 match state tick with
                 | Sleep -> loop rest
                 | _ -> 
-                    get_state servant >>= fun state ->
-                    L.info "Task %d: Saved checkpoint from %s" task.id s_name >>= fun () ->
+                    PoydState.receive servant >>= fun state ->
+                    L.info "Task %d: Saved checkpoint from %s" task.id s_name 
+                    >>= fun () ->
                     Client.output_status task.client Status.Information
                         "Saved checkpoint" >>= fun () ->
                     return (Some (state, rest))
@@ -97,16 +93,17 @@ let run_task master task cmds =
               | exn -> fail exn)
     in
     let rec run_cmds state cmds =
+        L.info "Task %d: Requesting servant" task.id >>= fun () ->
         Pool.get master.pool 0 >>= fun servant ->
         Servant.get_name servant >>= fun s_name ->
         L.info "Task %d: Allocated servant %s" task.id s_name >>= fun () ->
         try_bind 
             (fun () ->
                 Servant.set_client servant task.client >>= fun () ->
-                set_state servant state >>= fun () ->
+                PoydState.send state servant >>= fun () ->
                 run_on_servant servant state cmds)
             (fun () -> 
-                get_state servant >>= fun state ->
+                PoydState.receive servant >>= fun state ->
                 task.state <- state;
                 Pool.put master.pool servant >>= fun () ->
                 L.info "Task %d: Released servant %s to pool" task.id s_name)
@@ -130,7 +127,7 @@ let run_task master task cmds =
                          won't use the state for anything any more. *)
                       return () 
                   | _  ->
-                      get_state servant >>= fun state ->
+                      PoydState.receive servant >>= fun state ->
                       task.state <- state;
                       return ()) >>= fun () ->
                   Pool.put master.pool servant >>= fun () ->
@@ -147,7 +144,7 @@ let next_task_id = ref 0
 let create_task master client =
     let task = {
         id = (incr next_task_id; !next_task_id);
-        state = new_state ();
+        state = PoydState.create ();
         client = client;
         mutex = Lwt_mutex.create ();
     } in

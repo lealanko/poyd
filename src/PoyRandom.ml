@@ -13,6 +13,9 @@ let full_init seed =
     state := S.make seed
 let init seed = full_init [| seed |]
 
+let get_state () = !state
+let set_state s = state := s
+
 type 'a result = Succ of 'a | Fail of exn
 
 let finally thunk end_thunk =
@@ -32,7 +35,7 @@ let fork () = S.make (Array.init 55 (fun _ -> S.bits !state))
 let with_state s thunk =
   let old_state = !state
   in
-  state := S.copy s;
+  state := s;
   finally thunk (fun () -> state := old_state)
 
 let forked thunk = with_state (fork ()) thunk
