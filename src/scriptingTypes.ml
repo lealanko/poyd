@@ -12,7 +12,9 @@ type search_results = {
 
 type ('a, 'b, 'c) run = {
     description : string option;
+    (* Trees *)
     trees : ('a, 'b) Ptree.p_tree Sexpr.t;
+    (* Data *)
     data : Data.d;
     nodes : 'a list;
     characters : ('c Sexpr.t, float Sexpr.t) 
