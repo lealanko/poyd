@@ -37,7 +37,9 @@ let get p pri =
         L.dbg "Didn't have available, now pending" >>= fun () ->
         ccc (fun k ->
             let con = { priority = pri; cont = Some k } in
-            on_cancel_w k (fun () -> con.cont <- None);
+            on_cancel_w k (fun () -> 
+                (* Printf.eprintf "Get request canceled\n%!"; *)
+                con.cont <- None);
             p.pending_consumers <- Q.insert p.pending_consumers con)
 
 let rec put p w = 

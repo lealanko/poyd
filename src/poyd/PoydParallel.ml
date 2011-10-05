@@ -78,6 +78,7 @@ let do_parallel
 	init_servant svt >>= fun () ->
 	loop Dq.empty Dq.empty >>= fun () ->
 	finalize_servant svt >>= fun () ->
+        L.dbg "Releasing parallel worker" >>= fun () ->
 	Pool.put pool svt
     in
     let make_worker svt =
@@ -86,15 +87,45 @@ let do_parallel
 	detach (fun () -> worker_thread svt mv);
 	mv
     in
+    let state_str = function 
+        | Return _ -> "Return"
+        | Fail _ -> "Fail"
+        | Sleep -> "Sleep"
+    in
+    let msg fmt = Printf.kfprintf (fun out ->
+        Printf.fprintf out "\n%!") stderr fmt
+    in
+    let trace_cancel t = 
+        msg "pre-cancel: %s" (state_str (state t));
+        cancel t;
+        msg "post-cancel: %s" (state_str (state t));
+        
+    in
     let request_servant pri = 
-        L.dbg "requesting new servant from pool" >>= fun () ->
+        pause () >>= fun () ->
+         L.dbg "Requesting parallel worker" >>= fun () ->
+        (* msg "Requesting parallel worker"; *)
+        (*Lwt_io.atomic (fun oc -> Lwt_io.write oc "requesting parallel worker\n") Lwt_io.stderr *)
+        (* Lwt_io.write Lwt_io.stderr "requesting parallel worker\n"  *)
+        (* Lwt_unix.write Lwt_unix.stderr "req\n" 0 4
+            >>= fun _ -> *)
+        msg "begin pool.get";
         Pool.get pool pri >>= fun svt ->
+        msg "pool.get done";
 	(* This needs to be atomic so it can't be canceled. 
 	   Otherwise we might lose svt. *)
-        return (NewServant svt)
+        catch (fun () ->
+            msg "Received worker";
+            (* L.dbg "Received worker" >>= fun () -> *)
+            Lwt_mvar.put dispatcher_mv (NewServant svt))
+            (fun exn -> 
+                Pool.put pool svt >>= fun () ->
+                fail exn) >>= fun () ->
+        L.dbg "Sent worker to dispatcher"
     in
     let dispatch_event dst = function
 	| WorkerReady (w, w_seeds, w_results) -> begin
+            L.dbg "WorkerReady" >>= fun () ->
 	    match Dq.front dst.seeds, Dq.front dst.results with
 	    | Some (seed, seeds2), _ -> 
 		Lwt_mvar.put w (AddSeed seed) >>= fun () ->
@@ -119,6 +150,7 @@ let do_parallel
 		return dst
 	end
 	| WorkerFailed (w, w_seeds, w_results) -> begin
+            L.dbg "WorkerFailed" >>= fun () ->
 	    (match !central_combiner with
 	    | Some cw when cw == w ->
 		central_combiner := None
@@ -128,6 +160,7 @@ let do_parallel
 		     n_running = dst.n_running - 1 }
 	end
 	| NewServant svt ->
+            L.dbg "NewServant" >>= fun () ->
 	    let _ = make_worker svt in
 	    return { dst with n_running = dst.n_running + 1 }
     in
@@ -138,16 +171,15 @@ let do_parallel
 		      && dst.n_running = 0) ->
 	    return res
 	| _ -> 
-	    let req_t = 
+	    let req_tm = 
 		if Dq.size dst.seeds > 0 || Dq.size dst.results > 1
-		then request_servant dst.n_running
-		else halt ()
+		then Some (apply request_servant dst.n_running)
+		else None
 	    in
-	    let event_t = match state req_t with
-		| Sleep -> pick [req_t; Lwt_mvar.take dispatcher_mv]
-		| _ -> req_t
-	    in
-	    event_t >>= fun event ->
+	    Lwt_mvar.take dispatcher_mv >>= fun event ->
+            (match req_tm with
+            | None -> ()
+            | Some req_t -> trace_cancel req_t);
 	    dispatch_event dst event >>= fun new_dst ->
 	    dispatcher_loop new_dst
     in

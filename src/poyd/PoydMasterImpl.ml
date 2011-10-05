@@ -51,6 +51,8 @@ let run_task master task cmds =
                 begin
                     L.trace (fun () -> PoydState.receive servant)
                         "Receive state from servant" >>= fun state ->
+                    L.info "Releasing servant before ParallelPipeline"
+                    >>= fun () ->
                     Pool.put master.pool servant >>= fun () ->
                     PoydParallel.parallel_pipeline master.pool task.client
                         state times todo composer >>= fun new_state ->
