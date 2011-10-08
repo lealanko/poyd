@@ -102,11 +102,15 @@ let run_task master task cmds =
         try_bind 
             (fun () ->
                 Servant.set_client servant task.client >>= fun () ->
+                Servant.clear_output servant >>= fun () ->
                 PoydState.send state servant >>= fun () ->
-                run_on_servant servant state cmds)
-            (fun () -> 
-                PoydState.receive servant >>= fun state ->
-                task.state <- state;
+                run_on_servant servant state cmds >>= fun () ->
+                PoydState.receive servant >>= fun new_state ->
+                Servant.get_output servant >>= fun output ->
+                return (new_state, output))
+            (fun (new_state, output) -> 
+                task.state <- new_state;
+                Client.execute_output task.client output >>= fun () ->
                 Pool.put master.pool servant >>= fun () ->
                 L.info "Task %d: Released servant %s to pool" task.id s_name)
             (function

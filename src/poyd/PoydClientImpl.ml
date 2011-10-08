@@ -50,6 +50,24 @@ let set_margin _ filename margin =
     PoydThread.run thr (fun () ->
         StatusCommon.Files.set_margin filename margin)
 
+let execute_output _ outputs =
+    let margin_table = Hashtbl.create 0
+    in
+    PoydThread.run thr (fun () ->
+        List.iter (function 
+          | OutputStatus (c, msg) ->
+              Status.user_message c msg
+          | GetMargin (file, id) ->
+              Hashtbl.add margin_table id (StatusCommon.Files.get_margin file)
+          | SetMargin (file, id) ->
+              let m = if id >= 0 then id else Hashtbl.find margin_table id
+              in
+              StatusCommon.Files.set_margin file m
+          | SetInformationOutput file ->
+              StatusCommon.set_information_output file)
+            outputs)
+              
+
 let wait_t, wait_u = task ()      
   
 let wait_finish _ =

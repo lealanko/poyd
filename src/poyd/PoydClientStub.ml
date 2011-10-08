@@ -11,6 +11,7 @@ type 'r msg =
     | GetMargin of string option * (int, 'r) teq
     | SetMargin of string option * int * (unit, 'r) teq
     | WaitFinish of (unit, 'r) teq
+    | ExecuteOutput of output list * (unit, 'r) teq
 
 type t = { 
     name : string;
@@ -41,6 +42,9 @@ let set_margin c filename margin =
 let wait_finish c =
     c.hdl $ WaitFinish (eq_refl)
 
+let execute_output c o =
+    c.hdl $ ExecuteOutput (o, eq_refl)
+
 module Make(Client : CLIENT) = struct
     open Client
     let (>:) t teq = 
@@ -61,6 +65,8 @@ module Make(Client : CLIENT) = struct
             set_margin c filename margin >: teq
         | WaitFinish (teq) ->
             wait_finish c >: teq
+        | ExecuteOutput (o, teq) ->
+            execute_output c o >: teq
 
     let create c =
         get_name c >>= fun name ->

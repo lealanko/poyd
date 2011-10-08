@@ -3,6 +3,7 @@ open PoydDefs
 
 module Servant = PoydServantStub
 module Pool = PoydWorkerPool
+module Client = PoydClientStub
 
 module L = (val FundLog.make "PoydParallel" : FundLog.S)
 
@@ -38,6 +39,7 @@ type ('seed, 'result) event =
     | WorkerReady of ('seed, 'result) worker * 'seed Dq.t * 'result Dq.t
     | WorkerFailed of ('seed, 'result) worker * 'seed Dq.t * 'result Dq.t
     | NewServant of Servant.t
+    | Output of output list
 
 type ('seed, 'result) dispatcher_state = {
     seeds : 'seed Dq.t;
@@ -45,7 +47,12 @@ type ('seed, 'result) dispatcher_state = {
     n_running : int 
 }
 
+let dump_state {seeds; results; n_running} = 
+    L.dbg "State: %d seeds, %d results, %d workers"
+        (Dq.size seeds) (Dq.size results) n_running
+
 let do_parallel 
+        ~client
 	~init_servant ~finalize_servant ~add_seed ~add_result ~get_result 
 	~pool ~centralized_p seeds =
     let central_combiner = ref None
@@ -53,24 +60,34 @@ let do_parallel
     let dispatcher_mv = Lwt_mvar.create_empty ()
     in
     let worker_thread svt mvar =
+	let notify_error seeds results thunk =
+	    catch thunk
+		(fun exn -> Lwt_mvar.put dispatcher_mv 
+		    (WorkerFailed (mvar, seeds, results)) >>= fun () ->
+		    fail exn)
+	in
 	let rec loop seeds results =
-	    let notify_error thunk =
-		catch thunk
-		    (fun exn -> Lwt_mvar.put dispatcher_mv 
-			(WorkerFailed (mvar, seeds, results)) >>= fun () ->
-			fail exn)
-	    in
 	    Lwt_mvar.put dispatcher_mv (WorkerReady (mvar, seeds, results))
 	    >>= fun () ->
 	    Lwt_mvar.take mvar >>= function
 	      | AddSeed seed ->
-		  notify_error (fun () -> add_seed svt seed) >>= fun () ->
-		  loop (Dq.cons seed seeds) results
+                  let new_seeds = Dq.cons seed seeds
+                  in
+		  notify_error new_seeds results (fun () -> add_seed svt seed)
+                  >>= fun () ->
+		  loop new_seeds results
 	      | AddResult result ->
-		  notify_error (fun () -> add_result svt result) >>= fun () ->
-		  loop seeds (Dq.cons result results)
+                  let new_results = Dq.cons result results
+                  in
+		  notify_error seeds new_results 
+                      (fun () -> add_result svt result) >>= fun () ->
+		  loop seeds new_results
 	      | GetResult ->
-		  notify_error (fun () -> get_result svt) >>= fun result ->
+		  notify_error seeds results  (fun () -> get_result svt) 
+                  >>= fun result ->
+		  notify_error seeds results (fun () -> Servant.get_output svt)
+                  >>= fun output ->
+                  Lwt_mvar.put dispatcher_mv (Output output) >>= fun () ->
 		  loop Dq.empty (Dq.cons result Dq.empty)
 	      | Free -> 
 		  return ()
@@ -104,14 +121,7 @@ let do_parallel
     let request_servant pri = 
         pause () >>= fun () ->
          L.dbg "Requesting parallel worker" >>= fun () ->
-        (* msg "Requesting parallel worker"; *)
-        (*Lwt_io.atomic (fun oc -> Lwt_io.write oc "requesting parallel worker\n") Lwt_io.stderr *)
-        (* Lwt_io.write Lwt_io.stderr "requesting parallel worker\n"  *)
-        (* Lwt_unix.write Lwt_unix.stderr "req\n" 0 4
-            >>= fun _ -> *)
-        msg "begin pool.get";
         Pool.get pool pri >>= fun svt ->
-        msg "pool.get done";
 	(* This needs to be atomic so it can't be canceled. 
 	   Otherwise we might lose svt. *)
         catch (fun () ->
@@ -159,12 +169,19 @@ let do_parallel
 		     results = Dq.append w_results dst.results;
 		     n_running = dst.n_running - 1 }
 	end
-	| NewServant svt ->
+	| NewServant svt -> begin
             L.dbg "NewServant" >>= fun () ->
 	    let _ = make_worker svt in
 	    return { dst with n_running = dst.n_running + 1 }
+        end
+        | Output o ->
+            detach (fun () -> Client.execute_output client o);
+            return dst
+            
+            
     in
     let rec dispatcher_loop dst =
+        dump_state dst >>= fun () ->
 	match Dq.front dst.results with
 	| Some (res, results2) 
 		when (Dq.is_empty dst.seeds && Dq.is_empty results2
@@ -229,7 +246,7 @@ let parallel_pipeline pool client state n todo combine =
     in
     let seeds = create_rngs state.PoydState.rng n
     in
-    do_parallel 
+    do_parallel ~client
 	~init_servant ~finalize_servant ~add_seed ~add_result ~get_result 
 	~pool ~centralized_p:false seeds >>= fun trees ->
     return { state with PoydState.run = 

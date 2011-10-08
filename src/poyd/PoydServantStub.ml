@@ -17,6 +17,8 @@ type msg =
     | GetData of Data.d consumer
     | SetRng of PoyRandom.t
     | GetRng of PoyRandom.t consumer
+    | GetOutput of output list consumer
+    | ClearOutput
     (* XXX: these are temporary, should be split *)
     | SetRun of r
     | GetRun of r consumer
@@ -112,6 +114,12 @@ let set_rng s rng =
 let get_rng s = 
     get_with_consumer (fun consumer -> s.hdl $ GetRng consumer)
 
+let clear_output s =
+    s.hdl $ ClearOutput
+
+let get_output s =
+    get_with_consumer (fun consumer -> s.hdl $ GetOutput consumer)
+
 let acquire_trees producer = 
     let rec aux acc =
         producer $ () >>= function
@@ -157,6 +165,11 @@ module Make (Servant : SERVANT with module Client = Client) = struct
             consumer $ data
         | SetRng(rng) -> 
             set_rng s rng
+        | GetOutput(consumer) ->
+            get_output s >>= fun o ->
+            consumer $ o
+        | ClearOutput ->
+            clear_output s
         | GetRng(consumer) -> 
             get_rng s >>= fun data ->
             consumer $ data

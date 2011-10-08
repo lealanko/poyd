@@ -3,6 +3,12 @@ include PoydPrelude
 include ScriptingTypes
 include ScriptingTypes.Defs(Phylo.Types)
 
+type output = 
+    | OutputStatus of Status.c * string
+    | GetMargin of string option * int
+    | SetMargin of string option * int
+    | SetInformationOutput of string option 
+
 module type CLIENT = sig
     type t
     val get_name : t -> string lwt
@@ -13,6 +19,7 @@ module type CLIENT = sig
     val get_margin : t -> string option -> int lwt
     val set_margin : t -> string option -> int -> unit lwt
     val wait_finish : t -> unit lwt
+    val execute_output : t -> output list -> unit lwt
 end
 
 type taxon_codes = string All_sets.IntegerMap.t
@@ -36,6 +43,8 @@ module type SERVANT = sig
     val get_rng : t -> PoyRandom.t lwt
     val set_run : t -> r -> unit lwt
     val get_run : t -> r lwt
+    val get_output : t -> output list lwt
+    val clear_output : t -> unit lwt
 (*
     val get_jackknife : t -> (support_class * taxon_codes) lwt
     val add_jackknife : t -> (support_class * taxon_codes) -> unit lwt

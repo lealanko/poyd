@@ -4,29 +4,44 @@ module Client = PoydClientStub
 
 module L = (val FundLog.make "PoydServantImpl" : FundLog.S)
 
-
 type t = unit
+
+let thr = PoydPoy.thread
+
+let output_dump out v = output_string out (dump v)
+
+let current_output = Queue.create ()
+
+let add_output o = 
+    Queue.add o current_output
 
 let servant = ()
 
 let current_run = ref (Phylo.empty ())
 
-let thr = PoydPoy.thread
+
+let current_margin_id = ref 0
 
 let get_name c =
     PoydUtil.get_procid ()
 
-let remote_output_status c k msg =
+let output_status c k msg =
     PoydThread.callback thr (fun () ->
-        Client.output_status c k msg)
+        match k with
+        | Status.Output (f, _, _) ->
+            add_output (OutputStatus (k, msg));
+            L.dbg "Stored output to %s: %08x" (BatOption.default "none" f)
+                (Hashtbl.hash msg)
+        | _ ->
+            Client.output_status c k msg)
 
-let remote_get_margin c filename =
-    PoydThread.callback thr (fun () ->
-        Client.get_margin c filename)
+let get_margin filename =
+    decr current_margin_id;
+    add_output (GetMargin (filename, !current_margin_id));
+    !current_margin_id
 
-let remote_set_margin c filename margin =
-    PoydThread.callback thr (fun () ->
-        Client.set_margin c filename margin)
+let set_margin filename margin =
+    add_output (SetMargin (filename, margin))
 
 let remote_open_in c close_it opener fn =
     let path = FileStream.filename fn in
@@ -44,21 +59,20 @@ let remote_explode_filenames c files =
     PoydThread.callback thr (fun () ->
         Client.explode_filenames c files)
 
-let remote_set_information_output c filename =
-    PoydThread.callback thr (fun () ->
-        Client.set_information_output c filename)
+let set_information_output filename =
+    add_output (SetInformationOutput filename)
 
 let current_client = ref None
 
 let set_client _ c = PoydThread.run thr (fun () -> begin
     current_client := Some c;
     current_run := Phylo.empty ();
-    Status.is_parallel 1 (Some (remote_output_status c));
+    Status.is_parallel 1 (Some (output_status c));
     FileStream.(set_current_open_in 
         { open_in_fn = fun (type t) -> remote_open_in c });
-    StatusCommon.Files.get_margin_fn := remote_get_margin c;
-    StatusCommon.Files.set_margin_fn := remote_set_margin c;
-    StatusCommon.set_information_output_fn := remote_set_information_output c;
+    StatusCommon.Files.get_margin_fn := get_margin;
+    StatusCommon.Files.set_margin_fn := set_margin;
+    StatusCommon.set_information_output_fn := set_information_output;
     PoyParser.set_explode_filenames_fn (remote_explode_filenames c)
 end)
     
@@ -113,5 +127,9 @@ let add_stored_trees _ stored_trees = set <| fun r ->
     {r with stored_trees = Sexpr.union r.stored_trees stored_trees}
 let get_trees _ = get <| fun r -> r.trees
 let get_stored_trees _ = get <| fun r -> r.stored_trees
+
+let get_output _ = return (BatList.of_enum (BatQueue.enum current_output))
+
+let clear_output _ = Queue.clear current_output; return ()
 
 
