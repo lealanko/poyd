@@ -99,20 +99,22 @@ let run_task master task cmds =
         Pool.get master.pool 0 >>= fun servant ->
         Servant.get_name servant >>= fun s_name ->
         L.info "Task %d: Allocated servant %s" task.id s_name >>= fun () ->
-        try_bind 
-            (fun () ->
-                Servant.set_client servant task.client >>= fun () ->
-                Servant.clear_output servant >>= fun () ->
-                PoydState.send state servant >>= fun () ->
-                run_on_servant servant state cmds >>= fun () ->
+        catch (fun () ->
+            Servant.set_client servant task.client >>= fun () ->
+            Servant.clear_output servant >>= fun () ->
+            PoydState.send state servant >>= fun () ->
+            result (fun () -> run_on_servant servant state cmds) >>= function
+            | Bad (Fund.ConnectionError _ | Fund.RouteError | Restart _ as exn) ->
+                fail exn
+            | res ->
                 PoydState.receive servant >>= fun new_state ->
                 Servant.get_output servant >>= fun output ->
-                return (new_state, output))
-            (fun (new_state, output) -> 
                 task.state <- new_state;
                 Client.execute_output task.client output >>= fun () ->
                 Pool.put master.pool servant >>= fun () ->
-                L.info "Task %d: Released servant %s to pool" task.id s_name)
+                L.info "Task %d: Released servant %s to pool" task.id s_name
+                >>= fun () ->
+                run_result res)
             (function
               | Restart (rstate, rcmds) ->
                   L.info "Task %d: Restarting from checkpoint" task.id >>= fun () ->
@@ -124,20 +126,6 @@ let run_task master task cmds =
                   L.info "Task %d: Error connecting to servant %s" task.id s_name >>= fun () ->
                   run_cmds state cmds
               | exn ->
-                (* A non-Fund exception simply means that an exception was raised
-                   in the the code in the servant, but the servant is still okay so we 
-                   put it back to the registry for reuse. *)
-                  (match exn with
-                  | MainUtil.ExitPoy r ->
-                      (* Let's not do a useless checkpoint if we know we
-                         won't use the state for anything any more. *)
-                      return () 
-                  | _  ->
-                      PoydState.receive servant >>= fun state ->
-                      task.state <- state;
-                      return ()) >>= fun () ->
-                  Pool.put master.pool servant >>= fun () ->
-                  L.info "Task %d: Released servant %s to pool" task.id s_name >>= fun () ->
                   fail exn)
     in
     L.info "Task %d: Running commands" task.id >>= fun () ->
