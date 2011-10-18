@@ -19,6 +19,11 @@ type msg =
     | GetRng of PoyRandom.t consumer
     | GetOutput of output list consumer
     | ClearOutput
+    | SaveOrigTrees
+    | ClearOrigTrees
+    | BeginOnEachTree of script list * script list * 
+            (((PoyRandom.t * tree, unit) handle) *
+                    (unit, unit) handle) consumer
     (* XXX: these are temporary, should be split *)
     | SetRun of r
     | GetRun of r consumer
@@ -120,6 +125,12 @@ let clear_output s =
 let get_output s =
     get_with_consumer (fun consumer -> s.hdl $ GetOutput consumer)
 
+let save_original_trees s =
+    s.hdl $ SaveOrigTrees
+
+let clear_original_trees s =
+    s.hdl $ ClearOrigTrees
+
 let acquire_trees producer = 
     let rec aux acc =
         producer $ () >>= function
@@ -131,6 +142,13 @@ let provide_trees consumer trees =
     Lwt_list.iter_s 
         (fun tree -> consumer $ tree)
         (Sexpr.to_list trees)
+
+let begin_oneachtree s dosomething mergingscript = 
+    get_with_consumer (fun consumer ->
+        s.hdl $ BeginOnEachTree (dosomething, mergingscript, consumer))
+    >>= fun (iter_h, finish_h) ->
+    return ((fun tree rng -> iter_h $ (tree, rng)),
+            (fun () -> finish_h $ ()))
 
 module Make (Servant : SERVANT with module Client = Client) = struct
     open Servant
@@ -165,6 +183,10 @@ module Make (Servant : SERVANT with module Client = Client) = struct
             consumer $ data
         | SetRng(rng) -> 
             set_rng s rng
+        | SaveOrigTrees ->
+            save_original_trees s
+        | ClearOrigTrees ->
+            clear_original_trees s
         | GetOutput(consumer) ->
             get_output s >>= fun o ->
             consumer $ o
@@ -173,6 +195,19 @@ module Make (Servant : SERVANT with module Client = Client) = struct
         | GetRng(consumer) -> 
             get_rng s >>= fun data ->
             consumer $ data
+        | BeginOnEachTree (todo, combine, consumer) ->
+            begin_oneachtree s todo combine >>= fun (iter, finish) ->
+            let iter_h = publish2 iter 
+            in
+            let finish_r = ref None
+            in
+            let finish_h = publish (fun () ->
+                withdraw iter_h;
+                withdraw (BatOption.get !finish_r);
+                finish ())
+            in
+            finish_r := Some finish_h;
+            consumer $ (iter_h, finish_h)
     let create s = 
         get_name s >>= fun name ->
         return {

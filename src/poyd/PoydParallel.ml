@@ -60,6 +60,8 @@ let do_parallel
     let dispatcher_mv = Lwt_mvar.create_empty ()
     in
     let worker_thread svt mvar =
+        Servant.set_client svt client >>= fun () ->
+	init_servant svt >>= fun ctx ->
 	let notify_error seeds results thunk =
 	    catch thunk
 		(fun exn -> Lwt_mvar.put dispatcher_mv 
@@ -73,17 +75,17 @@ let do_parallel
 	      | AddSeed seed ->
                   let new_seeds = Dq.cons seed seeds
                   in
-		  notify_error new_seeds results (fun () -> add_seed svt seed)
+		  notify_error new_seeds results (fun () -> add_seed ctx seed)
                   >>= fun () ->
 		  loop new_seeds results
 	      | AddResult result ->
                   let new_results = Dq.cons result results
                   in
 		  notify_error seeds new_results 
-                      (fun () -> add_result svt result) >>= fun () ->
+                      (fun () -> add_result ctx result) >>= fun () ->
 		  loop seeds new_results
 	      | GetResult ->
-		  notify_error seeds results  (fun () -> get_result svt) 
+		  notify_error seeds results  (fun () -> get_result ctx) 
                   >>= fun result ->
 		  notify_error seeds results (fun () -> Servant.get_output svt)
                   >>= fun output ->
@@ -92,9 +94,8 @@ let do_parallel
 	      | Free -> 
 		  return ()
 	in
-	init_servant svt >>= fun () ->
 	loop Dq.empty Dq.empty >>= fun () ->
-	finalize_servant svt >>= fun () ->
+	finalize_servant ctx >>= fun () ->
         L.dbg "Releasing parallel worker" >>= fun () ->
 	Pool.put pool svt
     in
@@ -218,9 +219,9 @@ let parallel_pipeline pool client state n todo combine =
     let tmp_id = gensym ()
     in
     let init_servant svt = 
-        Servant.set_client svt client >>= fun () ->
         PoydState.send state svt >>= fun () ->
-        Servant.begin_script svt [`Store ([`Data], tmp_id)]
+        Servant.begin_script svt [`Store ([`Data], tmp_id)] >>= fun () ->
+        return svt
     in
     let finalize_servant svt =
 	Servant.begin_script svt [`Discard ([`Data], tmp_id)]
@@ -242,7 +243,8 @@ let parallel_pipeline pool client state n todo combine =
     in
     let get_result svt =
 	L.info "Getting trees" >>= fun () ->
-	Servant.get_stored_trees svt
+	Servant.get_stored_trees svt >>= fun trees ->
+        return (Phylo.normalize_trees trees)
     in
     let seeds = create_rngs state.PoydState.rng n
     in
@@ -255,3 +257,46 @@ let parallel_pipeline pool client state n todo combine =
 
 
 	      
+let on_each_tree pool client state todo combine =
+    let init_servant svt = 
+        PoydState.send state svt >>= fun () ->
+        Servant.begin_oneachtree svt todo combine >>= fun (iter, finish) ->
+        return (svt, iter, finish)
+    in
+    let finalize_servant (_, _, finish) =
+        finish ()
+    in
+    let add_seed (_, iter, _) (rng, tree) =
+	L.info "Adding seed: rng %08x, tree %08x"
+            (Hashtbl.hash rng) (Hashtbl.hash tree)
+        >>= fun () ->
+        iter rng tree
+    in
+    let add_result (svt, _, _) trees =
+	L.info "Adding trees %08x" (Hashtbl.hash trees) >>= fun () ->
+        Servant.add_stored_trees svt trees >>= fun () ->
+        L.info "Trees sent, begin combine script" >>= fun () ->
+        Servant.begin_script svt combine >>= fun () ->
+        L.info "Script done"
+    in
+    let get_result (svt, _, _) =
+	L.info "Getting trees" >>= fun () ->
+	Servant.get_stored_trees svt >>= fun trees ->
+        return (Phylo.normalize_trees trees) >>= fun trees ->
+        L.info "Received trees %08x" (Hashtbl.hash trees) >>= fun () ->
+        return trees
+    in
+    let trees = Sexpr.to_list state.PoydState.run.trees
+    in
+    let rngs = create_rngs state.PoydState.rng (List.length trees)
+    in
+    let seeds = BatList.map2 (fun a b -> (a, b)) rngs trees
+    in
+    Lwt_list.iter_s (fun (rng, tree) ->
+        L.info "Seed: rng %08x, tree %08x" (Hashtbl.hash rng) (Hashtbl.hash tree))
+        seeds >>= fun () ->
+    do_parallel ~client
+	~init_servant ~finalize_servant ~add_seed ~add_result ~get_result 
+	~pool ~centralized_p:false seeds >>= fun trees ->
+    return { state with PoydState.run = 
+	    { state.PoydState.run with stored_trees = trees } }

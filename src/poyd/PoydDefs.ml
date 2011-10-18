@@ -45,6 +45,10 @@ module type SERVANT = sig
     val get_run : t -> r lwt
     val get_output : t -> output list lwt
     val clear_output : t -> unit lwt
+    val save_original_trees : t -> unit lwt
+    val clear_original_trees : t -> unit lwt
+    val begin_oneachtree : t -> script list -> script list ->
+        ((PoyRandom.t -> tree -> unit lwt) * (unit -> unit lwt)) lwt
 (*
     val get_jackknife : t -> (support_class * taxon_codes) lwt
     val add_jackknife : t -> (support_class * taxon_codes) -> unit lwt

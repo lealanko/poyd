@@ -113,6 +113,27 @@ struct
 	      cmp "search_results" r1.search_results r2.search_results
 	  end
 
+    let print_run run = begin
+        print_hash "this tree rng" (PoyRandom.get_state ());
+        print_hash "trees" run.trees;
+        print_hash "data" run.data;
+	print_hash "nodes" run.nodes;
+	print_hash "characters" run.characters;
+	print_hash "bremer_support" run.bremer_support;
+	print_hash "jackknife_support" run.jackknife_support;
+	print_hash "bootstrap_support" run.bootstrap_support;
+	print_hash "runtime_store" run.runtime_store;
+	print_hash "data_store" run.data_store;
+	print_hash "bremer_store" run.bremer_store;
+	print_hash "jackknife_store" run.jackknife_store;
+	print_hash "bootstrap_store" run.bootstrap_store;
+	print_hash "tree_store" run.tree_store;
+	print_hash "queue" run.queue;
+	print_hash "stored_trees" run.stored_trees;
+	print_hash "original_trees" run.original_trees;
+	print_hash "search_results" run.search_results;
+    end                  
+
 
     module Kml = struct
         exception IllegalCVS
@@ -1836,29 +1857,73 @@ let rec handle_support_output run meth =
                     handle_support_output run (`GraphicSupports (b, filename));
                     handle_support_output run (`GraphicSupports (c, filename));)
 
+let normalize_trees trees =
+    let trees_l = Sexpr.to_list trees 
+    in
+    let trees_f = List.map (fun tree -> 
+        (tree, Ptree.Fingerprint.fingerprint tree)) trees_l 
+    in
+    let trees_sf = 
+        List.sort (fun (_, f1) (_, f2) -> Ptree.Fingerprint.compare f1 f2) 
+            trees_f
+    in 
+    let trees_sl = List.map (fun (tree, _) -> tree) trees_sf
+    in
+    Sexpr.of_list trees_sl
+
+let normalize run =
+    { run with 
+        trees = normalize_trees run.trees; 
+        stored_trees = normalize_trees run.stored_trees }
+
 let update_mergingscript folder mergingscript run tmp =
     let tmp = { run with trees = Sexpr.union tmp.trees
     run.stored_trees } in
     let tmp = List.fold_left folder tmp mergingscript in
     let tmp = { tmp with trees = `Empty; stored_trees = tmp.trees } in
+    msg "result of update_mergingscript";
+    print_run tmp;
     tmp
 
-let on_each_tree_aux folder set_data dosomething mergingscript run tree =
-    let tmp = { run with trees = `Empty } in
-    let tmp = folder tmp set_data in
-    let tmp = { tmp with trees = `Single tree } in
-    let tmp = List.fold_left folder tmp dosomething in
-    update_mergingscript folder mergingscript run tmp
+let iter_on_each_tree folder name dosomething mergingscript rng tree run =
+    PoyRandom.with_state rng (fun () ->
+        let tmp = { run with trees = `Empty } in
+        let tmp = folder tmp (`Set ([`Data], name)) in
+        let tmp = { tmp with trees = `Single tree } in
+        print_hash "iter_on_each_tree" tree;
+        print_run tmp;
+        let tmp = List.fold_left folder tmp dosomething in
+        update_mergingscript folder mergingscript run tmp)
 
-let on_each_tree folder set_data dosomething mergingscript run tree =
-    PoyRandom.forked (fun () ->
-	on_each_tree_aux folder set_data dosomething mergingscript run tree)
+let on_each_tree folder name dosomething mergingscript run tree =
+    let rng = PoyRandom.fork ()
+    in
+    iter_on_each_tree folder name dosomething mergingscript rng tree run
 
 let emit_identifier =
     let identifier = ref (-1) in
     fun () -> 
         incr identifier; 
         "__poy_id_" ^ string_of_int !identifier
+
+let begin_on_each_tree folder dosomething run =
+    let name = emit_identifier () in
+    let run = folder run (`Store ([`Data], name)) in
+    let run = 
+        if not (List.exists (function #Methods.transform -> true | _ ->
+            false) dosomething) then
+            { run with original_trees = run.trees } 
+        else run
+    in
+    (name, run)
+
+let end_on_each_tree folder name run =
+    let run = 
+        { run with trees = run.stored_trees; original_trees = `Empty; 
+            stored_trees = `Empty } 
+    in
+    let run = folder run (`Discard ([`Data], name)) in
+    run
 
 
     let extract_tree tree = tree.Ptree.tree
@@ -3235,26 +3300,19 @@ END
     | `GetStored ->
             { run with trees = run.stored_trees; stored_trees = `Empty }
     | `OnEachTree (dosomething, mergingscript) ->
-            let name = emit_identifier () in
-            let run = folder run (`Store ([`Data], name)) in
-            let run = 
-                if not (List.exists (function #Methods.transform -> true | _ ->
-                    false) dosomething) then
-                    { run with original_trees = run.trees } 
-                else run
+            let (name, run) = 
+                begin_on_each_tree folder dosomething run
             in
             let run = 
                 let eta = true in
+                print_hash "rng pre on_each_tree" (PoyRandom.get_state ());
                 Sexpr.fold_status "Running pipeline on each tree" ~eta 
-                (on_each_tree folder (`Set ([`Data],
-                name)) dosomething mergingscript) run run.trees
+                    (on_each_tree folder name dosomething mergingscript)
+                    run run.trees
             in
-            let run = 
-                { run with trees = run.stored_trees; original_trees = `Empty; 
-                stored_trees = `Empty } 
+            let run = end_on_each_tree folder name run
             in
-            let run = folder run (`Discard ([`Data], name)) in
-            run
+            normalize run
     | `ParallelPipeline (times, todo, composer, continue) ->
             let name = emit_identifier () in
             let run = folder run (`Store ([`Data], name)) in
@@ -3273,6 +3331,7 @@ END
             done;
             print_hash "main rng post" (PoyRandom.get_state ());
             run := folder !run (`Discard ([`Data], name));
+            run := normalize !run;
             Status.finished st;
             List.fold_left folder !run continue
     (* The following methods are user friendly *)
@@ -3414,8 +3473,10 @@ END
                         let a = 
                             Sexpr.fold_left add_elements TreeSet.empty run.trees
                         in
+                        (* This destroys compositionality:
                         let a = 
                             Sexpr.fold_left add_elements a run.stored_trees in
+                        *)
                         Sexpr.fold_left add_elements a run.original_trees
                     in
                     List.partition (fun x ->

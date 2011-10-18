@@ -12,6 +12,8 @@ let output_dump out v = output_string out (dump v)
 
 let current_output = Queue.create ()
 
+let current_trees = Queue.create ()
+
 let add_output o = 
     Queue.add o current_output
 
@@ -19,6 +21,7 @@ let servant = ()
 
 let current_run = ref (Phylo.empty ())
 
+let run_stack = Stack.create ()
 
 let current_margin_id = ref 0
 
@@ -30,8 +33,7 @@ let output_status c k msg =
         match k with
         | Status.Output (f, _, _) ->
             add_output (OutputStatus (k, msg));
-            L.dbg "Stored output to %s: %08x" (BatOption.default "none" f)
-                (Hashtbl.hash msg)
+            return ()
         | _ ->
             Client.output_status c k msg)
 
@@ -132,4 +134,30 @@ let get_output _ = return (BatList.of_enum (BatQueue.enum current_output))
 
 let clear_output _ = Queue.clear current_output; return ()
 
+let begin_oneachtree _ dosomething mergingscript = 
+    (PoydThread.run thr <| fun () ->
+        let (name, run) = 
+            Phylo.begin_on_each_tree Phylo.folder dosomething !current_run
+        in
+        current_run := run;
+        name) >>= fun name ->
+    let iter rng tree =
+        set <| Phylo.iter_on_each_tree 
+                Phylo.folder name dosomething mergingscript rng tree
+    in
+    let finish () =
+        set <| Phylo.end_on_each_tree Phylo.folder name
+    in
+    return (iter, finish)
 
+let push_run _ = 
+    Stack.push !current_run run_stack
+
+let pop_run _ = PoydThread.run thr <| fun () ->
+    current_run := Stack.pop run_stack
+
+let save_original_trees _ = set <| 
+        fun r -> { r with original_trees = r.trees }
+
+let clear_original_trees _ = set <| 
+        fun r -> { r with original_trees = `Empty }

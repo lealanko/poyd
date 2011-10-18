@@ -60,6 +60,16 @@ let run_task master task cmds =
                        tell the top loop to get a new servant. *)
                     fail (Restart (new_state, continue @ rest))
                 end
+            | `OnEachTree (todo, composer) :: rest -> begin
+                L.trace (fun () -> PoydState.receive servant)
+                    "Receive state from servant" >>= fun state ->
+                L.info "Releasing servant before OnEachTree"
+                >>= fun () ->
+                Pool.put master.pool servant >>= fun () ->
+                PoydParallel.on_each_tree master.pool task.client
+                    state todo composer >>= fun new_state ->
+                fail (Restart (new_state, rest))
+            end
             | cmd :: rest ->
                 L.trace 
                     (fun () -> Servant.begin_script servant [cmd])

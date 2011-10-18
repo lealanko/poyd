@@ -250,6 +250,16 @@ module type S = sig
         ?output_file:string -> ?start:r -> script list -> r
 
     val update_mergingscript : (r -> script -> r) -> script list -> r -> r -> r
+        
+    val begin_on_each_tree : (r -> script -> r) -> script list -> r -> (string * r)
+        
+    val end_on_each_tree : (r -> script -> r) -> string -> r -> r
+
+    val iter_on_each_tree : 
+        (r -> script -> r) -> string -> script list -> script list -> 
+        PoyRandom.t -> tree -> r -> r
+
+    val normalize_trees : tree Sexpr.t -> tree Sexpr.t
 
     val process_input : r -> 
         Methods.input -> r
@@ -261,6 +271,8 @@ module type S = sig
     val process_random_seed_set : r -> int -> r
 
     val console_run : string -> unit
+
+    val print_run : r -> unit
 
     val parsed_run : script list -> unit
 
