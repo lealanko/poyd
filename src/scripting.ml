@@ -1887,7 +1887,9 @@ let update_mergingscript folder mergingscript run tmp =
 
 let iter_on_each_tree folder name dosomething mergingscript rng tree run =
     PoyRandom.with_state rng (fun () ->
-        let tmp = { run with trees = `Empty } in
+        (* We have to hide stored_trees while the iteration runs, otherwise
+           it might subtly affect the results in a non-deterministic way. *)
+        let tmp = { run with trees = `Empty; stored_trees = `Empty } in
         let tmp = folder tmp (`Set ([`Data], name)) in
         let tmp = { tmp with trees = `Single tree } in
         print_hash "iter_on_each_tree" tree;
@@ -3473,10 +3475,8 @@ END
                         let a = 
                             Sexpr.fold_left add_elements TreeSet.empty run.trees
                         in
-                        (* This destroys compositionality:
                         let a = 
                             Sexpr.fold_left add_elements a run.stored_trees in
-                        *)
                         Sexpr.fold_left add_elements a run.original_trees
                     in
                     List.partition (fun x ->
