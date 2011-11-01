@@ -1925,7 +1925,7 @@ let end_on_each_tree folder name run =
             stored_trees = `Empty } 
     in
     let run = folder run (`Discard ([`Data], name)) in
-    run
+    run    
 
 
     let extract_tree tree = tree.Ptree.tree
@@ -2164,6 +2164,26 @@ END
         in
         let res = List.map2 join2 prev newb in
         { run with bremer_support = Sexpr.of_list res }
+
+let begin_support meth run =
+    let it, meth2 = match meth with
+        | `Jackknife (a, it, b, c, _) -> 
+            (it, `Jackknife (a, 1, b, c, (run.data.Data.root_at)))
+        | `Bootstrap (it, a, b, c) -> 
+            (it, `Bootstrap (1, a, b, (run.data.Data.root_at)))
+    in
+    let run2 = reroot_at_outgroup run
+    in
+    (it, meth2, run2)
+
+let iter_support meth rng run =
+    let s = PoyRandom.with_state rng (fun () ->
+        S.support run.trees run.nodes meth run.data run.queue)
+    in 
+    match meth with
+    | `Jackknife _ -> add_jackknifes run (Some (1, s))
+    | `Bootstrap _ -> add_boostraps run (Some (1, s))
+   
 
 IFDEF USEPARALLEL THEN
     let args = Mpi.init Sys.argv
@@ -3441,16 +3461,14 @@ END
     | #Methods.char_operations as meth -> 
             { run with characters = 
             CScrp.scriptchar_operations run.nodes run.data meth }
-    | `Bootstrap (it, a, b, c) -> 
-            let meth = `Bootstrap (it, a, b, (run.data.Data.root_at)) in
-            let run = reroot_at_outgroup run in
-            { run with bootstrap_support = 
-                Some (it, S.support run.trees run.nodes meth run.data run.queue) }
-    | `Jackknife (a, it, b, c, _) ->
-            let meth = `Jackknife (a, it, b, c, (run.data.Data.root_at)) in
-            let run = reroot_at_outgroup run in
-            { run with jackknife_support = 
-                Some (it, S.support run.trees run.nodes meth run.data run.queue) }
+    | #Methods.support_method as meth ->
+        let (it, meth2, run2) = begin_support meth run in
+        let runr = ref run2 in
+        for i = 1 to it do
+            let rng = PoyRandom.fork () in
+            runr := iter_support meth2 rng !runr
+        done;
+        !runr    
     | `Bremer (local_optimum, build, my_rank, modul) ->
             assert (my_rank < modul);
             warn_if_no_trees_in_memory run.trees;
