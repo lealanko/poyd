@@ -259,6 +259,15 @@ module type S = sig
         (r -> script -> r) -> string -> script list -> script list -> 
         PoyRandom.t -> tree -> r -> r
 
+    val add_support : support_class -> support_class -> support_class
+
+    val decompose_support : Methods.support_method -> r -> 
+        (int * Methods.support_method)
+
+    val begin_support : Methods.support_method -> r -> r
+
+    val iter_support : Methods.support_method -> PoyRandom.t -> r -> r
+
     val normalize_trees : tree Sexpr.t -> tree Sexpr.t
 
     val process_input : r -> 

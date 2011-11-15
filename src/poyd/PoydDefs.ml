@@ -24,6 +24,11 @@ end
 
 type taxon_codes = string All_sets.IntegerMap.t
 
+type support_type = [
+    | `Jackknife
+    | `Bootstrap
+]
+
 module type SERVANT = sig
     module Client : CLIENT
     type t
@@ -49,6 +54,9 @@ module type SERVANT = sig
     val clear_original_trees : t -> unit lwt
     val begin_oneachtree : t -> script list -> script list ->
         ((PoyRandom.t -> tree -> unit lwt) * (unit -> unit lwt)) lwt
+    val begin_support : t -> Methods.support_method ->
+        ((PoyRandom.t -> unit lwt) * (unit -> unit lwt)) lwt
+    val get_support : t -> support_type -> support_class lwt
 (*
     val get_jackknife : t -> (support_class * taxon_codes) lwt
     val add_jackknife : t -> (support_class * taxon_codes) -> unit lwt

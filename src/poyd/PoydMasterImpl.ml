@@ -70,6 +70,16 @@ let run_task master task cmds =
                     state todo composer >>= fun new_state ->
                 fail (Restart (new_state, rest))
             end
+            | (#Methods.support_method as meth) :: rest -> begin
+                L.trace (fun () -> PoydState.receive servant)
+                    "Receive state from servant" >>= fun state ->
+                L.info "Releasing servant before support"
+                >>= fun () ->
+                Pool.put master.pool servant >>= fun () ->
+                PoydParallel.support master.pool task.client
+                    state meth >>= fun new_state ->
+                fail (Restart (new_state, rest))
+            end
             | cmd :: rest ->
                 L.trace 
                     (fun () -> Servant.begin_script servant [cmd])

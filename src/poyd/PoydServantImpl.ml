@@ -161,3 +161,16 @@ let save_original_trees _ = set <|
 
 let clear_original_trees _ = set <| 
         fun r -> { r with original_trees = `Empty }
+
+let begin_support _ meth = (set <| Phylo.begin_support meth) >>= fun () ->
+    let iter rng =
+        set <| Phylo.iter_support meth rng
+    in
+    let finish () = return ()
+    in
+    return (iter, finish)
+
+let get_support s typ = get <|
+        fun r -> match typ with
+        | `Bootstrap -> r.bootstrap_support
+        | `Jackknife -> r.jackknife_support

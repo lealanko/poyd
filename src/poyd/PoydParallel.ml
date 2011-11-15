@@ -300,3 +300,52 @@ let on_each_tree pool client state todo combine =
 	~pool ~centralized_p:false seeds >>= fun trees ->
     return { state with PoydState.run = 
 	    { state.PoydState.run with stored_trees = trees } }
+
+
+let support pool client state meth =
+    let (it, meth1) = Phylo.decompose_support meth state.PoydState.run 
+    in
+    let typ = match meth with
+        | `Jackknife _ -> `Jackknife 
+        | `Bootstrap _ -> `Bootstrap
+    in
+    let init_servant svt =
+        PoydState.send state svt >>= fun () ->
+        Servant.begin_support svt meth1 >>= fun (iter, finish) ->
+        return (svt, iter, finish, ref None)
+    in
+    let finalize_servant (_, _, finish, _) = 
+        finish ()
+    in
+    let add_seed (_, iter, _, _) rng =
+	L.info "Adding seed: rng %08x" (Hashtbl.hash rng) >>= fun () ->
+        iter rng 
+    in
+    (* We cheat a bit by combining results locally, since there's no real computation 
+       involved. *)
+    let add_result (_, _, _, r) s =
+        r := Phylo.add_support !r s;
+        return ()
+    in
+    let get_result (svt, _, _, r) =
+	L.info "Getting support" >>= fun () ->
+        Servant.get_support svt typ >>= fun sup ->
+        L.info "Received support %08x" (Hashtbl.hash sup) >>= fun () ->
+        return (Phylo.add_support !r sup)
+    in
+    L.info "Creating rng seeds for support, initial rng: %08x" 
+        (Hashtbl.hash state.PoydState.rng) >>= fun () ->
+    let seeds = create_rngs state.PoydState.rng it
+    in
+    do_parallel ~client
+	~init_servant ~finalize_servant ~add_seed ~add_result ~get_result 
+	~pool ~centralized_p:false seeds >>= fun res ->
+    return { state with PoydState.run =
+            match typ with
+            | `Bootstrap -> { state.PoydState.run with 
+                bootstrap_support = res }
+            | `Jackknife -> { state.PoydState.run with
+                jackknife_support = res } }
+    
+        
+        

@@ -1735,11 +1735,22 @@ let parse_tree_file file =
         failwith "Input tree contains forest, not just a tree.") 
     trees
 
+let dump_support fs =
+    let f fp count () =
+        let terminals = All_sets.Integers.elements fp
+        in
+        msg "[%s]: %d" (String.concat "," 
+                            (List.map string_of_int terminals))
+            count
+    in
+    Tree.CladeFPMap.fold f fs ()
+
 let get_trees_for_support support_class run =
     let do_support support_set x = 
         match support_set with
         | None -> `Empty
         | Some (iterations, fs) ->
+                dump_support fs;
                 match x with
                 | `Individual ->
                         Sexpr.map 
@@ -2119,23 +2130,24 @@ IFDEF USEPARALLEL THEN
         { run with trees = Sexpr.of_list trees }
 END
 
+    let add_support s1 s2 = match s1, s2 with
+        | x, None
+        | None, x -> x
+        | Some (ont, ocnts), Some (nt, cnts) -> 
+            let new_total = ont + nt 
+            and new_clades = 
+                Tree.CladeFPMap.fold (fun clade cnt res ->
+                    if Tree.CladeFPMap.mem clade res then
+                        let res_cnt = Tree.CladeFPMap.find clade res in
+                        Tree.CladeFPMap.add clade (res_cnt + cnt) res
+                    else Tree.CladeFPMap.add clade cnt res)
+                    cnts
+                    ocnts 
+            in
+            Some (new_total, new_clades)
+
     let add_something get adder run jck =
-        let njck =
-            match get run, jck with
-            | x, None
-            | None, x -> x
-            | Some (ont, ocnts), Some (nt, cnts) -> 
-                    let new_total = ont + nt 
-                    and new_clades = 
-                        Tree.CladeFPMap.fold (fun clade cnt res ->
-                            if Tree.CladeFPMap.mem clade res then
-                                let res_cnt = Tree.CladeFPMap.find clade res in
-                                Tree.CladeFPMap.add clade (res_cnt + cnt) res
-                            else Tree.CladeFPMap.add clade cnt res)
-                        cnts
-                        ocnts 
-                    in
-                    Some (new_total, new_clades)
+        let njck = add_support (get run) jck
         in
         adder run njck
 
@@ -2165,21 +2177,30 @@ END
         let res = List.map2 join2 prev newb in
         { run with bremer_support = Sexpr.of_list res }
 
-let begin_support meth run =
-    let it, meth2 = match meth with
-        | `Jackknife (a, it, b, c, _) -> 
-            (it, `Jackknife (a, 1, b, c, (run.data.Data.root_at)))
-        | `Bootstrap (it, a, b, c) -> 
-            (it, `Bootstrap (1, a, b, (run.data.Data.root_at)))
+let decompose_support meth run =
+    let root = run.data.Data.root_at
     in
+    match meth with
+    | `Jackknife (a, it, b, c, _) -> 
+        (it, `Jackknife (a, 1, b, c, root))
+    | `Bootstrap (it, a, b, c) -> 
+        (it, `Bootstrap (1, a, b, root))
+
+let begin_support meth run =
     let run2 = reroot_at_outgroup run
     in
-    (it, meth2, run2)
+    match meth with
+    | `Jackknife _ -> 
+        { run2 with jackknife_support = None }
+    | `Bootstrap _ ->
+        { run2 with bootstrap_support = None }
 
 let iter_support meth rng run =
+    msg "iter_support: rng %08x, results below" (Hashtbl.hash rng);
     let s = PoyRandom.with_state rng (fun () ->
         S.support run.trees run.nodes meth run.data run.queue)
     in 
+    dump_support s;
     match meth with
     | `Jackknife _ -> add_jackknifes run (Some (1, s))
     | `Bootstrap _ -> add_boostraps run (Some (1, s))
@@ -3462,8 +3483,10 @@ END
             { run with characters = 
             CScrp.scriptchar_operations run.nodes run.data meth }
     | #Methods.support_method as meth ->
-        let (it, meth2, run2) = begin_support meth run in
-        let runr = ref run2 in
+        let (it, meth2) = decompose_support meth run in
+        let runr = ref (begin_support meth2 run) in
+        msg "beginning iter_support loop, initial rng: %08x" 
+            (Hashtbl.hash (PoyRandom.get_state ()));
         for i = 1 to it do
             let rng = PoyRandom.fork () in
             runr := iter_support meth2 rng !runr

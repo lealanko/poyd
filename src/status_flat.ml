@@ -207,7 +207,15 @@ let finished st =
     single_channel_finished st
 
 let single_user_message c msg =
-    let str = Printf.sprintf "@[%s@]" msg in
+    let open String in
+        (* Make @[...@] wrapping idempotent to avoid duplication when 
+           a client outputs a pre-formatted message from a servant. *)
+    let str = 
+        if length msg >= 4 && 
+            sub msg 0 2 = "@[" && sub msg (length msg - 2) 2 = "@]"
+        then msg
+        else
+            Printf.sprintf "@[%s@]" msg in
     !to_do_if_parallel c str
 
 let full_report ?msg ?adv st =

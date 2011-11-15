@@ -24,6 +24,9 @@ type msg =
     | BeginOnEachTree of script list * script list * 
             (((PoyRandom.t * tree, unit) handle) *
                     (unit, unit) handle) consumer
+    | BeginSupport of Methods.support_method * 
+            ((PoyRandom.t, unit) handle * (unit, unit) handle) consumer
+    | GetSupport of support_type * support_class consumer
     (* XXX: these are temporary, should be split *)
     | SetRun of r
     | GetRun of r consumer
@@ -150,6 +153,15 @@ let begin_oneachtree s dosomething mergingscript =
     return ((fun tree rng -> iter_h $ (tree, rng)),
             (fun () -> finish_h $ ()))
 
+let begin_support s meth =
+    get_with_consumer (fun consumer ->
+        s.hdl $ BeginSupport (meth, consumer)) >>= fun (iter_h, finish_h) ->
+    return ((fun rng -> iter_h $ rng), (fun () -> finish_h $ ()))
+
+let get_support s typ =
+    get_with_consumer (fun consumer ->
+        s.hdl $ GetSupport (typ, consumer))
+
 module Make (Servant : SERVANT with module Client = Client) = struct
     open Servant
     let f (s : t) : msg -> unit lwt = function
@@ -208,6 +220,22 @@ module Make (Servant : SERVANT with module Client = Client) = struct
             in
             finish_r := Some finish_h;
             consumer $ (iter_h, finish_h)
+         | BeginSupport (meth, consumer) ->
+             begin_support s meth >>= fun (iter, finish) ->
+             let iter_h = publish iter
+             in
+             let finish_r = ref None
+             in
+             let finish_h = publish (fun () ->
+                 withdraw iter_h;
+                 withdraw (BatOption.get !finish_r);
+                 finish ())
+             in
+             finish_r := Some finish_h;
+             consumer $ (iter_h, finish_h)
+         | GetSupport (typ, consumer) ->
+             get_support s typ >>= fun sup ->
+             consumer $ sup
     let create s = 
         get_name s >>= fun name ->
         return {

@@ -15,3 +15,10 @@ val on_each_tree :
     script list -> script list -> 
     PoydState.t lwt
 
+val support : 
+    PoydWorkerPool.t -> 
+    PoydClientStub.t ->
+    PoydState.t -> 
+    Methods.support_method ->
+    PoydState.t lwt
+
