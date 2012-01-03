@@ -71,3 +71,10 @@ module type MASTER = sig
     val register_servant : t -> Servant.t -> unit lwt
     val create_task : t -> Client.t -> (script list, unit) handle lwt
 end
+
+type par_method = [
+    | Methods.support_method
+    | Methods.bremer_support
+    | `OnEachTree of (script list * script list)
+    | `ParallelPipeline of (int * script list * script list * script list)
+]

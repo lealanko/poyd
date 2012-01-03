@@ -47,38 +47,16 @@ let run_task master task cmds =
             | [] -> 
                 Servant.final_report servant >>= fun () ->
                 return None
-            | `ParallelPipeline (times, todo, composer, continue) :: rest -> 
-                begin
-                    L.trace (fun () -> PoydState.receive servant)
-                        "Receive state from servant" >>= fun state ->
-                    L.info "Releasing servant before ParallelPipeline"
-                    >>= fun () ->
-                    Pool.put master.pool servant >>= fun () ->
-                    PoydParallel.parallel_pipeline master.pool task.client
-                        state times todo composer >>= fun new_state ->
-                    (* This looks bad, but this is the simplest way to
-                       tell the top loop to get a new servant. *)
-                    fail (Restart (new_state, continue @ rest))
-                end
-            | `OnEachTree (todo, composer) :: rest -> begin
+	    | (#par_method as meth) :: rest -> begin
                 L.trace (fun () -> PoydState.receive servant)
                     "Receive state from servant" >>= fun state ->
-                L.info "Releasing servant before OnEachTree"
-                >>= fun () ->
+                L.info "Releasing servant before run_parallel" >>= fun () ->
                 Pool.put master.pool servant >>= fun () ->
-                PoydParallel.on_each_tree master.pool task.client
-                    state todo composer >>= fun new_state ->
-                fail (Restart (new_state, rest))
-            end
-            | (#Methods.support_method as meth) :: rest -> begin
-                L.trace (fun () -> PoydState.receive servant)
-                    "Receive state from servant" >>= fun state ->
-                L.info "Releasing servant before support"
-                >>= fun () ->
-                Pool.put master.pool servant >>= fun () ->
-                PoydParallel.support master.pool task.client
-                    state meth >>= fun new_state ->
-                fail (Restart (new_state, rest))
+                PoydParallel.run_parallel master.pool task.client
+                    state meth >>= fun (new_state, cont) ->
+                (* This looks bad, but this is the simplest way to
+                   tell the top loop to get a new servant. *)
+                fail (Restart (new_state, cont @ rest))
             end
             | cmd :: rest ->
                 L.trace 

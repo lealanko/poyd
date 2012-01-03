@@ -11,7 +11,6 @@ module E = BatEnum
 
 module Dq = BatDeque
 
-
 (* Parallel stuff *)
 
 (* Parallelization algorithm:
@@ -346,6 +345,22 @@ let support pool client state meth =
                 bootstrap_support = res }
             | `Jackknife -> { state.PoydState.run with
                 jackknife_support = res } }
+
+let bremer pool client state (`Bremer (local_optimum, build, _, _)) =
+    fail (Failure "unimplemented")
+
     
-        
-        
+let no_cont t =
+    t >>= fun ret ->
+    return (ret, [])
+
+let run_parallel pool client state meth = match meth with
+    | #Methods.support_method as meth ->
+	no_cont (support pool client state meth)
+    | #Methods.bremer_support as meth ->
+	no_cont (bremer pool client state meth)
+    | `OnEachTree (todo, combine) ->
+	no_cont (on_each_tree pool client state todo combine)
+    | `ParallelPipeline (times, todo, composer, continue) ->
+	parallel_pipeline pool client state times todo composer >>= fun s ->
+	return (s, continue)
