@@ -6,208 +6,179 @@ module Client = PoydClientStub
 type 'a consumer = ('a, unit) handle
 type 'a producer = (unit, 'a option) handle
 
+type 'r tu = (unit, 'r) teq
 
-type msg = 
-    | SetClient of Client.t
-    | BeginScript of script list
-    | FinalReport
-    | SetTrees of bool * bool * tree producer
-    | GetTrees of bool * tree consumer
-    | SetData of Data.d
-    | GetData of Data.d consumer
-    | SetRng of PoyRandom.t
-    | GetRng of PoyRandom.t consumer
-    | GetOutput of output list consumer
-    | ClearOutput
-    | SaveOrigTrees
-    | ClearOrigTrees
+type ('a, 'r) th = ((unit, 'a) handle, 'r) teq
+
+type 'a field =
+    | Data of (Data.d, 'a) teq
+    | Rng of (PoyRandom.t, 'a) teq
+    | Support of support_type * (support_class, 'a) teq
+    | Bremer of (Methods.support_tree Sexpr.t, 'a) teq
+    | Run of (r, 'a) teq
+    | Trees of (tree Sexpr.t, 'a) teq
+    | StoredTrees of (tree Sexpr.t, 'a) teq
+
+module type SET = sig
+    type a
+    val field : a field
+    val value : a
+end
+
+type 'r msg = 
+    | SetClient of Client.t * 'r tu
+    | BeginScript of script list * 'r tu
+    | FinalReport of 'r tu
+    | Get of 'r field
+    | Set of (module SET) * 'r tu
+    | GetOutput of (output list, 'r) teq
+    | ClearOutput of 'r tu
+    | AddTrees of bool * tree Sexpr.t * 'r tu
+    | SaveOrigTrees of 'r tu
+    | ClearOrigTrees of 'r tu
     | BeginOnEachTree of script list * script list * 
-            (((PoyRandom.t * tree, unit) handle) *
-                    (unit, unit) handle) consumer
+            ((PoyRandom.t * tree, unit) handle * (unit, unit) handle, 'r) teq
     | BeginSupport of Methods.support_method * 
-            ((PoyRandom.t, unit) handle * (unit, unit) handle) consumer
-    | GetSupport of support_type * support_class consumer
-    (* XXX: these are temporary, should be split *)
-    | SetRun of r
-    | GetRun of r consumer
-            
+            ((PoyRandom.t, unit) handle * (unit, unit) handle, 'r) teq
+
 type t = {
     name : string;
-    hdl : (msg, unit) handle;
+    hdl : 'r . ('r msg, 'r) handle;
 }
 
 let get_name s =
     return s.name
 
 let set_client s c =
-    s.hdl $ SetClient(c)
+    s.hdl $ SetClient(c, eq_refl)
 
 let begin_script s script =
-    s.hdl $ BeginScript(script)
+    s.hdl $ BeginScript(script, eq_refl)
 
 let final_report s =
-    s.hdl $ FinalReport
+    s.hdl $ FinalReport(eq_refl)
 
-let tree_producer trees =
-    (* Ideally we would iterate the sexpr directly with an explicit stack, 
-       but this is okay. *)
-    let arr = Array.of_list (Sexpr.to_list trees) in
-    let ir = ref 0 in
-    let get () =
-        let i = !ir in
-        if i = Array.length arr
-        then None
-        else begin
-            incr ir;
-            Some (Array.get arr i)
-        end in
-    (fun () -> return (get ()))
-    
-let set_trees_gen storedp addp s trees =
-    with_handle (tree_producer trees)
-        (fun producer -> s.hdl $ SetTrees(storedp, addp, producer))
+let set (type a_) (field : a_ field) s (value : a_) =
+    let module Set = struct
+        type a = a_
+        let field = field
+        let value = value
+    end 
+    in
+    s.hdl $ Set ((module Set : SET), eq_refl)
 
-let set_trees =
-    set_trees_gen false false
+let get field s =
+    s.hdl $ Get(field)
 
-let set_stored_trees =
-    set_trees_gen true false
+let getset field = (get field, set field)
 
-let add_trees =
-    set_trees_gen false true
 
-let add_stored_trees =
-    set_trees_gen true true
+let get_trees, set_trees = 
+    getset (Trees(eq_refl))
 
-let tree_consumer () =
-    let lst = ref [] in
-    let send tree =
-        lst := tree :: !lst in
-    ((fun tree -> return (send tree)),
-     (fun () -> return (Sexpr.of_list (List.rev !lst))))
-    
-let get_trees_gen storedp s =
-    let consume, get = tree_consumer () in
-    with_handle consume
-        (fun consumer -> s.hdl $ GetTrees(storedp, consumer)) >>= fun () ->
-    get ()
+let get_stored_trees, set_stored_trees =
+    getset (Trees(eq_refl))
 
-let get_trees =
-    get_trees_gen false
+let add_trees s trees =
+    s.hdl $ AddTrees(false, trees, eq_refl)
 
-let get_stored_trees =
-    get_trees_gen true
+let add_stored_trees s trees =
+    s.hdl $ AddTrees(true, trees, eq_refl)
 
-let set_data s data =
-    s.hdl $ SetData(data)
-
-let get_with_consumer fn =
-    let r = ref None in
-    with_handle (fun v -> r := Some v; return ()) fn >>= fun () ->
-    return (BatOption.get !r)
-        
-let get_data s =
-    get_with_consumer (fun consumer -> s.hdl $ GetData consumer)
+let get_data, set_data =
+    getset (Data(eq_refl))
 
 (* XXX: send in parts! This can be huge. *)
-let set_run s r =
-    s.hdl $ SetRun(r)
-
-let get_run s =
-    get_with_consumer (fun consumer -> s.hdl $ GetRun consumer)
+let get_run, set_run =
+    getset (Run(eq_refl))
     
-let set_rng s rng =
-    s.hdl $ SetRng(rng)
-
-let get_rng s = 
-    get_with_consumer (fun consumer -> s.hdl $ GetRng consumer)
+let get_rng, set_rng =
+    getset (Rng(eq_refl))
 
 let clear_output s =
-    s.hdl $ ClearOutput
+    s.hdl $ ClearOutput(eq_refl)
 
 let get_output s =
-    get_with_consumer (fun consumer -> s.hdl $ GetOutput consumer)
+    s.hdl $ GetOutput(eq_refl)
 
 let save_original_trees s =
-    s.hdl $ SaveOrigTrees
+    s.hdl $ SaveOrigTrees(eq_refl)
 
 let clear_original_trees s =
-    s.hdl $ ClearOrigTrees
-
-let acquire_trees producer = 
-    let rec aux acc =
-        producer $ () >>= function
-          | None -> return (Sexpr.of_list (List.rev acc))
-          | Some tree -> aux (tree :: acc) in
-    aux []
-
-let provide_trees consumer trees =
-    Lwt_list.iter_s 
-        (fun tree -> consumer $ tree)
-        (Sexpr.to_list trees)
+    s.hdl $ ClearOrigTrees(eq_refl)
 
 let begin_oneachtree s dosomething mergingscript = 
-    get_with_consumer (fun consumer ->
-        s.hdl $ BeginOnEachTree (dosomething, mergingscript, consumer))
+    s.hdl $ BeginOnEachTree (dosomething, mergingscript, eq_refl) 
     >>= fun (iter_h, finish_h) ->
     return ((fun tree rng -> iter_h $ (tree, rng)),
             (fun () -> finish_h $ ()))
 
 let begin_support s meth =
-    get_with_consumer (fun consumer ->
-        s.hdl $ BeginSupport (meth, consumer)) >>= fun (iter_h, finish_h) ->
+    s.hdl $ BeginSupport (meth, eq_refl) >>= fun (iter_h, finish_h) ->
     return ((fun rng -> iter_h $ rng), (fun () -> finish_h $ ()))
 
-let get_support s typ =
-    get_with_consumer (fun consumer ->
-        s.hdl $ GetSupport (typ, consumer))
+let get_support s typ = 
+    get (Support (typ, eq_refl)) s
+
+let set_support s typ =
+    set (Support (typ, eq_refl)) s
+
+let get_bremer =
+    get (Bremer(eq_refl))
+
 
 module Make (Servant : SERVANT with module Client = Client) = struct
     open Servant
-    let f (s : t) : msg -> unit lwt = function
-        | SetClient c ->
-            set_client s c
-        | BeginScript(script) ->
-            begin_script s script
-        | FinalReport ->
-            final_report s
-        | SetTrees(storedp, addp, producer) -> begin
-            acquire_trees producer >>= fun trees ->
-            match storedp, addp with
-            | false, false -> set_trees s trees
-            | false, true -> add_trees s trees
-            | true, false -> set_stored_trees s trees
-            | true, true -> add_stored_trees s trees
+
+    let (>:) t teq = 
+        Lwt.map (cast teq) t
+
+
+        
+    let f s = function
+        | SetClient(c, teq) ->
+            set_client s c >: teq
+        | BeginScript(script, teq) ->
+            begin_script s script >: teq
+        | FinalReport(teq) ->
+            final_report s >: teq
+        | Set (setm, tu) -> begin
+            let module S = (val setm : SET)
+            in
+            let (<:<) setter teq = setter s (cast_back teq S.value) >: tu
+            in
+            match S.field with
+            | Data(teq) -> set_data <:< teq
+            | Rng(teq) -> set_rng <:< teq
+            | Support(typ, teq) -> return () >: tu
+            | Run(teq) -> set_run <:< teq
+            | Trees(teq) -> set_trees <:< teq
+            | StoredTrees(teq) -> set_stored_trees <:< teq
+            | Bremer(teq) -> return () >: tu
         end
-        | GetTrees(storedp, consumer) -> 
-            (if storedp then get_stored_trees else get_trees) s >>= 
-                fun trees ->
-            provide_trees consumer trees
-        | SetData(data) ->
-            set_data s data
-        | SetRun(r) ->
-            set_run s r
-        | GetRun(consumer) ->
-            get_run s >>= fun r ->
-            consumer $ r
-        | GetData(consumer) -> 
-            get_data s >>= fun data ->
-            consumer $ data
-        | SetRng(rng) -> 
-            set_rng s rng
-        | SaveOrigTrees ->
-            save_original_trees s
-        | ClearOrigTrees ->
-            clear_original_trees s
-        | GetOutput(consumer) ->
-            get_output s >>= fun o ->
-            consumer $ o
-        | ClearOutput ->
-            clear_output s
-        | GetRng(consumer) -> 
-            get_rng s >>= fun data ->
-            consumer $ data
-        | BeginOnEachTree (todo, combine, consumer) ->
+        | Get(field) -> begin
+            match field with
+            | Data(teq) -> get_data s >: teq
+            | Rng(teq) -> get_rng s >: teq
+            | Support(typ, teq) -> get_support s typ >: teq
+            | Run(teq) -> get_run s >: teq
+            | Trees(teq) -> get_trees s >: teq
+            | StoredTrees(teq) -> get_stored_trees s >: teq
+            | Bremer(teq) -> return `Empty >: teq
+        end
+        | AddTrees(false, trees, teq) -> 
+            add_trees s trees >: teq
+        | AddTrees(true, trees, teq) ->
+            add_stored_trees s trees >: teq
+        | SaveOrigTrees(teq) ->
+            save_original_trees s >: teq
+        | ClearOrigTrees(teq) ->
+            clear_original_trees s >: teq
+        | GetOutput(teq) ->
+            get_output s >: teq
+        | ClearOutput(teq) ->
+            clear_output s >: teq
+        | BeginOnEachTree (todo, combine, teq) ->
             begin_oneachtree s todo combine >>= fun (iter, finish) ->
             let iter_h = publish2 iter 
             in
@@ -219,8 +190,8 @@ module Make (Servant : SERVANT with module Client = Client) = struct
                 finish ())
             in
             finish_r := Some finish_h;
-            consumer $ (iter_h, finish_h)
-         | BeginSupport (meth, consumer) ->
+            return (iter_h, finish_h) >: teq
+         | BeginSupport (meth, teq) ->
              begin_support s meth >>= fun (iter, finish) ->
              let iter_h = publish iter
              in
@@ -232,14 +203,11 @@ module Make (Servant : SERVANT with module Client = Client) = struct
                  finish ())
              in
              finish_r := Some finish_h;
-             consumer $ (iter_h, finish_h)
-         | GetSupport (typ, consumer) ->
-             get_support s typ >>= fun sup ->
-             consumer $ sup
+             return (iter_h, finish_h) >: teq
     let create s = 
         get_name s >>= fun name ->
         return {
             name = name;
-            hdl = publish (f s);
+            hdl = fun (type r) -> publish (f s);
         }
 end

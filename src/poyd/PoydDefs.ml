@@ -57,11 +57,7 @@ module type SERVANT = sig
     val begin_support : t -> Methods.support_method ->
         ((PoyRandom.t -> unit lwt) * (unit -> unit lwt)) lwt
     val get_support : t -> support_type -> support_class lwt
-(*
-    val get_jackknife : t -> (support_class * taxon_codes) lwt
-    val add_jackknife : t -> (support_class * taxon_codes) -> unit lwt
-*)
-        
+    val get_bremer : t -> Methods.support_tree Sexpr.t lwt
 end
 
 module type MASTER = sig
