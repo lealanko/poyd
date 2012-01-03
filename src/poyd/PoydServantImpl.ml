@@ -174,3 +174,5 @@ let get_support s typ = get <|
         fun r -> match typ with
         | `Bootstrap -> r.bootstrap_support
         | `Jackknife -> r.jackknife_support
+
+let get_bremer s = fail (Failure "unimplemented")
