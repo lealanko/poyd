@@ -52,12 +52,14 @@ module type SERVANT = sig
     val clear_output : t -> unit lwt
     val save_original_trees : t -> unit lwt
     val clear_original_trees : t -> unit lwt
+    val reroot : t -> unit lwt
     val begin_oneachtree : t -> script list -> script list ->
         ((PoyRandom.t -> tree -> unit lwt) * (unit -> unit lwt)) lwt
     val begin_support : t -> Methods.support_method ->
         ((PoyRandom.t -> unit lwt) * (unit -> unit lwt)) lwt
     val get_support : t -> support_type -> support_class lwt
-    val get_bremer : t -> Methods.support_tree Sexpr.t lwt
+    val begin_bremer : t -> r -> Methods.bremer_support ->
+        ((PoyRandom.t -> tree -> Methods.support_tree lwt) * (unit -> unit lwt)) lwt
 end
 
 module type MASTER = sig

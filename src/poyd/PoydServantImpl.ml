@@ -25,6 +25,8 @@ let run_stack = Stack.create ()
 
 let current_margin_id = ref 0
 
+let current_bremers = ref `Empty
+
 let get_name c =
     PoydUtil.get_procid ()
 
@@ -96,9 +98,13 @@ let begin_script _ script =
 *)
 
 let begin_script _ script = 
-    PoydThread.run thr <| fun () ->
+    L.dbg "Running script:" >>= fun () ->
+    Lwt_list.iter_s (fun cmd -> 
+        L.dbg "  %s" (Analyzer.script_to_string cmd)) script >>= fun () ->
+    PoydThread.run thr (fun () ->
         let new_run = List.fold_left Phylo.folder !current_run script in
-        current_run := new_run
+        current_run := new_run) >>= fun () ->
+    L.dbg "Now have %d stored trees" (Sexpr.cardinal (!current_run).stored_trees)
 
 let final_report _ =
     PoydThread.run thr (fun () ->
@@ -127,8 +133,15 @@ let add_trees _ trees = set <| fun r ->
     { r with trees = Sexpr.union r.trees trees }
 let add_stored_trees _ stored_trees = set <| fun r -> 
     {r with stored_trees = Sexpr.union r.stored_trees stored_trees}
+
 let get_trees _ = get <| fun r -> r.trees
-let get_stored_trees _ = get <| fun r -> r.stored_trees
+
+let reroot _ = set <| Phylo.reroot_at_outgroup
+
+let get_stored_trees _ = 
+    get (fun r -> r.stored_trees) >>= fun strees ->
+    L.dbg "getting %d stored trees" (Sexpr.cardinal strees) >>= fun () ->
+    return strees
 
 let get_output _ = return (BatList.of_enum (BatQueue.enum current_output))
 
@@ -175,4 +188,12 @@ let get_support s typ = get <|
         | `Bootstrap -> r.bootstrap_support
         | `Jackknife -> r.jackknife_support
 
-let get_bremer s = fail (Failure "unimplemented")
+let begin_bremer s r meth =
+    let iter rng tree = PoydThread.run thr <| fun () ->
+        Phylo.compute_bremer r rng tree meth
+    in
+    let finish () = return ()
+    in
+    return (iter, finish)
+            
+    

@@ -48,12 +48,8 @@ let run_task master task cmds =
                 Servant.final_report servant >>= fun () ->
                 return None
 	    | (#par_method as meth) :: rest -> begin
-                L.trace (fun () -> PoydState.receive servant)
-                    "Receive state from servant" >>= fun state ->
-                L.info "Releasing servant before run_parallel" >>= fun () ->
-                Pool.put master.pool servant >>= fun () ->
                 PoydParallel.run_parallel master.pool task.client
-                    state meth >>= fun (new_state, cont) ->
+                    servant meth >>= fun (new_state, cont) ->
                 (* This looks bad, but this is the simplest way to
                    tell the top loop to get a new servant. *)
                 fail (Restart (new_state, cont @ rest))

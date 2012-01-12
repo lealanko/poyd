@@ -268,6 +268,11 @@ module type S = sig
 
     val iter_support : Methods.support_method -> PoyRandom.t -> r -> r
 
+    val compute_bremer : r -> PoyRandom.t -> tree -> Methods.bremer_support -> 
+        Methods.support_tree
+
+    val reroot_at_outgroup : r -> r
+
     val normalize_trees : tree Sexpr.t -> tree Sexpr.t
 
     val process_input : r -> 
@@ -360,6 +365,5 @@ module type S = sig
     end
 
     module Node : NodeSig.S with type n = a
-
 
 end

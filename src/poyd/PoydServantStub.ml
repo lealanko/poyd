@@ -25,6 +25,9 @@ module type SET = sig
     val value : a
 end
 
+type ('a, 'r) fin_handle = ('a, 'r) handle * (unit, unit) handle
+
+
 type 'r msg = 
     | SetClient of Client.t * 'r tu
     | BeginScript of script list * 'r tu
@@ -33,13 +36,18 @@ type 'r msg =
     | Set of (module SET) * 'r tu
     | GetOutput of (output list, 'r) teq
     | ClearOutput of 'r tu
+    | Reroot of 'r tu
     | AddTrees of bool * tree Sexpr.t * 'r tu
     | SaveOrigTrees of 'r tu
     | ClearOrigTrees of 'r tu
+    | BeginBremer of 
+            r * Methods.bremer_support *
+                ((PoyRandom.t * tree, Methods.support_tree) handle *
+                        (unit, unit) handle, 'r) teq
     | BeginOnEachTree of script list * script list * 
-            ((PoyRandom.t * tree, unit) handle * (unit, unit) handle, 'r) teq
+            ((PoyRandom.t * tree, unit) fin_handle, 'r) teq
     | BeginSupport of Methods.support_method * 
-            ((PoyRandom.t, unit) handle * (unit, unit) handle, 'r) teq
+            ((PoyRandom.t, unit) fin_handle, 'r) teq
 
 type t = {
     name : string;
@@ -77,7 +85,7 @@ let get_trees, set_trees =
     getset (Trees(eq_refl))
 
 let get_stored_trees, set_stored_trees =
-    getset (Trees(eq_refl))
+    getset (StoredTrees(eq_refl))
 
 let add_trees s trees =
     s.hdl $ AddTrees(false, trees, eq_refl)
@@ -110,7 +118,7 @@ let clear_original_trees s =
 let begin_oneachtree s dosomething mergingscript = 
     s.hdl $ BeginOnEachTree (dosomething, mergingscript, eq_refl) 
     >>= fun (iter_h, finish_h) ->
-    return ((fun tree rng -> iter_h $ (tree, rng)),
+    return ((fun rng tree -> iter_h $ (rng, tree)),
             (fun () -> finish_h $ ()))
 
 let begin_support s meth =
@@ -123,9 +131,12 @@ let get_support s typ =
 let set_support s typ =
     set (Support (typ, eq_refl)) s
 
-let get_bremer =
-    get (Bremer(eq_refl))
+let begin_bremer s r meth =
+    s.hdl $ BeginBremer (r, meth, eq_refl) >>= fun (compute_h, finish_h) ->
+    return ((fun rng tree -> compute_h $ (rng, tree)), (fun () -> finish_h $ ()))
 
+let reroot s =
+    s.hdl $ Reroot(eq_refl)
 
 module Make (Servant : SERVANT with module Client = Client) = struct
     open Servant
@@ -133,7 +144,18 @@ module Make (Servant : SERVANT with module Client = Client) = struct
     let (>:) t teq = 
         Lwt.map (cast teq) t
 
-
+    let publish_fin pub (f, fin) =
+        let f_h = pub f
+        in
+        let finish_r = ref None
+        in
+        let finish_h = publish (fun () ->
+            withdraw f_h;
+            withdraw (BatOption.get !finish_r);
+            fin ())
+        in
+        finish_r := Some finish_h;
+        (f_h, finish_h)
         
     let f s = function
         | SetClient(c, teq) ->
@@ -178,32 +200,18 @@ module Make (Servant : SERVANT with module Client = Client) = struct
             get_output s >: teq
         | ClearOutput(teq) ->
             clear_output s >: teq
+        | Reroot(teq) ->
+            reroot s >: teq
         | BeginOnEachTree (todo, combine, teq) ->
-            begin_oneachtree s todo combine >>= fun (iter, finish) ->
-            let iter_h = publish2 iter 
-            in
-            let finish_r = ref None
-            in
-            let finish_h = publish (fun () ->
-                withdraw iter_h;
-                withdraw (BatOption.get !finish_r);
-                finish ())
-            in
-            finish_r := Some finish_h;
-            return (iter_h, finish_h) >: teq
+            begin_oneachtree s todo combine >>= fun fin_f ->
+            return (publish_fin publish2 fin_f) >: teq
          | BeginSupport (meth, teq) ->
-             begin_support s meth >>= fun (iter, finish) ->
-             let iter_h = publish iter
-             in
-             let finish_r = ref None
-             in
-             let finish_h = publish (fun () ->
-                 withdraw iter_h;
-                 withdraw (BatOption.get !finish_r);
-                 finish ())
-             in
-             finish_r := Some finish_h;
-             return (iter_h, finish_h) >: teq
+             begin_support s meth >>= fun fin_f ->
+             return (publish_fin publish fin_f) >: teq
+         | BeginBremer (r, meth, teq) ->
+             begin_bremer s r meth >>= fun fin_f ->
+             return (publish_fin publish2 fin_f) >: teq
+
     let create s = 
         get_name s >>= fun name ->
         return {

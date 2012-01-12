@@ -2187,13 +2187,11 @@ let decompose_support meth run =
         (it, `Bootstrap (1, a, b, root))
 
 let begin_support meth run =
-    let run2 = reroot_at_outgroup run
-    in
     match meth with
     | `Jackknife _ -> 
-        { run2 with jackknife_support = None }
+        { run with jackknife_support = None }
     | `Bootstrap _ ->
-        { run2 with bootstrap_support = None }
+        { run with bootstrap_support = None }
 
 let iter_support meth rng run =
     msg "iter_support: rng %08x, results below" (Hashtbl.hash rng);
@@ -2204,7 +2202,16 @@ let iter_support meth rng run =
     match meth with
     | `Jackknife _ -> add_jackknifes run (Some (1, s))
     | `Bootstrap _ -> add_boostraps run (Some (1, s))
-   
+
+let compute_bremer run rng tree 
+        (`Bremer (local_optimum, build, modulo, rank)) =
+    let sups = PoyRandom.with_state rng (fun () ->
+        S.bremer_support run.trees modulo rank run.nodes 
+            (`Single tree) local_optimum build run.data run.queue)
+    in
+    match Sexpr.to_list sups with
+    | [sup] -> sup
+    | _ -> raise (Failure "impossible")
 
 IFDEF USEPARALLEL THEN
     let args = Mpi.init Sys.argv
@@ -3483,6 +3490,7 @@ END
             { run with characters = 
             CScrp.scriptchar_operations run.nodes run.data meth }
     | #Methods.support_method as meth ->
+        let run = reroot_at_outgroup run in
         let (it, meth2) = decompose_support meth run in
         let runr = ref (begin_support meth2 run) in
         msg "beginning iter_support loop, initial rng: %08x" 
@@ -3492,13 +3500,18 @@ END
             runr := iter_support meth2 rng !runr
         done;
         !runr    
-    | `Bremer (local_optimum, build, my_rank, modul) ->
+    | `Bremer (local_optimum, build, my_rank, modul) as meth ->
             assert (my_rank < modul);
             warn_if_no_trees_in_memory run.trees;
-            let run = reroot_at_outgroup run in
-            { run with bremer_support = 
-                S.bremer_support run.trees my_rank modul run.nodes run.trees local_optimum build 
-                run.data run.queue }
+            let run = reroot_at_outgroup run 
+            in
+            let f tree = 
+                let rng = PoyRandom.fork () in
+                compute_bremer run rng tree meth
+            in
+            let bremers = Sexpr.map_status "Support for trees" f run.trees
+            in
+            { run with bremer_support = bremers }
     | #Methods.escape_local as meth ->
             warn_if_no_trees_in_memory run.trees;
             let (`PerturbateNSearch (tr, _, search_meth, _, _)) = meth in
