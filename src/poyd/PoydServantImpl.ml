@@ -33,7 +33,7 @@ let get_name c =
 let output_status c k msg =
     PoydThread.callback thr (fun () ->
         match k with
-        | Status.Output (f, _, _) ->
+        | Status.Output (Some f, _, _) ->
             add_output (OutputStatus (k, msg));
             return ()
         | _ ->
