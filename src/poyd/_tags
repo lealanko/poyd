@@ -1,4 +1,4 @@
 <*.ml> or <*.mli>: package(lwt.unix), package(batteries), thread
 
-<*.byte> or <*.native>: thread, package(lwt.unix), package(lwt.extra), package(uuidm), package(batteries), package(react), use_zlib, use_gzcaml
+<*.byte> or <*.native>: thread, package(lwt.unix), package(camlp4), package(uuidm), package(batteries), package(react), use_zlib, use_gzcaml
 

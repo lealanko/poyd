@@ -9,7 +9,7 @@ type t = {
 
 let create () = {
     run = Phylo.empty ();
-    rng = Random.State.make [| truncate (Unix.time ()) |];
+    rng = PoyRandom.make [| truncate (Unix.time ()) |];
 }
 
 let send s w = 

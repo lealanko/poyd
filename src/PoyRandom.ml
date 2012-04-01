@@ -1,9 +1,11 @@
 
-module S = Random.State
+module S = Random32.State
 
 type t = S.t
 
 let state = ref (S.make [| 27182818 |])
+
+let make = S.make
 
 let bits () = S.bits !state
 let int bound = S.int !state bound

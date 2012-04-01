@@ -1,5 +1,7 @@
 
-type t = Random.State.t
+type t 
+
+val make : int array -> t
 
 val fork : unit -> t
 
