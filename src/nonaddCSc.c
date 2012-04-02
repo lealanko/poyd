@@ -609,7 +609,7 @@ nonadd_nacat_compare (value v1, value v2)
     @{
     We need to use the correct serialization functions for our element types.
  */
-#if __LP64__
+#if 0 // LA: disabled for portability, was __LP64__
 #define caml_serialize_long caml_serialize_int_8
 #define caml_deserialize_long caml_deserialize_sint_8
 #else

@@ -37,7 +37,7 @@
 #define ADD_H 1
 
 /* Are we using a 64 bit environment? */
-#ifdef __LP64__
+#if 0 // LA: disabled for portability, was defined(__LP64__) 
 #define native_int long
 #define serialize_native serialize_int_8
 #define deserialize_native deserialize_sint_8

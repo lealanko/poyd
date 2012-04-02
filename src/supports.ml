@@ -17,6 +17,8 @@
 (* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301   *)
 (* USA                                                                        *)
 
+open PoyPrelude
+
 (* $Id: supports.ml 2851 2008-05-17 19:10:42Z andres $ *)
 (* Created Tue Jan 31 16:39:25 2006 (Illya Bomash) *)
 let () = SadmanOutput.register "Support" "$Revision: 2851 $"
