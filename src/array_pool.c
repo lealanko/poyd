@@ -215,7 +215,8 @@ pool_CAML_serialize (value c, unsigned long *wsize_32, \
     pv = Pool_custom_val(c);
     caml_serialize_int_4 (pv->size);
     caml_serialize_int_4 (pv->grow_rate);
-    *wsize_64 = *wsize_32 = sizeof (struct pool *);
+    *wsize_32 = 16;
+    *wsize_64 = 32;
     return;
 }
 

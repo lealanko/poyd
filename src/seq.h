@@ -36,7 +36,7 @@
     assert (to_asgn->magic_number == POY_SEQ_MAGIC_NUMBER)
 
 #ifdef USE_LARGE_ALPHABETS 
-#define SEQT unsigned int
+#define SEQT uint32
 #define DESERIALIZE_SEQT(a,b) caml_deserialize_block_4((a),(b))
 #define SERIALIZE_SEQT(a,b) caml_serialize_block_4((a),(b))
 #else 
@@ -47,9 +47,9 @@
 
 /* Sequence structure to be used inside ocaml custom types. */
 struct seq {
-    int magic_number;
-    int cap;        /* Capacity of the sequence memory structure. */
-    int len;        /* Total length of the sequence stored. */
+    int32 magic_number;
+    int32 cap;        /* Capacity of the sequence memory structure. */
+    int32 len;        /* Total length of the sequence stored. */
     SEQT *head;
     SEQT *begin;      /* Offset of the position where the first element of 
                        the sequence is actually stored. */

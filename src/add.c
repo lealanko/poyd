@@ -189,7 +189,8 @@ add_CAML_serialize (value c, unsigned long *wsize_32, \
     native_int real_allocated_len;
     add_stt nc;
     nc = *(Add_st_struct(c));
-    *wsize_64 = *wsize_32 = sizeof (add_stt);
+    *wsize_32 = 36;
+    *wsize_64 = 56;
     real_allocated_len = add_true_array_length(nc->len);
     serialize_native(nc->len);
     serialize_native(nc->true_len);

@@ -652,7 +652,8 @@ nonadd_nacat_serialize (value v,
     data = GET_DATA (n);
 
     /* We always write the same size */
-    *wsize_32 = *wsize_64 = compute_size(n->len);
+    *wsize_32 = 20 + 8 * ((n->len / BLOCK_LEN) + 1);
+    *wsize_64 = 24 + 8 * ((n->len / BLOCK_LEN) + 1);
     caml_serialize_long (n->len);
     caml_serialize_long (n->heur);
     caml_serialize_long (n->code);

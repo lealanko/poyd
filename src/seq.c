@@ -330,7 +330,8 @@ seq_CAML_serialize (value vo, unsigned long *wsize_32, unsigned long *wsize_64)
     serialize_int_4(v->magic_number);
     tmp = v->begin;
     SERIALIZE_SEQT(tmp,v->len);
-    *wsize_64 = *wsize_32 = sizeof(struct seq) + ((sizeof(SEQT) * (v -> len)));
+    *wsize_32 = 28 + sizeof(SEQT) * v->len;
+    *wsize_64 = 48 + sizeof(SEQT) * v->len;
     return;
 }
 

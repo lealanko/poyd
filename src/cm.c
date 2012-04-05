@@ -924,7 +924,8 @@ cm_CAML_serialize (value vcm, unsigned long *wsize_32, \
     serialize_int_4(c->gap_open);
     serialize_int_4(c->is_metric);
     serialize_int_4(c->all_elements);
-    *wsize_64 = *wsize_32 = sizeof(struct cm);
+    *wsize_32 = 52;
+    *wsize_64 = 72;
     len = 2 * (1 << (c->lcm)) * (1 << (c->lcm));
     serialize_block_4(c->cost, len);
     SERIALIZE_SEQT(c->median, len);
@@ -947,7 +948,8 @@ cm_CAML_serialize_3d (value vcm, unsigned long *wsize_32, \
     serialize_int_4(c->combinations);
     serialize_int_4(c->gap_open);
     serialize_int_4(c->all_elements);
-    *wsize_64 = *wsize_32 = sizeof(struct cm_3d);
+    *wsize_32 = 36;
+    *wsize_64 = 48;
     len = (1 << (c->lcm + 1)) * (1 << (c->lcm + 1)) * (1 << (c->lcm + 1));
     serialize_block_4(c->cost, len);
     SERIALIZE_SEQT(c->median, len);
