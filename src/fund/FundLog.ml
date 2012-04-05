@@ -36,11 +36,23 @@ let ksprintf fmt k =
     kprs (fun formatter k2 ->
         Format.kfprintf (fun _ -> k2 k) formatter fmt)
 
-
-let rec dump r =
+let dump (f : Format.formatter) (v : 'a) : unit  =
+  let p fmt = Format.fprintf f fmt
+  in
+  let w s = Format.pp_print_string f s
+  in
+  let hexchar c = p "%02x" (Char.code c)
+  in
+  let hexstring s = String.iter hexchar s
+  in
+  let ht = Hashtbl.create 0
+  in
+  let rec dump r =
   if Obj.is_int r then
-    string_of_int (Obj.magic r : int)
-  else (* Block. *)
+    w (string_of_int (Obj.magic r : int))
+  else
+    dump_block r
+  and dump_block r =
     let rec get_fields acc = function
       | 0 -> acc
       | n -> let n = n-1 in get_fields (Obj.field r n :: acc) n
@@ -60,23 +72,40 @@ let rec dump r =
 	h :: t
     in
     let opaque name x =
-      (* XXX In future, print the address of value 'r'.  Not possible
-       * in pure OCaml at the moment.  *)
-      try
-        let s = Marshal.to_string x [] in
-        Printf.sprintf "<%s:%d>" name (String.length s)
-      with _ ->
-        "<" ^ name ^ ">"
+      match wrap (Hashtbl.find ht) x with
+        | Ok id ->
+          p "<%s:%s>" name (Digest.to_hex id)
+        | Bad _ ->
+          match wrap (Marshal.to_string x) [] with
+            | Ok s -> 
+              let id = Digest.string s
+              in
+              Hashtbl.add ht x id;
+              p "<%s:%s:%d:" name (Digest.to_hex id) (String.length s);
+              hexstring (String.sub s 0 (min (String.length s) 256));
+              w ">"
+            | Bad _ ->
+              p "<%s>" name
+    in
+    let rec dump_list sep l =
+      match l with 
+        | [] -> ()
+        | [e] -> dump e
+        | (h::t) -> dump h; w sep; dump_list sep t
     in
     let s = Obj.size r and t = Obj.tag r in
     (* From the tag, determine the type of block. *)
     match t with
       | _ when is_list r ->
 	let fields = get_list r in
-	"[" ^ String.concat "; " (List.map dump fields) ^ "]"
+        w "[";
+        dump_list "; " fields;
+        w "]"
       | 0 ->
 	let fields = get_fields [] s in
-	"(" ^ String.concat ", " (List.map dump fields) ^ ")"
+        w "(";
+        dump_list ", " fields;
+        w ")"
       | x when x = Obj.lazy_tag ->
 	(* Note that [lazy_tag .. forward_tag] are < no_scan_tag.  Not
 	 * clear if very large constructed values could have the same
@@ -93,19 +122,28 @@ let rec dump r =
 	in
 	(* No information on decoding the class (first field).  So just print
 	 * out the ID and the slots. *)
-	"Object #" ^ dump id ^ " (" ^ String.concat ", " (List.map dump slots) ^ ")"
+        w "Object #";
+        dump id;
+        w " (";
+        dump_list ", " slots;
+        w ")";
       | x when x = Obj.infix_tag ->
 	opaque "infix" r
       | x when x = Obj.forward_tag ->
 	opaque "forward" r
       | x when x < Obj.no_scan_tag ->
 	let fields = get_fields [] s in
-	"Tag" ^ string_of_int t ^
-	  " (" ^ String.concat ", " (List.map dump fields) ^ ")"
+        w "Tag";
+        w (string_of_int t);
+        w "(";
+        dump_list ", " fields;
+        w ")"
       | x when x = Obj.string_tag ->
-	"\"" ^ String.escaped (Obj.magic r : string) ^ "\""
+        w "\"";
+	w (String.escaped (Obj.magic r : string));
+        w "\""
       | x when x = Obj.double_tag ->
-	string_of_float (Obj.magic r : float)
+	w (string_of_float (Obj.magic r : float))
       | x when x = Obj.abstract_tag ->
 	opaque "abstract" r
       | x when x = Obj.custom_tag ->
@@ -113,17 +151,16 @@ let rec dump r =
       | x when x = Obj.final_tag ->
 	opaque "final" r
       | x when x = Obj.double_array_tag ->
-	BatIO.to_string (BatArray.print BatFloat.print) (Obj.magic r : float array)
+	w (BatIO.to_string (BatArray.print BatFloat.print) (Obj.magic r : float array))
       | _ ->
 	opaque (Printf.sprintf "unknown: tag %d size %d" t s) r
+  in
+  dump (Obj.repr v)
 
-let dump v = dump (Obj.repr v)	  
-
-let pr_any f v =
-    let s = try dump v
-        with Failure s -> "<" ^ s ^ ">"
-    in
-    Format.fprintf f "@[%s@]" s
+let pr_any (f : Format.formatter) (v : 'a) : unit =
+  Format.fprintf f "@[";
+  dump f v;
+  Format.fprintf f "@]"
         
 
 let template = "$(message)"
