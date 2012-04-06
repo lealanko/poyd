@@ -32,9 +32,12 @@ let kprs f =
 let prs f =
     kprs (fun formatter k -> f formatter; k identity)
 
-let ksprintf fmt k =
+let ksprintf k fmt =
     kprs (fun formatter k2 ->
         Format.kfprintf (fun _ -> k2 k) formatter fmt)
+
+let kisprintf k fmt =
+  Format.ikfprintf (fun _ -> k "") Format.std_formatter fmt
 
 let dump (f : Format.formatter) (v : 'a) : unit  =
   let p fmt = Format.fprintf f fmt
@@ -171,26 +174,35 @@ let default_logger =
 let make ?(logger=default_logger) secname = (module struct
     let section = Lwt_log.Section.make secname
 
-    let log ~level fmt = 
-        ksprintf fmt (fun s -> Lwt_log.log ~section ~level ~logger s)
+    let csprintf level e k =
+      if 
+        level >= Lwt_log.Section.level section
+      then
+        ksprintf k
+      else
+        kisprintf (fun _ -> e ())
+
+    let log ~level = 
+      csprintf level return (fun s -> Lwt_log.log ~section ~level ~logger s)
 
     let dbg fmt = log ~level:Lwt_log.Debug fmt
     let info fmt = log ~level:Lwt_log.Info fmt
     let error fmt = log ~level:Lwt_log.Error fmt
+      
 
-    let trace ?(pr=pr_any) thunk fmt = 
-        ksprintf fmt (fun s ->
-            Lwt_log.debug_f ~section ~logger "-> %s" s >>= fun () ->
-            try_bind thunk
-                (fun r ->
-                    Lwt_log.debug_f ~section ~logger "<- %s: %s" s 
-                        (prs (fun f -> pr f r)) >>= fun () ->
-                    return r)
-                (fun exn ->
-                    Lwt_log.debug_f ~section ~logger ~exn "<# %s" s 
-                    >>= fun () ->
-                    fail exn))
-
+    let trace ?(pr=pr_any) thunk = 
+      csprintf Lwt_log.Debug thunk (fun s ->
+        Lwt_log.debug_f ~section ~logger "-> %s" s >>= fun () ->
+        try_bind thunk
+          (fun r ->
+            Lwt_log.debug_f ~section ~logger "<- %s: %s" s 
+              (prs (fun f -> pr f r)) >>= fun () ->
+            return r)
+          (fun exn ->
+            Lwt_log.debug_f ~section ~logger ~exn "<# %s" s 
+            >>= fun () ->
+            fail exn))
+        
     let trace2 ?pr ?(p1=pr_any) ?(p2=pr_any) s f a1 a2 =
         trace ?pr (fun () -> f a1 a2) "%s %a %a" s p1 a1 p2 a2
         
