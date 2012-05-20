@@ -47,14 +47,29 @@ let get_margin filename =
 let set_margin filename margin =
     add_output (SetMargin (filename, margin))
 
+module SSet = BatSet.StringSet
+
+let open_remotes = ref (SSet.empty)
+
+let close_remotes () =
+    let f path = match wrap Unix.unlink path with
+        | Bad (Unix.Unix_error (Unix.EACCES, _, _)) ->
+            (* On windows, this may mean the file is still open. Leave it 
+               in the table and try again next time. *)
+            true
+        | _ ->
+            (* Success or nonrecoverable error, don't try again. *)
+            false
+    in
+    open_remotes := SSet.filter f !open_remotes
+
 let remote_open_in c close_it opener fn =
     let path = FileStream.filename fn in
-    (* XXX: awful kludge, need to at least make sure the temp file gets
-       deleted. (On windows you cannot just unlink it after opening?) *)
     let file_contents = PoydThread.callback thr
         (fun () -> Client.request_file c path) in
     let (tmp_path, tmp_ch) = 
         Filename.open_temp_file ~mode:[Open_binary] "POY" ".input" in
+    open_remotes := SSet.add tmp_path !open_remotes;
     output_string tmp_ch file_contents;
     close_out tmp_ch;
     FileStream.(local_open_in.open_in_fn) close_it opener (`Local tmp_path)
@@ -102,8 +117,9 @@ let begin_script _ script =
     Lwt_list.iter_s (fun cmd -> 
         L.dbg "  %s" (Analyzer.script_to_string cmd)) script >>= fun () ->
     PoydThread.run thr (fun () ->
-        let new_run = List.fold_left Phylo.folder !current_run script in
-        current_run := new_run) >>= fun () ->
+        finally close_remotes (fun () ->
+            let new_run = List.fold_left Phylo.folder !current_run script in
+            current_run := new_run) ()) >>= fun () ->
     L.dbg "Now have %d stored trees" (Sexpr.cardinal (!current_run).stored_trees)
 
 let final_report _ =
