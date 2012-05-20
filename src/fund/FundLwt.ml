@@ -89,6 +89,3 @@ let run_result = function
 let wakeup_result u = function
     | Ok ret -> wakeup u ret
     | Bad exn -> wakeup_exn u exn
-
-
-                            

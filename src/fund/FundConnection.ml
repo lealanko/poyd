@@ -169,9 +169,91 @@ module Make (Args : ARGS) = struct
     let out_map = ref OutMap.empty
     let in_map = ref InMap.empty
 
+    let with_tmp_file pfx sfx fn =
+        let tmp_path = Filename.temp_file pfx sfx
+        in
+        finalize (fun () -> fn tmp_path)
+            (fun () ->
+                return (Sys.remove tmp_path))
+
+    let bracket pre thunk post =
+        let x = pre ()
+        in
+        let res = wrap thunk x
+        in
+        post x;
+        ok res
+
+    let copy_channel ic oc len64 =
+        let bufsz = Int64.of_int (IO.default_buffer_size ())
+        in
+        let rec loop len = if len = 0L
+            then return ()
+            else let sz = min len bufsz in
+                 Lwt_io.read ~count:(Int64.to_int sz) ic >>= fun s ->
+                 if s = ""
+                 then fail End_of_file
+                 else begin 
+                     IO.write oc s >>= fun () ->
+                     loop (Int64.sub len (Int64.of_int (String.length s)))
+                 end
+        in
+        loop len64
+
+            
+    let write_big_value x oc =
+        match wrap (Marshal.to_string x) [] with
+        | Ok s -> begin
+            IO.BE.write_int64 oc (Int64.of_int (String.length s)) >>= fun () ->
+            IO.write oc s
+        end
+        | Bad Out_of_memory -> 
+            with_tmp_file "fund" ".out" (fun tmp_path ->
+                bracket 
+                    (fun () -> open_out_bin tmp_path)
+                    (fun tmp_oc -> Marshal.to_channel tmp_oc x [])
+                    close_out;
+                IO.with_file ~mode:IO.input tmp_path (fun tmp_ic -> 
+                    IO.length tmp_ic >>= fun len64 ->
+                    L.dbg "writing message length %Ld" len64 >>= fun () ->
+                    IO.BE.write_int64 oc len64 >>= fun () ->
+                    L.dbg "copying %Ld bytes from tmp file %s" len64 tmp_path >>= fun () ->
+                    copy_channel tmp_ic oc len64))
+        | Bad exn ->
+            fail exn
+
+    let read_exactly ic len =
+        let s = String.create len
+        in
+        IO.read_into_exactly ic s 0 len >>= fun () ->
+        return s
+
+    let read_big_value ic = 
+        L.dbg "reading message length" >>= fun () ->
+        IO.BE.read_int64 ic >>= fun len64 ->
+        L.dbg "got length: %Ld" len64 >>= fun () ->
+        if len64 <= Int64.of_int Sys.max_string_length
+        then begin
+            read_exactly ic (Int64.to_int len64) >>= fun s ->
+            return (Marshal.from_string s 0)
+        end
+        else 
+            with_tmp_file "fund" ".in" (fun tmp_path ->
+                L.dbg "copying %Ld bytes to tmp file %s" len64 tmp_path >>= fun () ->
+                IO.with_file ~mode:IO.output tmp_path 
+                    (fun tmp_oc -> copy_channel ic tmp_oc len64) 
+                >>= fun () ->
+                L.dbg "Unmarshalling from tmp file %s" tmp_path >>= fun () ->
+                let v = bracket
+                    (fun () -> open_in_bin tmp_path)
+                    Marshal.from_channel
+                    close_in
+                in return v)
+            
+
     let write_msg (msg : OutMsg.t) =
         catch (fun () ->
-	    IO.write_value ~flags:[Marshal.Closures] out_ch msg)
+            IO.atomic (write_big_value msg) out_ch)
             (fun exn ->
                 fail (ConnectionError exn))
 
@@ -179,12 +261,11 @@ module Make (Args : ARGS) = struct
         L.trace (fun () -> write_msg msg) "write_msg %a" OutMsg.pr msg
 
     let read_msg () : InMsg.t lwt =
-	IO.read_value in_ch >>= fun msg ->
-	return msg
-
-    let read_msg () : InMsg.t lwt =
-	IO.read_value in_ch >>= fun msg ->
-	return msg
+        catch (fun () ->
+	    IO.atomic read_big_value in_ch)
+        (fun exn ->
+            L.dbg "Caught exn: %s" (Printexc.to_string exn) >>= fun () ->
+            fail (ConnectionError exn))
 
     let read_msg () =
         L.trace ~pr:InMsg.pr read_msg "read_msg"
