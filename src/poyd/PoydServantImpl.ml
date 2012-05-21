@@ -52,6 +52,8 @@ module SSet = BatSet.StringSet
 let open_remotes = ref (SSet.empty)
 
 let close_remotes () =
+    (* Run the closing finalisers for garbage channels. *)
+    Gc.minor ();
     let f path = match wrap Unix.unlink path with
         | Bad (Unix.Unix_error (Unix.EACCES, _, _)) ->
             (* On windows, this may mean the file is still open. Leave it 
@@ -63,6 +65,8 @@ let close_remotes () =
     in
     open_remotes := SSet.filter f !open_remotes
 
+let () = at_exit (fun () -> Gc.full_major (); close_remotes ())
+        
 let remote_open_in c close_it opener fn =
     let path = FileStream.filename fn in
     let file_contents = PoydThread.callback thr

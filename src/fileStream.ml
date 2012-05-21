@@ -409,14 +409,24 @@ let current_open_in = ref local_open_in
 
 let set_current_open_in o = current_open_in := o
 
-let open_in close_it opener fn =
-    (!current_open_in).open_in_fn close_it opener fn
+let opener_with_closer opener closer path =
+    let c = opener path
+    in
+    (* Evidently not all channels get closed properly in the code, and
+       ocaml doesn't close garbage channels by default, so we have to
+       add a manual finaliser to avoid file handle leaks. *)
+    Gc.finalise closer c;
+    c
 
-let open_in_bin x = open_in false Pervasives.open_in_bin x
+let open_in close_it opener closer fn =
+    (!current_open_in).open_in_fn 
+        close_it (opener_with_closer opener closer) fn
 
-let open_in_gz x = open_in true Gz.open_in x
+let open_in_bin x = open_in false Pervasives.open_in_bin Pervasives.close_in x
 
-let open_in x = open_in false Pervasives.open_in x
+let open_in_gz x = open_in true Gz.open_in Gz.close_in x
+
+let open_in x = open_in false Pervasives.open_in Pervasives.close_in x
 
 let channel_n_filename fn = 
     open_in fn, filename fn
