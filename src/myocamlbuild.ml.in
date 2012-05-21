@@ -27,7 +27,9 @@ let split string =
         end;
     done;
     res := (Buffer.contents cur) :: !res;
-    List.rev !res
+    if !res = [""]
+    then []
+    else List.rev !res
 
 let process_flags ocaml_option cflags =
     let cflags = split cflags in

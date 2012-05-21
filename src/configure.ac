@@ -91,6 +91,11 @@ case ${OS_INFORMATION} in
         OUSEWIN32=",use_win32"
         CFLAGS="-mwin32 -mno-cygwin $CFLAGS"
         ;;
+    *-mingw*)
+        USEWIN32="true"
+        DUSEWIN32="-DUSEWIN32"
+        OUSEWIN32=",use_win32"
+        ;;
     *)
         ;;
 esac
@@ -217,10 +222,11 @@ case $OCAMLVERSION in
             ;;
         esac
         ;;
-    3.11.* | 3.12.*)
+    3.11.* | 3.12.* | 3.13.*)
         NATIVEDYNLINK="dynlink.cmxa"
         AC_MSG_CHECKING([if OCaml supports dynamic linking in this architecture])
-        if ${OCAMLOPT} -shared -o str.cmxs str.cmxa ; then
+        #if ${OCAMLOPT} -shared -o str.cmxs str.cmxa ; then
+        if false ; then
             AC_MSG_RESULT([yes])
             USE_NATIVEDYNLINK="true"
             OUSE_NATIVEDYNLINK=",use_nativedynlink"
