@@ -1,5 +1,7 @@
 open PoydDefs
 
+exception Aborted
+
 module type S = sig
     type t
     val set_client : t -> PoydClient.t -> unit lwt

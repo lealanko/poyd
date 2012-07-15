@@ -29,11 +29,15 @@ type support_type = [
     | `Bootstrap
 ]
 
+exception Abort
+
+let _ = FundExnMapper.register Abort
+
 module type SERVANT = sig
     module Client : CLIENT
     type t
     val get_name : t -> string lwt
-    val set_client : t -> Client.t -> unit lwt
+    val set_client : t -> Client.t option -> unit lwt
     val begin_script : t -> script list -> unit lwt
     val final_report : t -> unit lwt
     val set_trees : t -> tree Sexpr.t -> unit lwt 

@@ -7,9 +7,11 @@ type ftr = Format.formatter
 module type S = sig
     val dbg : ('a, ftr, unit, unit lwt) format4 -> 'a
     val info : ('a, ftr, unit, unit lwt) format4 -> 'a
+    val notice : ('a, ftr, unit, unit lwt) format4 -> 'a
     val error : ('a, ftr, unit, unit lwt) format4 -> 'a
     val trace : ?pr:(ftr -> 'a -> unit) -> (unit -> 'a lwt) ->
         ('b, ftr, unit, 'a lwt) format4 -> 'b
+    val trace_ : (unit -> 'a lwt) -> ('b, ftr, unit, 'a lwt) format4 -> 'b
     val trace2 : 
         ?pr:(ftr -> 'r -> unit) ->
         ?p1:(ftr -> 'a -> unit) ->
@@ -164,7 +166,9 @@ let pr_any (f : Format.formatter) (v : 'a) : unit =
   Format.fprintf f "@[";
   dump f v;
   Format.fprintf f "@]"
-        
+
+let pr_succ (f : Format.formatter) (v : 'a) : unit =
+  Format.fprintf f "OK"
 
 let template = "$(message)"
 
@@ -186,6 +190,7 @@ let make ?(logger=default_logger) secname = (module struct
       csprintf level return (fun s -> Lwt_log.log ~section ~level ~logger s)
 
     let dbg fmt = log ~level:Lwt_log.Debug fmt
+    let notice fmt = log ~level:Lwt_log.Notice fmt
     let info fmt = log ~level:Lwt_log.Info fmt
     let error fmt = log ~level:Lwt_log.Error fmt
       
@@ -202,7 +207,9 @@ let make ?(logger=default_logger) secname = (module struct
             Lwt_log.debug_f ~section ~logger ~exn "<# %s" s 
             >>= fun () ->
             fail exn))
-        
+
+    let trace_ thunk = trace ~pr:pr_succ thunk
+
     let trace2 ?pr ?(p1=pr_any) ?(p2=pr_any) s f a1 a2 =
         trace ?pr (fun () -> f a1 a2) "%s %a %a" s p1 a1 p2 a2
         

@@ -7,6 +7,8 @@ module MQ = PoydMsgQueue
 type t = {
     mutable thread : Thread.t;
     task_mq : (unit -> unit) MQ.t;
+    abort_conts : (exn -> unit) Seq.t;
+    mutable abort_exn : exn option;
 }
 
 let lwt_task_chan = E.new_channel ()
@@ -41,12 +43,22 @@ let rec thread_main thr =
     thread_main thr
             
 
-let run thr thunk =
-    ccc (fun k ->
-        let ret_chan = E.new_channel () in
+let run thr thunk = match thr.abort_exn with
+    | Some exn ->
+        fail exn
+    | None -> ccc (fun k ->
+        let ret_chan = E.new_channel () 
+        in
+        let node = Seq.add_l (wakeup_exn k) thr.abort_conts
+        in
         let notify_id = Lwt_unix.make_notification ~once:true (fun () -> 
             let res = E.sync (E.receive ret_chan) in
-            wakeup_result k res) in
+            Seq.remove node;
+            (* The continuation might already have been wakened if it 
+               was aborted. *)
+            match state (waiter_of_wakener k) with
+            | Sleep -> wakeup_result k res
+            | _ -> ()) in
         let task () =
             let ret = BatStd.wrap thunk () in
             Lwt_unix.send_notification notify_id;
@@ -58,7 +70,20 @@ let create () =
     let thr = {
         thread = Thread.self ();
         task_mq = MQ.create ();
-            
+        abort_conts = Seq.create ();
+        abort_exn = None;
     } in
     thr.thread <- Thread.create (fun () -> thread_main thr) ();
     thr
+
+let abort thr exn = match thr.abort_exn with
+    | Some _ -> 
+        ()
+    | None -> 
+        let f n = Seq.remove n; (Seq.get n) exn
+        in
+        thr.abort_exn <- Some exn;
+        Seq.iter_node_l f thr.abort_conts
+        
+    
+    

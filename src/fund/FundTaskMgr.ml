@@ -12,10 +12,12 @@ module Make(Arg : UNIT) = struct
 
     let cancels = Seq.create ()
 
-    let finish, finish_waker = task ()
-    let notify_finish = 
-        let l = lazy (wakeup finish_waker ()) in
-        fun () -> Lazy.force l
+    let finish_cond = Lwt_condition.create ()
+
+    let finish = Lwt_condition.wait finish_cond
+
+    let notify_finish () = 
+        Lwt_condition.broadcast finish_cond ()
 
     let finish_task node =
         Seq.remove node;

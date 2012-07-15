@@ -15,7 +15,21 @@ let _ = PoydArgs.(Arg.parse full_specs anon_arg usage)
 let host = !PoydArgs.host
 let port = !PoydArgs.port
 
-let max_delay = 900
+let max_delay = 60
+
+let hdl_ids = Queue.create ()
+
+
+let handler signum =
+    ignore (L.notice "Received signal %d, aborting" signum);
+    Queue.iter Lwt_unix.disable_signal_handler hdl_ids;
+    Queue.clear hdl_ids;
+    PoydServantImpl.abort impl
+
+let add_handler signum = 
+    Queue.add (Lwt_unix.on_signal signum handler) hdl_ids
+
+let _ = List.iter add_handler [Sys.sigterm; Sys.sigint]
 
 let main () =
     ServantStub.create impl >>= fun stub ->
@@ -35,9 +49,13 @@ let main () =
         Master.register_servant master stub >>= fun () ->
         L.info "Registered to poyd master" >>= fun () ->
         wait conn >>= fun () ->
+        PoydServantImpl.disconnect impl;
         L.info "Disconnected from master, reconnecting" >>= fun () ->
         main_loop ()
+    and finish () =
+        PoydServantImpl.finish impl >>= fun () ->
+        L.info "Servant finished cleanly"
     in
-    main_loop ()
+    main_loop () <?> finish ()
 
 let () = Lwt_main.run (main ())

@@ -29,7 +29,7 @@ type ('a, 'r) fin_handle = ('a, 'r) handle * (unit, unit) handle
 
 
 type 'r msg = 
-    | SetClient of Client.t * 'r tu
+    | SetClient of Client.t option * 'r tu
     | BeginScript of script list * 'r tu
     | FinalReport of 'r tu
     | Get of 'r field

@@ -94,7 +94,7 @@ let run_task master task cmds =
         Servant.get_name servant >>= fun s_name ->
         L.info "Task %d: Allocated servant %s" task.id s_name >>= fun () ->
         catch (fun () ->
-            Servant.set_client servant task.client >>= fun () ->
+            Servant.set_client servant (Some task.client) >>= fun () ->
             Servant.clear_output servant >>= fun () ->
             PoydState.send state servant >>= fun () ->
             result (fun () -> run_on_servant servant state cmds) >>= function
@@ -105,6 +105,7 @@ let run_task master task cmds =
                 Servant.get_output servant >>= fun output ->
                 task.state <- new_state;
                 Client.execute_output task.client output >>= fun () ->
+                Servant.set_client servant None >>= fun () ->
                 Pool.put master.pool servant >>= fun () ->
                 L.info "Task %d: Released servant %s to pool" task.id s_name
                 >>= fun () ->

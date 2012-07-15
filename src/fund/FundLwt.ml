@@ -28,6 +28,8 @@ let tie (t : 'a lwt) (k : 'a cont) : unit =
 
 let ( >>- ) = tie
 
+let on_exn thunk hdl =
+    catch thunk (fun exn -> hdl exn >>= fun () -> fail exn)
 
 let cont (f : 'a -> unit) : 'a cont =
     let t, u = task () in

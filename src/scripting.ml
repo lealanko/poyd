@@ -81,6 +81,8 @@ struct
 
     let msg fmt = 
 	Printf.ksprintf (Status.user_message Status.Information) fmt
+    let msg fmt =
+        Printf.ksprintf ignore fmt
     
     let print_hash label obj = 
 	msg "%s: hash %08x" label (Hashtbl.hash obj)
