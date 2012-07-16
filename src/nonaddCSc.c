@@ -653,7 +653,7 @@ nonadd_nacat_serialize (value v,
 
     /* We always write the same size */
     *wsize_32 = 20 + 8 * ((n->len / BLOCK_LEN) + 1);
-    *wsize_64 = 24 + 8 * ((n->len / BLOCK_LEN) + 1);
+    *wsize_64 = 40 + 8 * ((n->len / BLOCK_LEN) + 1);
     caml_serialize_long (n->len);
     caml_serialize_long (n->heur);
     caml_serialize_long (n->code);
@@ -708,9 +708,10 @@ void char_nonadd_CAML_register_unmarshal()
 void
 nonadd_make_new_unsafe (int len, value v)
 {
-    nacat art;
+    nacat art = Data_custom_val(v);
+    size_t sz = compute_size(len);
 
-    Nonadd_Custom_val(v,art);
+    memset(art, sz, 0);
     art->len = len;
     art->heur = 0;
     art->added_cost = 0;
@@ -736,6 +737,7 @@ char_nonadd_CAML_make_new (value len, value code)
     ilen = Long_val (len);
     icode = Long_val (code);
     v = caml_alloc_custom (&naca_custom, (compute_size(ilen)), 1, 45000);
+    
     nonadd_make_new_unsafe (ilen, v);
 
     Nonadd_Custom_val(v,art);
