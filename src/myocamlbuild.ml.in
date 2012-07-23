@@ -362,6 +362,10 @@ dispatch begin function
     dep  ["link"; "ocaml"; "use_gzcaml"] ["libgzcaml.a"; "libzlibstubs.a"];
     dep  ["link"; "ocaml"; "use_parallel"] ["libmpicaml.a"];
 
+    flag ["link"; "ocaml"; "use_winsvc"]
+         (S[A"-cclib"; A"-lwinsvc"; A"-cclib"; A"-L."]);
+    dep  ["link"; "ocaml"; "use_winsvc"] ["libwinsvc.a"];
+
     (* As an approximation all our C files use the headers.
        Note: This will import headers in the build directory. *)
     dep  ["compile"; "c"] headers;
