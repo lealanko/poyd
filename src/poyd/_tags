@@ -2,3 +2,4 @@
 
 <*.byte> or <*.native>: thread, package(lwt.unix), package(uuidm), package(batteries), use_zlib, use_gzcaml
 
+<poyd_service.native> or <poyd_service.byte>: thread, use_libwinsvc, package(lwt.preemptive), package(uuidm), package(batteries), use_zlib, use_gzcaml

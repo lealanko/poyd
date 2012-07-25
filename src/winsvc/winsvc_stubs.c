@@ -11,9 +11,18 @@
 #include <caml/threads.h>
 #include <stdbool.h>
 
+#include <unistd.h>
+
 #ifdef UNICODE
 # error "Must be compiled in single-byte character mode"
 #endif
+
+static void msg(const char* s)
+{
+	write(2, s, strlen(s));
+	char end = '\n';
+	write(2, &end, 1);
+}
 
 static const DWORD control_codes[] = {
 	SERVICE_CONTROL_STOP,
@@ -78,20 +87,43 @@ value_to_flags(value v_flags, const DWORD* codes)
 	
 
 static void WINAPI
-caml_winsvc_service_main(DWORD argc, LPTSTR* argv)
+caml_winsvc_service_main(DWORD argc, LPSTR* argv)
 {
-	CAMLlocal2(args, ret);
+	CAMLlocal1(v_args);
+	msg("caml_winsvc_service_main start!");
+	if (argv) {
+		msg("args:");
+		for (size_t i = 0; i < argc; i++) {
+			msg(argv[i]);
+		}
+		msg(argv[argc] ? "not null-terminated!"
+		    : "is null-terminated");
+	} else {
+		msg("no args");
+	}
 	bool is_new = caml_c_thread_register();
+	msg("acquire caml runtime...");
 	caml_acquire_runtime_system();
+	msg("Now got caml runtime!");
+		
 	value* caml_svc_main = caml_named_value("WinSvc.service_main");
+	msg("Looked up WinSvc.service_main, checking result...");
 	if (!caml_svc_main) {
 		// eeeekkk!
+		msg("couldn't find WinSvc.service_main!");
 		return;
 	}
-	args = argv
-		? caml_copy_string_array((const char**) argv)
-		: caml_alloc(0, 0);
-	caml_callback_exn(*caml_svc_main, args);
+	
+	msg("Have service_main, copying args array");
+	const char** args = malloc(sizeof(const char*) * (argc + 1));
+	for (size_t i = 0; i < argc; i++) {
+		args[i] = argv[i];
+	}
+	args[argc] = NULL;
+	v_args = caml_copy_string_array(args);
+	free(args);
+	msg("now calling WinSvc.service_main");
+	caml_callback_exn(*caml_svc_main, v_args);
 	caml_release_runtime_system();
 	if (is_new) {
 		caml_c_thread_unregister();
@@ -104,10 +136,13 @@ caml_winsvc_start_dispatcher(value name)
 	CAMLparam1(name);
 	char* sname = strdup(String_val(name));
 	SERVICE_TABLE_ENTRY dispatch_table[] = {
-		{ sname, caml_winsvc_service_main }
+		{ sname, caml_winsvc_service_main },
+		{ NULL, NULL}
 	};
 	caml_release_runtime_system();
+	msg("before StartServiceCtrlDispatcher");
 	BOOL result = StartServiceCtrlDispatcher(dispatch_table);
+	msg("after StartServiceCtrlDispatcher");
 	caml_acquire_runtime_system();
 	free(sname);
 	CAMLreturn(Val_bool(result));

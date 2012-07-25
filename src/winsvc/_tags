@@ -1,0 +1,2 @@
+<winsvc_stubs.c>: use_c99
+<*.ml> or <*.mli>: package(lwt.preemptive), package(batteries), thread

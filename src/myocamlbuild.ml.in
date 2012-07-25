@@ -2,7 +2,7 @@ open Ocamlbuild_plugin
 open Command
 
 (* Configuration section *)
-let zlib_lib = "-lz"
+let zlib_lib = "libz.a"
 
 let static = true
 
@@ -27,9 +27,7 @@ let split string =
         end;
     done;
     res := (Buffer.contents cur) :: !res;
-    if !res = [""]
-    then []
-    else List.rev !res
+    List.rev (match !res with "" :: rest | rest -> rest)
 
 let process_flags ocaml_option cflags =
     let cflags = split cflags in
@@ -354,6 +352,9 @@ dispatch begin function
     flag ["c"; "compile"; "use_win32"]
         (S[A"-ccopt"; A"-DUSEWIN32"]);
 
+    flag ["c"; "compile"; "use_c99"]
+        (S[A"-ccopt"; A"-std=gnu99"]);
+
     flag ["c"; "compile"] (S ccompileflags);
     flag ["c"; "link"] (S clinkflags);
     flag ["ocaml"; "compile"] (S ccompileflags);
@@ -362,9 +363,9 @@ dispatch begin function
     dep  ["link"; "ocaml"; "use_gzcaml"] ["libgzcaml.a"; "libzlibstubs.a"];
     dep  ["link"; "ocaml"; "use_parallel"] ["libmpicaml.a"];
 
-    flag ["link"; "ocaml"; "use_winsvc"]
-         (S[A"-cclib"; A"-lwinsvc"; A"-cclib"; A"-L."]);
-    dep  ["link"; "ocaml"; "use_winsvc"] ["libwinsvc.a"];
+    flag ["link"; "ocaml"; "use_libwinsvc"]
+         (S[A"-cclib"; A"-lwinsvc"; A"-cclib"; A"-Lwinsvc"]);
+    dep  ["link"; "ocaml"; "use_libwinsvc"] ["winsvc/libwinsvc.a"];
 
     (* As an approximation all our C files use the headers.
        Note: This will import headers in the build directory. *)
