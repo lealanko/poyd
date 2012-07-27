@@ -177,7 +177,7 @@ caml_winsvc_register_handler(value name)
 	caml_acquire_runtime_system();
 	free(sname);
 	if (!handle) {
-		caml_failwith("RegisterServiceCtrlHandler failed");
+		caml_failwith("RegisterServiceCtrlHandler");
 	}
 	CAMLreturn((value) handle);
 }
@@ -209,3 +209,60 @@ caml_winsvc_set_status(value v_handle, value v_status)
 	CAMLreturn(Val_bool(ret));
 }
 
+
+CAMLprim value
+caml_winevent_register_event_source(value v_name)
+{
+	CAMLparam1(v_name);
+	HANDLE handle = RegisterEventSource(NULL, String_val(v_name));
+	if (!handle) {
+		caml_failwith("RegisterEventSource");
+	}
+	CAMLreturn((value) handle);
+}
+
+CAMLprim value
+caml_winevent_deregister_event_source(value v_handle)
+{
+	CAMLparam1(v_handle);
+	BOOL succ = DeregisterEventSource((HANDLE) v_handle);
+	if (!succ) {
+		caml_failwith("DeregisterEventSource");
+	}
+	CAMLreturn(Val_unit);
+}
+
+static const DWORD etype_codes[] = {
+	EVENTLOG_ERROR_TYPE,
+	EVENTLOG_WARNING_TYPE,
+	EVENTLOG_INFORMATION_TYPE,
+	0
+};
+
+static const DWORD event_ids[] = {
+	0xc0000001,
+	0x80000001,
+	0x40000001,
+	0
+};
+
+
+CAMLprim value
+caml_winevent_report_event(value v_handle, value v_etype,
+			   value v_section, value v_msg)
+{
+	CAMLparam4(v_handle, v_etype, v_section, v_msg);
+	DWORD etype = value_to_code(v_etype, etype_codes);
+	DWORD event_id = value_to_code(v_etype, event_ids);
+	HANDLE handle = (HANDLE) v_handle;
+	LPCTSTR msgs[2] = {
+		String_val(v_section),
+		String_val(v_msg)
+	};
+	BOOL succ = ReportEvent(handle, etype, 0, event_id, NULL,
+				2, 0, msgs, NULL);
+	if (!succ) {
+		caml_failwith("ReportEvent");
+	}
+	CAMLreturn(Val_unit);
+}

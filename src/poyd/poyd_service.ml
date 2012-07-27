@@ -21,15 +21,10 @@ let stop_handler is_shutdown =
 
 let svc_name = ref "poyd"
 
-let log_path = ref (Printf.sprintf "c:\\%s.log" !svc_name)
-
 let exe_specs = [
     ("-n", Arg.Set_string svc_name,
      Printf.sprintf
          "Set name of the service (default \"%s\")" !svc_name);
-    ("-l", Arg.Set_string log_path,
-     Printf.sprintf
-         "Set log file name (default \"%s\")" !log_path);
     ("--", Arg.Rest (fun arg -> Queue.add arg rest),
      Printf.sprintf
          "Begin list of service arguments.")
@@ -38,15 +33,7 @@ let exe_specs = [
 
 let _ = Arg.parse_argv Sys.argv exe_specs PoydArgs.anon_arg PoydArgs.usage
 
-let set_stderr path =
-    let open Unix 
-    in
-    let logfile = openfile path [O_WRONLY; O_APPEND; O_CREAT; O_SYNC] 0o644
-    in
-    Unix.dup2 logfile Unix.stderr;
-    Unix.close logfile
-
-let _ = set_stderr !log_path
+let _ = Lwt_log.default := WinEvent.logger !svc_name
 
 let _ = begin
     Lwt_log.add_rule "Poyd*" Lwt_log.Info;

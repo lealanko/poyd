@@ -170,12 +170,7 @@ let pr_any (f : Format.formatter) (v : 'a) : unit =
 let pr_succ (f : Format.formatter) (v : 'a) : unit =
   Format.fprintf f "OK"
 
-let template = "$(message)"
-
-let default_logger = 
-    Lwt_log.channel ~template ~close_mode:`Keep ~channel:Lwt_io.stderr ()
-
-let make ?(logger=default_logger) secname = (module struct
+let make secname = (module struct
     let section = Lwt_log.Section.make secname
 
     let csprintf level e k =
@@ -187,7 +182,7 @@ let make ?(logger=default_logger) secname = (module struct
         kisprintf (fun _ -> e ())
 
     let log ~level = 
-      csprintf level return (fun s -> Lwt_log.log ~section ~level ~logger s)
+      csprintf level return (fun s -> Lwt_log.log ~section ~level s)
 
     let dbg fmt = log ~level:Lwt_log.Debug fmt
     let notice fmt = log ~level:Lwt_log.Notice fmt
@@ -197,14 +192,14 @@ let make ?(logger=default_logger) secname = (module struct
 
     let trace ?(pr=pr_any) thunk = 
       csprintf Lwt_log.Debug thunk (fun s ->
-        Lwt_log.debug_f ~section ~logger "-> %s" s >>= fun () ->
+        Lwt_log.debug_f ~section "-> %s" s >>= fun () ->
         try_bind thunk
           (fun r ->
-            Lwt_log.debug_f ~section ~logger "<- %s: %s" s 
+            Lwt_log.debug_f ~section "<- %s: %s" s 
               (prs (fun f -> pr f r)) >>= fun () ->
             return r)
           (fun exn ->
-            Lwt_log.debug_f ~section ~logger ~exn "<# %s" s 
+            Lwt_log.debug_f ~section ~exn "<# %s" s 
             >>= fun () ->
             fail exn))
 
