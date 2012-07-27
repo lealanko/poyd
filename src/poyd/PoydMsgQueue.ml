@@ -1,5 +1,5 @@
 
-module M = BatMutex.Mutex
+module M = struct include Mutex include BatMutex end
 module Q = Queue
 module E = Event
 

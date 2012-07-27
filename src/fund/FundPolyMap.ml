@@ -49,7 +49,7 @@ module Make(Key : FULL_KEY) (Value : TYPE2) = struct
     module K = Key
     module V = Value
 
-    module M = Legacy.Map.Make(K.Ord)
+    module M = Map.Make(K.Ord)
 
     module type ENTRY = sig
         type a

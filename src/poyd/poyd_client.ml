@@ -51,7 +51,9 @@ module Master = PoydMasterStub
 module C = PoydClientImpl
 module CS = PoydClientStub.Make(C)
 
-module L = (val FundLog.make ~logger:PoydPoy.status_logger "poyd_client" 
+let _ = Lwt_log.default := PoydPoy.status_logger
+
+module L = (val FundLog.make "poyd_client" 
         : FundLog.S)
 
 let main () =

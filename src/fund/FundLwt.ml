@@ -77,7 +77,7 @@ let wait_thread (t : unit lwt) : unit lwt =
     on_cancel t2 (fun () -> cancel t);
     t2
 
-open BatStd
+open BatPervasives
 
 let result thunk =
     try_bind thunk

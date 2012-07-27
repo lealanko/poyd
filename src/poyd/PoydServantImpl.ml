@@ -56,7 +56,7 @@ let get_margin filename =
 let set_margin filename margin =
     add_output (SetMargin (filename, margin))
 
-module SSet = BatSet.StringSet
+module SSet = BatSet.Make(String)
 
 let open_remotes = ref (SSet.empty)
 

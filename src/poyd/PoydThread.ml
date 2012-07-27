@@ -32,7 +32,7 @@ let callback (type r) thr f =
             E.receive ret_chan; 
             E.wrap (MQ.receive thr.task_mq) (fun f -> `Task f)
         ] with
-        | `Return r -> BatStd.ok r
+        | `Return r -> BatPervasives.ok r
         | `Task f -> f (); poll ()
     in
     poll ()
@@ -60,7 +60,7 @@ let run thr thunk = match thr.abort_exn with
             | Sleep -> wakeup_result k res
             | _ -> ()) in
         let task () =
-            let ret = BatStd.wrap thunk () in
+            let ret = BatPervasives.wrap thunk () in
             Lwt_unix.send_notification notify_id;
             E.sync (E.send ret_chan ret)
         in
