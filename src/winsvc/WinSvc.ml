@@ -6,6 +6,7 @@ type accept =
     | AStop
     | APauseContinue
     | AShutdown
+    | APreShutdown
     | AUnknown
 
 type control = 
@@ -14,6 +15,8 @@ type control =
     | CContinue
     | CInterrogate
     | CShutdown
+    | CPreShutdown
+    | CParamChange
     | CUnknown
 
 type state =
@@ -31,13 +34,25 @@ type status = {
     exit_code : int;
 }
 
+type version = {
+    major : int;
+    minor : int;
+    build : int;
+    csd : string;
+}
+
 external start_dispatcher : string -> bool 
     = "caml_winsvc_start_dispatcher"
 external register_handler : string -> status_handle
     = "caml_winsvc_register_handler"
 external set_status : status_handle -> status -> unit
     = "caml_winsvc_set_status"
+external get_version : unit -> version
+    = "caml_win32_get_version"
 
+let version = get_version ()
+
+let have_preshutdown = version.major >= 6
 
 (* BEGIN snippet from lwt 2.4.0 *)
 
@@ -123,12 +138,12 @@ let the_service = Future.create ()
 let svc_accept_flags svc = 
     let check_flag = function
         | None, _ -> []
-        | Some _, code -> [code]
+        | Some _, codes -> codes
     in
     List.(concat (map check_flag [
-        svc.stop, AStop;
-        svc.stop, AShutdown;
-        svc.pause, APauseContinue
+        svc.stop, [AStop; AShutdown];
+        svc.stop, if have_preshutdown then [APreShutdown] else [];
+        svc.pause, [APauseContinue];
     ]))
 
 let svc_set_state ?(exitcode=0) svc state accept_controls =
@@ -176,6 +191,7 @@ let ctrl_handler ctrl =
     run_in_main (fun () -> match ctrl with
     | CStop -> bkt false SStopPending svc.stop false SStopPending
     | CShutdown -> bkt false SStopPending svc.stop true SStopPending
+    | CPreShutdown -> bkt false SStopPending svc.stop true SStopPending
     | CPause -> bkt true SPausePending svc.pause false SPaused
     | CContinue -> bkt true SContinuePending svc.pause true SRunning
     | _ -> fail (Failure "Unknown control!"))

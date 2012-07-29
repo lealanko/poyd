@@ -20,11 +20,16 @@ let stop_handler is_shutdown =
     return ()
 
 let svc_name = ref "poyd"
+let log_path = ref None
+
 
 let exe_specs = [
     ("-n", Arg.Set_string svc_name,
      Printf.sprintf
          "Set name of the service (default \"%s\")" !svc_name);
+    ("-l", Arg.String (fun path -> log_path := Some path),
+     Printf.sprintf
+         "Set log file name (default: use Windows event log)");
     ("--", Arg.Rest (fun arg -> Queue.add arg rest),
      Printf.sprintf
          "Begin list of service arguments.")
@@ -33,7 +38,25 @@ let exe_specs = [
 
 let _ = Arg.parse_argv Sys.argv exe_specs PoydArgs.anon_arg PoydArgs.usage
 
-let _ = Lwt_log.default := WinEvent.logger !svc_name
+let set_stderr path =
+    let open Unix 
+    in
+    let logfile = openfile path [O_WRONLY; O_APPEND; O_CREAT; O_SYNC] 0o644
+    in
+    (* O_APPEND doesn't seem to work on mingw/msvcrt? *)
+    ignore (lseek logfile 0 SEEK_END);
+    dup2 logfile stderr;
+    close logfile
+
+let _ = match !log_path with
+    | None -> begin 
+        (* Windows services don't have stderr, let's create one for the
+           occasional non-lwt debug messages in the code. *)
+        set_stderr "NUL";
+        Lwt_log.default := WinEvent.logger !svc_name
+    end
+    | Some l ->
+        set_stderr l
 
 let _ = begin
     Lwt_log.add_rule "Poyd*" Lwt_log.Info;
@@ -55,6 +78,6 @@ let _ =
               | Failure msg -> L.error "%s" msg
               | _ -> return ()) >>= fun () ->
         L.notice "WinSvc done")
-                
-    
+        
+        
 

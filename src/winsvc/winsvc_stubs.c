@@ -11,6 +11,15 @@
 #include <caml/threads.h>
 #include <stdbool.h>
 
+// Windows 7 preshutdown controls. Not yet in mingw headers.
+#ifndef SERVICE_ACCEPT_PRESHUTDOWN
+# define SERVICE_ACCEPT_PRESHUTDOWN 0x00000100
+#endif
+
+#ifndef SERVICE_CONTROL_PRESHUTDOWN
+# define SERVICE_CONTROL_PRESHUTDOWN 0x0000000F
+#endif
+
 #include <unistd.h>
 
 #ifdef UNICODE
@@ -30,6 +39,7 @@ static const DWORD control_codes[] = {
 	SERVICE_CONTROL_CONTINUE,
 	SERVICE_CONTROL_INTERROGATE,
 	SERVICE_CONTROL_SHUTDOWN,
+	SERVICE_CONTROL_PRESHUTDOWN,
 	SERVICE_CONTROL_PARAMCHANGE,
 	0
 };
@@ -49,6 +59,7 @@ static const DWORD accept_codes[] = {
 	SERVICE_ACCEPT_STOP,
 	SERVICE_ACCEPT_PAUSE_CONTINUE,
 	SERVICE_ACCEPT_SHUTDOWN,
+	SERVICE_ACCEPT_PRESHUTDOWN,
 	0
 };
 
@@ -148,21 +159,23 @@ caml_winsvc_start_dispatcher(value name)
 	CAMLreturn(Val_bool(result));
 }
 
-static void WINAPI
-caml_winsvc_ctrl_handler(DWORD ctrl)
+static DWORD WINAPI
+caml_winsvc_ctrl_handler(DWORD ctrl, DWORD etype, LPVOID edata, LPVOID ctx)
 {
 	bool is_new = caml_c_thread_register();
 	caml_acquire_runtime_system();
 	value* caml_ctrl_handler = caml_named_value("WinSvc.ctrl_handler");
 	if (!caml_ctrl_handler) {
-		return;
+		return ERROR_CALL_NOT_IMPLEMENTED;
 	}
-	caml_callback_exn(*caml_ctrl_handler,
-			  code_to_value(ctrl, control_codes));
+	value ret = caml_callback_exn(*caml_ctrl_handler,
+					code_to_value(ctrl, control_codes));
+	bool succ = !Is_exception_result(ret);
 	caml_release_runtime_system();
 	if (is_new) {
 		caml_c_thread_unregister();
 	}
+	return succ ? NO_ERROR : ERROR_CALL_NOT_IMPLEMENTED;
 }
 
 CAMLprim value
@@ -172,8 +185,9 @@ caml_winsvc_register_handler(value name)
 	char* sname = strdup(String_val(name));
 	caml_release_runtime_system();
 	SERVICE_STATUS_HANDLE handle =
-		RegisterServiceCtrlHandler(sname,
-					   caml_winsvc_ctrl_handler);
+		RegisterServiceCtrlHandlerEx(sname,
+					     caml_winsvc_ctrl_handler,
+					     NULL);
 	caml_acquire_runtime_system();
 	free(sname);
 	if (!handle) {
@@ -265,4 +279,23 @@ caml_winevent_report_event(value v_handle, value v_etype,
 		caml_failwith("ReportEvent");
 	}
 	CAMLreturn(Val_unit);
+}
+
+CAMLprim value
+caml_win32_get_version(value v_unit)
+{
+	CAMLparam1(v_unit);
+	CAMLlocal1(ret);
+	OSVERSIONINFO version;
+	version.dwOSVersionInfoSize = sizeof(version);
+	BOOL succ = GetVersionEx(&version);
+	if (!succ) {
+		caml_failwith("GetVersionEx");
+	}
+	ret = caml_alloc_tuple(4);
+	Store_field(ret, 0, Val_int(version.dwMajorVersion));
+	Store_field(ret, 1, Val_int(version.dwMinorVersion));
+	Store_field(ret, 2, Val_int(version.dwBuildNumber));
+	Store_field(ret, 3, caml_copy_string(version.szCSDVersion));
+	CAMLreturn(ret);
 }
