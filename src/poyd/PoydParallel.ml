@@ -28,6 +28,7 @@ type ('seed, 'result) command =
     | AddSeed of 'seed
     | AddResult of 'result
     | GetResult
+    | AbortWorker
 
 type ('seed, 'result) worker = ('seed, 'result) command Lwt_mvar.t
 
@@ -49,11 +50,13 @@ type ('seed, 'result) event =
     | Add of 'seed list * 'result list
     | NewServant of Servant.t
     | Output of output list
+    | AbortTask of exn
 
 type ('seed, 'result) dispatcher_state = {
     d_seeds : 'seed list;
     d_results : 'result list;
-    n_running : int 
+    n_running : int;
+    exn : exn option;
 }
 
 type ('w, 'seed, 'result) map_worker = { 
@@ -93,24 +96,39 @@ let worker add_seed add_result get_result svt d_mv w_mv =
                   L.dbg "Worker terminating" >>= fun () ->
                   finalize ()
               end
-              | _ -> begin
+              | ConnectionError _ | RouteError -> begin
                   L.dbg "Worker failed" >>= fun () ->
                   Lwt_mvar.put d_mv (Add (wst.seeds, wst.results))
-              end)
+              end
+              | exn ->
+                  (* All other exceptions were relayed by the actual computation,
+                     and indicate that the task itself failed *)
+                  L.error "Task failed" >>= fun () ->
+                  Lwt_mvar.put d_mv (AbortTask exn))
         in
 	Lwt_mvar.put d_mv (WorkerReady w_mv) >>= fun () ->
         Lwt_mvar.take w_mv >>= function
 	  | AddSeed seed -> begin
-              check (fun () -> add_seed wst seed)
-                  (fun exn -> 
-                      Lwt_mvar.put d_mv (Add ([seed], []))) >>= loop
+              L.trace_ (fun () ->
+                  check (fun () -> add_seed wst seed)
+                      (fun exn -> 
+                          Lwt_mvar.put d_mv (Add ([seed], []))))
+                  "AddSeed"
+              >>= loop
           end
 	  | AddResult result -> begin
-              check (fun () -> add_result wst result)
-                  (fun exn -> 
-                      Lwt_mvar.put d_mv (Add ([], [result]))) >>= loop
+              L.trace (fun () -> check 
+                  (fun () -> add_result wst result)
+                  (fun exn -> Lwt_mvar.put d_mv (Add ([], [result]))))
+                  "AddResult"
+              >>= loop
           end
-	  | GetResult -> finalize ()
+	  | GetResult ->
+              L.trace (fun () -> finalize ())
+                  "GetResult"
+          | AbortWorker ->
+              L.trace (fun () -> return ())
+                  "AbortWorker"
     in
     finalize (fun () -> loop init_wstate)
         (fun () ->
@@ -161,9 +179,10 @@ let do_parallel
                 "Finalize worker")
             (fun () ->
                 L.trace (fun () -> Servant.set_client svt None)
-                    "Releasing parallel worker")
-        >>= fun () ->
-	Pool.put pool svt
+                    "Releasing parallel worker" >>= fun () ->
+                (* If the above succeeded, the servant is still alive and 
+                   can be reused. *)
+	        Pool.put pool svt)
     in
     let make_worker svt =
 	let mv = Lwt_mvar.create_empty () 
@@ -179,12 +198,10 @@ let do_parallel
     let msg fmt = Printf.kfprintf (fun out ->
         Printf.fprintf out "\n%!") stderr fmt
     in
-    let trace_cancel_ t = 
-        msg "pre-cancel: %s" (state_str (state t));
+    let trace_cancel t = 
+        (* msg "pre-cancel: %s" (state_str (state t)); *)
         cancel t;
-        msg "post-cancel: %s" (state_str (state t));
-    in
-    let trace_cancel = cancel
+        (* msg "post-cancel: %s" (state_str (state t)); *)
     in
     let request_servant pri = 
         pause () >>= fun () ->
@@ -204,19 +221,23 @@ let do_parallel
     let dispatch_event dst = function
 	| WorkerReady (w) -> begin
             L.dbg "WorkerReady" >>= fun () ->
-	    match dst.d_seeds, dst.d_results with
-	    | seed :: seeds2, _ ->
+	    match dst with
+            | { exn = Some _ } ->
+                Lwt_mvar.put w AbortWorker >>= fun () ->
+                return dst
+	    | { d_seeds = seed :: seeds2 } ->
 		Lwt_mvar.put w (AddSeed seed) >>= fun () ->
 		return { dst with d_seeds = seeds2 }
-	    | [], result :: results2 -> begin
+	    | { d_results = result :: results2 } -> begin
 		Lwt_mvar.put w (AddResult result) >>= fun () ->
 		return { dst with d_results = results2 }
 	    end
-	    | [], [] -> 
+	    | _ -> 
 		Lwt_mvar.put w GetResult >>= fun () ->
 		return dst
 	end
         | Add (w_seeds, w_results) -> begin
+            L.dbg "Add" >>=  fun () ->
 	    return { dst with 
                 d_seeds = w_seeds @ dst.d_seeds;
 		d_results = w_results @ dst.d_results }
@@ -230,24 +251,31 @@ let do_parallel
 	    let _ = make_worker svt in
 	    return { dst with n_running = dst.n_running + 1 }
         end
-        | Output o ->
+        | Output o -> begin 
+            L.dbg "Output" >>= fun () ->
             detach (fun () -> Client.execute_output client o);
             return dst
-            
-            
+        end
+        | AbortTask exn -> 
+            L.dbg "AbortTask" >>= fun () ->
+            return { dst with exn = Some exn }
     in
     let rec dispatcher_loop dst =
         dump_state dst >>= fun () ->
-	match dst.d_results with
-	| [res] when (dst.d_seeds = [] && dst.n_running = 0) ->
+        match dst with
+        | { n_running = 0; exn = Some exn } ->
+            fail exn
+        | { n_running = 0; d_seeds = []; d_results = [res] } ->
 	    return res
-	| [] when (dst.d_seeds = [] && dst.n_running = 0) ->
+        | { n_running = 0; d_seeds = []; d_results = [] } ->
             fail (Failure "no seeds?")
 	| _ -> 
-	    let req_tm = 
-		if List.length dst.d_seeds > 0 || List.length dst.d_results > 1
-		then Some (apply request_servant dst.n_running)
-		else None
+	    let req_tm = match dst with
+                | { exn = Some _ } -> None
+                | { d_seeds = _ :: _ } 
+                | { d_results = _ :: _ :: _ } ->
+                    Some (apply request_servant dst.n_running)
+		| _ -> None
 	    in
 	    Lwt_mvar.take dispatcher_mv >>= fun event ->
             (match req_tm with
@@ -257,9 +285,20 @@ let do_parallel
 	    dispatcher_loop new_dst
     in
     L.dbg "Begin dispatcher loop" >>= fun () ->
-    dispatcher_loop { d_seeds = seeds; 
-		      d_results = [];
-		      n_running = 0 }
+    let t = dispatcher_loop { 
+        d_seeds = seeds; 
+	d_results = [];
+	n_running = 0;
+        exn = None;
+    }
+    in
+    on_exn (fun () -> protected t)
+        (function
+          | Canceled -> begin
+              L.dbg "Parallel task canceled, sending AbortTask" >>= fun () ->
+              Lwt_mvar.put dispatcher_mv (AbortTask Canceled)
+          end
+          | _ -> return ())
 	
 let create_rngs rng n =
     PoyRandom.with_state rng (fun () ->
@@ -285,17 +324,16 @@ let parallel_pipeline pool client state n todo combine =
     let build_script = `Set ([`Data], tmp_id) :: todo @ combine 
     in
     let add_seed svt rng =
-        L.info "Adding rng %08x" (Hashtbl.hash rng) >>= fun () ->
-        Servant.set_rng svt rng >>= fun () ->
-	L.info "Begin build script" >>= fun () ->
-        Servant.begin_script svt build_script
+        L.trace_ (fun () -> Servant.set_rng svt rng)
+            "Adding rng %08x" (Hashtbl.hash rng) >>= fun () ->
+        L.trace_ (fun () -> Servant.begin_script svt build_script)
+            "Begin build script"
     in
     let add_result svt trees =
-	L.info "Adding trees" >>= fun () ->
-        Servant.add_stored_trees svt trees >>= fun () ->
-        L.info "Trees sent, begin combine script" >>= fun () ->
-        Servant.begin_script svt combine >>= fun () ->
-        L.info "Script done"
+        L.trace (fun () -> Servant.add_stored_trees svt trees)
+	    "Adding trees" >>= fun () ->
+        L.trace (fun () -> Servant.begin_script svt combine)
+            "Trees sent, begin combine script"
     in
     let get_result svt =
 	L.info "Getting trees" >>= fun () ->

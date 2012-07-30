@@ -77,6 +77,7 @@ let parse_addr = function
         return (Unix.ADDR_INET (Array.get entry.Unix.h_addr_list 0, p))
     end
     | Some a, None, None, None ->
+        Lwt_unix.getnameinfo a [] >>= fun info ->
         return a
     | None, None, None, Some p ->
         return (Unix.ADDR_UNIX(p))
@@ -87,7 +88,7 @@ let parse_addr = function
 let connect ?addr ?host ?port ?path () =
     parse_addr (addr, host, port, path) >>= fun sockaddr ->
     Lwt_io.open_connection sockaddr >>= fun (in_ch, out_ch) ->
-    FundConnection.make in_ch out_ch router_port >>= fun conn ->
+    FundConnection.make ~addr:sockaddr in_ch out_ch router_port >>= fun conn ->
     let node = Lwt_sequence.add_l conn connections in
     let module C = (val conn : CONNECTION) in
     let port = (module C : PORT) in

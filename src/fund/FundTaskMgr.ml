@@ -1,13 +1,14 @@
 open FundPrelude
 include FundTaskMgrDefs
 
-module L = (val FundLog.make "TaskMgr" : FundLog.S)
-
 type state = 
     | Running
     | Closed
 
-module Make(Arg : UNIT) = struct
+let make name = let module M = struct
+    module L = (val FundLog.make ("FundTaskMgr:" ^ name) : FundLog.S)
+    let name = name
+
     let state = ref Running
 
     let cancels = Seq.create ()
@@ -25,9 +26,10 @@ module Make(Arg : UNIT) = struct
             notify_finish ()
 
     let task thunk = 
-        if !state = Closed then
+        if !state = Closed then begin
+            L.dbg "MgrClosed" >>= fun () ->
             fail MgrClosed
-        else 
+        end else 
             fix (fun t ->
                 let node = Seq.push cancels (fun () -> cancel t) in
                 finalize (thunk)
@@ -52,6 +54,7 @@ module Make(Arg : UNIT) = struct
 
     let _ = on_cancel finish (fun () -> detach abort)
 
-end
+end in (module M : S)
+    
 
 let _ = FundExnMapper.register MgrClosed

@@ -2,7 +2,7 @@ open FundPrelude
 open FundDefs
 open FundType
 
-module L = (val FundLog.make "Domain" : FundLog.S)
+module L = (val FundLog.make "FundDomain" : FundLog.S)
 
 let local () = (module struct
     module HandleValue = struct

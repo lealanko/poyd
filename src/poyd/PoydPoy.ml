@@ -23,7 +23,8 @@ let status_logger =
         let c = convert_level level 
         in
         PoydThread.run thread (fun () ->
-            List.iter (Status.user_message c) lines)
+            List.iter (fun line ->
+                Status.user_message c (StatusCommon.escape line)) lines)
     in
     let close () = return ()
     in

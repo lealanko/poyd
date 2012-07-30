@@ -3,4 +3,7 @@ open FundDefs
 
 exception ConnectionError of exn
 
-val make : IO.input_channel -> IO.output_channel -> port -> connection lwt
+val make : 
+    ?addr:Lwt_unix.sockaddr -> 
+    IO.input_channel -> IO.output_channel -> port -> 
+    connection lwt

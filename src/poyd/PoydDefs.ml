@@ -30,8 +30,10 @@ type support_type = [
 ]
 
 exception Abort
+exception ClientExn of exn
 
 let _ = FundExnMapper.register Abort
+let _ = FundExnMapper.register (ClientExn Abort)
 
 module type SERVANT = sig
     module Client : CLIENT

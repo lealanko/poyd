@@ -3,7 +3,7 @@
 open FundPrelude
 open FundDefs
 
-module L = (val FundLog.make "Router" : FundLog.S)
+module L = (val FundLog.make "FundRouter" : FundLog.S)
 
 (* Todo: add handle id into the error *)
 exception RouteError

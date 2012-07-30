@@ -6,7 +6,7 @@ exception ConnectionError of exn
 
 let () = FundExnMapper.register (ConnectionError End_of_file)
 
-module L = (val FundLog.make "Connection" : FundLog.S)
+module L = (val FundLog.make "FundConnection" : FundLog.S)
 
 let pprint printer () v =
     let out = BatIO.output_string () in
@@ -133,14 +133,15 @@ end
 
 
 module type ARGS = sig
+    val name : string
     val in_ch : IO.input_channel
     val out_ch : IO.output_channel
     module LocalPort : PORT
 end
 
-module Make (Args : ARGS) = struct
-    open Args
-
+let make_name name in_ch out_ch port = let module M = struct
+    module LocalPort = (val port : PORT)
+        
     module OutEntry = struct
         type ('a, 'b) t2 = ('a, exn) result mvar
     end
@@ -270,8 +271,12 @@ module Make (Args : ARGS) = struct
     let read_msg () =
         L.trace ~pr:InMsg.pr read_msg "read_msg"
 
-    module OutboundMgr = FundTaskMgr.Make(Unit)
-    module InboundMgr = FundTaskMgr.Make(Unit)
+    module OutboundMgr = 
+        (val FundTaskMgr.make (Printf.sprintf "%s:Outbound" name)
+                : FundTaskMgr.S)
+    module InboundMgr = 
+        (val FundTaskMgr.make (Printf.sprintf "%s:Inbound" name)
+                : FundTaskMgr.S)
 
     let rec do_request_out rq =
         let id = OutMap.K.generate () in
@@ -472,16 +477,18 @@ module Make (Args : ARGS) = struct
                 handle_msg
                 on_read_exn in
         detach loop
-end
-        
-let make in_ch out_ch port = 
-    let module Args = struct
-        let in_ch = in_ch
-        let out_ch = out_ch
-        module LocalPort = (val port : PORT)
-    end in
-    let module C = Make(Args) in
-    return (module C : CONNECTION)
+end in return (module M : CONNECTION)
 
-let make in_ch out_ch port =
-    L.trace (fun () -> make in_ch out_ch port) "make"
+let make ?addr in_ch out_ch port =
+    let open Lwt_unix in
+        (match addr with 
+        | None -> return ""
+        | Some (ADDR_UNIX path) -> 
+            return path
+        | Some (ADDR_INET (a, p)) ->
+            gethostbyaddr a >>= fun host ->
+            return (Printf.sprintf "%s:%d" host.h_name p)) >>= fun name ->
+        make_name name in_ch out_ch port
+        
+let make ?addr in_ch out_ch port =
+    L.trace (fun () -> make ?addr in_ch out_ch port) "make"

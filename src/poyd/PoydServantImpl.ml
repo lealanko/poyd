@@ -39,6 +39,10 @@ let current_margin_id = ref 0
 let get_name c =
     PoydUtil.get_procid ()
 
+let wrap_client thunk =
+    catch thunk
+        (fun exn -> fail (ClientExn (exn)))
+
 let output_status c k msg =
     PoydThread.callback thr (fun () ->
         match k with
@@ -46,7 +50,8 @@ let output_status c k msg =
             add_output (OutputStatus (k, msg));
             return ()
         | _ ->
-            Client.output_status c k msg)
+            wrap_client (fun () ->
+                Client.output_status c k msg))
 
 let get_margin filename =
     decr current_margin_id;
@@ -75,11 +80,15 @@ let close_remotes () =
     open_remotes := SSet.filter f !open_remotes
 
 let () = at_exit (fun () -> Gc.full_major (); close_remotes ())
-        
+
+       
+ 
 let remote_open_in c close_it opener fn =
     let path = FileStream.filename fn in
     let file_contents = PoydThread.callback thr
-        (fun () -> Client.request_file c path) in
+        (fun () -> 
+            wrap_client (fun () ->
+                Client.request_file c path)) in
     let (tmp_path, tmp_ch) = 
         Filename.open_temp_file ~mode:[Open_binary] "POY" ".input" in
     open_remotes := SSet.add tmp_path !open_remotes;
@@ -89,7 +98,8 @@ let remote_open_in c close_it opener fn =
 
 let remote_explode_filenames c files =
     PoydThread.callback thr (fun () ->
-        Client.explode_filenames c files)
+        wrap_client (fun () ->
+            Client.explode_filenames c files))
 
 let set_information_output filename =
     add_output (SetInformationOutput filename)
@@ -102,6 +112,7 @@ let check_finish _ =
 
 let disconnect _ = 
     current_client := None;
+    current_run := Phylo.empty ();
     check_finish ()
 
 let set_client _ co = 
