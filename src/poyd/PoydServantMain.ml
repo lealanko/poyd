@@ -32,8 +32,8 @@ let main specs args =
     and main_loop () =
         connect_loop 1 >>= fun conn ->
         get_root "poyd-master" >>= fun master ->
-        Master.register_servant master stub >>= fun () ->
-        L.info "Registered to poyd master" >>= fun () ->
+        L.trace_ (fun () -> Master.register_servant master stub)
+            "Register to poyd master" >>= fun () ->
         wait conn >>= fun () ->
         PoydServantImpl.disconnect impl;
         L.info "Disconnected from master, reconnecting" >>= fun () ->

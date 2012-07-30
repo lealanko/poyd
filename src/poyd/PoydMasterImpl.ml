@@ -40,6 +40,10 @@ exception Restart of PoydState.t * script list
         
         
 let run_task master task cmds =
+    let module L = 
+            (val FundLog.make (Printf.sprintf "PoydMasterImpl:%d" task.id)
+                    : FundLog.S)
+    in
     let run_tick servant cmds  =
         Servant.get_name servant >>= fun s_name ->
         let tick = Lwt_unix.sleep master.checkpoint_secs in
@@ -48,10 +52,13 @@ let run_task master task cmds =
                 Servant.final_report servant >>= fun () ->
                 return None
 	    | (#par_method as meth) :: rest -> begin
-                PoydParallel.run_parallel master.pool task.client
-                    servant meth >>= fun (new_state, cont) ->
+                L.trace_ (fun () ->
+                    PoydParallel.run_parallel master.pool task.client
+                        servant meth)
+                    "PoydParallel" >>= fun (new_state, cont) ->
                 (* This looks bad, but this is the simplest way to
                    tell the top loop to get a new servant. *)
+                L.dbg "Raise Restart" >>= fun () ->
                 fail (Restart (new_state, cont @ rest))
             end
             | cmd :: rest ->
@@ -79,15 +86,27 @@ let run_task master task cmds =
                   return ()
               | Some (state2, cmds2) -> 
                   run_on_servant servant state2 cmds2)
-            (function
-              | Fund.ConnectionError _ 
-              | Fund.RouteError
-              | Abort ->
-                  Servant.get_name servant >>= fun s_name ->
-                  L.info "Task %d: Error connecting to servant %s" 
-                      task.id s_name >>= fun () ->
-                  fail (Restart (restart_state, cmds))
-              | exn -> fail exn)
+            (fun exn ->
+                L.dbg "Caught %s" (Printexc.to_string exn) >>= fun () ->
+                match exn with
+                | Abort -> begin
+                    catch (fun () ->
+                        Servant.set_client servant None)
+                        (fun exn -> return ()) >>= fun () ->
+                    Servant.get_name servant >>= fun s_name ->
+                    L.info "Servant %s was aborted" s_name 
+                    >>= fun () ->
+                    fail (Restart (restart_state, cmds))
+                end
+                | Fund.ConnectionError _ 
+                | Fund.RouteError -> begin
+                    Servant.get_name servant >>= fun s_name ->
+                    L.info "Error connecting to servant %s" s_name
+                    >>= fun () ->
+                    fail (Restart (restart_state, cmds))
+                end
+                | exn -> 
+                    fail exn)
     in
     let rec run_cmds state cmds =
         L.info "Task %d: Requesting servant" task.id >>= fun () ->
@@ -101,9 +120,6 @@ let run_task master task cmds =
             result (fun () -> run_on_servant servant state cmds) >>= function
             | Bad (Fund.ConnectionError _ | Fund.RouteError | Restart _ as exn) ->
                 (* Don't return the servant to pool, it failed. *)
-                (* The below is needed in case the restart was caused by Abort.
-                   In other cases, it will just trigger a new Fund error *)
-                Servant.set_client servant None >>= fun () ->
                 fail exn
             | res -> finalize (fun () -> match res with
                 | Ok ret -> begin

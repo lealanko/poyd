@@ -4,26 +4,72 @@ module L = (val FundLog.make "PoydWorkerPool" : FundLog.S)
 
 type worker = PoydServantStub.t
 
-type consumer = {
-    priority : int;
-    mutable cont : worker cont option;
-}
+module Q = struct
+    module M = BatMap
+    module S = Lwt_sequence
+    type ('a, 'b) t = {
+        mutable map : ('a, 'b S.t) M.t;
+        mutable size : int;
+    }
+    type ('a, 'b) node = {
+        node : 'b S.node;
+        key : 'a;
+        seq : 'b S.t;
+        heap : ('a, 'b) t;
+    }
+    let get_list k t =
+        try M.find k t.map 
+        with Not_found ->
+            let l = S.create ()
+            in
+            t.map <- M.add k l t.map;
+            l
 
-module C = struct
-    type t = consumer
-    let compare c1 c2 = BatInt.compare c1.priority c2.priority
+    let insert key value heap = 
+        let seq = get_list key heap
+        in
+        heap.size <- heap.size + 1;
+        let node = S.add_r value seq
+        in
+        { node; key; seq; heap }
+
+    let size heap = heap.size
+
+    let create () = {
+        map = M.empty;
+        size = 0;
+    }
+
+    let delete { node; key; seq; heap } =
+        S.remove node;
+        let seq_ = get_list key heap
+        in
+        if seq_ == seq then begin
+            heap.size <- heap.size - 1;
+            if S.is_empty seq_ then
+                heap.map <- M.remove key heap.map
+        end
+            
+    let take_min heap =
+        let (key, seq) = M.min_binding heap.map
+        in
+        let v = S.take_l seq
+        in
+        heap.size <- heap.size - 1;
+        if S.is_empty seq then
+            heap.map <- M.remove key heap.map;
+        v
+
 end
-
-module Q = BatHeap.Make(C)
 
 type t = {
     mutable available : worker BatSet.t;
-    mutable pending_consumers : Q.t;
+    pending_consumers : (int, worker cont) Q.t;
 }
 
 let create () = {
     available = BatSet.empty;
-    pending_consumers = Q.empty;
+    pending_consumers = Q.create ();
 }
 
 let get p pri =
@@ -35,11 +81,9 @@ let get p pri =
         return w
     with Not_found ->
         let t = ccc (fun k ->
-            let con = { priority = pri; cont = Some k } in
-            on_cancel_w k (fun () -> 
-                (* Printf.eprintf "Get request canceled\n%!"; *)
-                con.cont <- None);
-            p.pending_consumers <- Q.insert p.pending_consumers con)
+            let node = Q.insert pri k p.pending_consumers
+            in
+            on_cancel_w k (fun () -> Q.delete node))
         in
         L.dbg "Didn't have available, now pending" >>= fun () ->
         t
@@ -50,18 +94,10 @@ let rec put p w =
         L.dbg "No consumers, adding to available, now have %d" 
             (BatSet.cardinal p.available)
     end else begin
-        let con = Q.find_min p.pending_consumers in
-        p.pending_consumers <- Q.del_min p.pending_consumers;
-        match con.cont with
-        | None -> begin
-            L.dbg "Found canceled consumer, retry" >>= fun () ->
-            put p w
-        end
-        | Some k -> begin 
-            L.dbg "Found live consumer, giving directly" >>= fun () ->
-            Lwt.wakeup k w;
-            return ()
-        end
+        let k = Q.take_min p.pending_consumers in
+        L.dbg "Found live consumer, giving directly" >>= fun () ->
+        Lwt.wakeup k w;
+        return ()
     end
         
         
