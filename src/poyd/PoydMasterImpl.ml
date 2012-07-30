@@ -81,7 +81,8 @@ let run_task master task cmds =
                   run_on_servant servant state2 cmds2)
             (function
               | Fund.ConnectionError _ 
-              | Fund.RouteError ->
+              | Fund.RouteError
+              | Abort ->
                   Servant.get_name servant >>= fun s_name ->
                   L.info "Task %d: Error connecting to servant %s" 
                       task.id s_name >>= fun () ->
@@ -99,17 +100,27 @@ let run_task master task cmds =
             PoydState.send state servant >>= fun () ->
             result (fun () -> run_on_servant servant state cmds) >>= function
             | Bad (Fund.ConnectionError _ | Fund.RouteError | Restart _ as exn) ->
-                fail exn
-            | res ->
-                PoydState.receive servant >>= fun new_state ->
-                Servant.get_output servant >>= fun output ->
-                task.state <- new_state;
-                Client.execute_output task.client output >>= fun () ->
+                (* Don't return the servant to pool, it failed. *)
+                (* The below is needed in case the restart was caused by Abort.
+                   In other cases, it will just trigger a new Fund error *)
                 Servant.set_client servant None >>= fun () ->
-                Pool.put master.pool servant >>= fun () ->
-                L.info "Task %d: Released servant %s to pool" task.id s_name
-                >>= fun () ->
-                run_result res)
+                fail exn
+            | res -> finalize (fun () -> match res with
+                | Ok ret -> begin
+                    PoydState.receive servant >>= fun new_state ->
+                    Servant.get_output servant >>= fun output ->
+                    task.state <- new_state;
+                    Client.execute_output task.client output >>= fun () ->
+                    Servant.set_client servant None >>= fun () ->
+                    return ret
+                end
+                | Bad exn -> 
+                    Servant.set_client servant None >>= fun () ->
+                    fail exn)
+                (fun () ->
+                    Pool.put master.pool servant >>= fun () ->
+                    L.info "Task %d: Released servant %s to pool"
+                        task.id s_name))
             (function
               | Restart (rstate, rcmds) ->
                   L.info "Task %d: Restarting from checkpoint" task.id >>= fun () ->

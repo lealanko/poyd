@@ -118,10 +118,13 @@ let disconnect _ =
 let set_client _ co = 
     match co with
     | None -> begin
+        L.dbg "Disconnect client" >>= fun () ->
         disconnect ();
         return ()
     end
-    | Some c -> in_thr (fun () -> begin
+    | Some c -> 
+        L.dbg "Set a new client" >>= fun () ->
+        in_thr (fun () -> begin
         current_client := Some c;
         current_run := Phylo.empty ();
         Status.is_parallel 1 (Some (output_status c));

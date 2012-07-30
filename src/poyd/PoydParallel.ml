@@ -117,17 +117,17 @@ let worker add_seed add_result get_result svt d_mv w_mv =
               >>= loop
           end
 	  | AddResult result -> begin
-              L.trace (fun () -> check 
+              L.trace_ (fun () -> check 
                   (fun () -> add_result wst result)
                   (fun exn -> Lwt_mvar.put d_mv (Add ([], [result]))))
                   "AddResult"
               >>= loop
           end
 	  | GetResult ->
-              L.trace (fun () -> finalize ())
+              L.trace_ (fun () -> finalize ())
                   "GetResult"
           | AbortWorker ->
-              L.trace (fun () -> return ())
+              L.trace_ (fun () -> return ())
                   "AbortWorker"
     in
     finalize (fun () -> loop init_wstate)
@@ -170,19 +170,21 @@ let do_parallel
     let worker_thread svt mvar =
         L.dbg "Set client" >>= fun () ->
         Servant.set_client svt (Some client) >>= fun () ->
-        finalize (fun () ->
-            L.trace (fun () -> init_servant svt)
+        result (fun () ->
+            L.trace_ (fun () -> init_servant svt)
                 "Initialize worker" >>= fun ctx ->
-            L.trace (fun () -> work ctx svt dispatcher_mv mvar)
+            L.trace_ (fun () -> work ctx svt dispatcher_mv mvar)
                 "Worker loop" >>= fun () ->
-            L.trace (fun () -> finalize_servant ctx)
-                "Finalize worker")
-            (fun () ->
-                L.trace (fun () -> Servant.set_client svt None)
-                    "Releasing parallel worker" >>= fun () ->
-                (* If the above succeeded, the servant is still alive and 
-                   can be reused. *)
-	        Pool.put pool svt)
+            L.trace_ (fun () -> finalize_servant ctx)
+                "Finalize worker") >>= fun res ->
+        L.trace_ (fun () -> Servant.set_client svt None)
+            "Releasing parallel worker" >>= fun () ->
+        match res with
+        | Bad (ConnectionError _ | RouteError | Abort as exn) ->
+            fail exn
+        | res ->
+	    Pool.put pool svt >>= fun () ->
+            run_result res
     in
     let make_worker svt =
 	let mv = Lwt_mvar.create_empty () 
@@ -330,9 +332,9 @@ let parallel_pipeline pool client state n todo combine =
             "Begin build script"
     in
     let add_result svt trees =
-        L.trace (fun () -> Servant.add_stored_trees svt trees)
+        L.trace_ (fun () -> Servant.add_stored_trees svt trees)
 	    "Adding trees" >>= fun () ->
-        L.trace (fun () -> Servant.begin_script svt combine)
+        L.trace_ (fun () -> Servant.begin_script svt combine)
             "Trees sent, begin combine script"
     in
     let get_result svt =
