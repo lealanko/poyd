@@ -1,4 +1,6 @@
 
+val set_idle_priority : unit -> unit
+
 val run :
     name: string ->
     main: (string array -> unit Lwt.t) ->

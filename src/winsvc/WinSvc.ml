@@ -49,6 +49,8 @@ external set_status : status_handle -> status -> unit
     = "caml_winsvc_set_status"
 external get_version : unit -> version
     = "caml_win32_get_version"
+external set_idle_priority : unit -> unit
+    = "caml_win32_set_idle_priority"
 
 let version = get_version ()
 

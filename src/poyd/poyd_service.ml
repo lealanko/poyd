@@ -62,7 +62,8 @@ let _ = begin
     Lwt_log.add_rule "Poyd*" Lwt_log.Info;
     Lwt_log.add_rule "poyd*" Lwt_log.Info;
 end
-    
+
+let _ = WinSvc.set_idle_priority ()    
 
 let _ =
     Lwt_main.run (

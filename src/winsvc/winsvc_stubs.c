@@ -299,3 +299,12 @@ caml_win32_get_version(value v_unit)
 	Store_field(ret, 3, caml_copy_string(version.szCSDVersion));
 	CAMLreturn(ret);
 }
+
+CAMLprim value
+caml_win32_set_idle_priority(value v_unit)
+{
+	CAMLparam1(v_unit);
+	HANDLE proc = GetCurrentProcess();
+	SetPriorityClass(proc, IDLE_PRIORITY_CLASS);
+	CAMLreturn(Val_unit);
+}
