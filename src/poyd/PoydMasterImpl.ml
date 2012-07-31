@@ -44,12 +44,17 @@ let run_task master task cmds =
             (val FundLog.make (Printf.sprintf "PoydMasterImpl:%d" task.id)
                     : FundLog.S)
     in
+    let commit_output servant =
+        Servant.get_output servant >>= fun output ->
+        Client.execute_output task.client output
+    in
     let run_tick servant cmds  =
         Servant.get_name servant >>= fun s_name ->
         let tick = Lwt_unix.sleep master.checkpoint_secs in
         let rec loop = function
             | [] -> 
                 Servant.final_report servant >>= fun () ->
+                commit_output servant >>= fun () ->
                 return None
 	    | (#par_method as meth) :: rest -> begin
                 L.trace_ (fun () ->
@@ -70,6 +75,7 @@ let run_task master task cmds =
                 | Sleep -> loop rest
                 | _ -> 
                     PoydState.receive servant >>= fun state ->
+                    commit_output servant >>= fun () ->
                     L.info "Task %d: Saved checkpoint from %s" task.id s_name 
                     >>= fun () ->
                     Client.output_status task.client Status.Information
@@ -106,6 +112,9 @@ let run_task master task cmds =
                     fail (Restart (restart_state, cmds))
                 end
                 | exn -> 
+                    (* It was an application level exception, both the client and 
+                       servant are alive so we can output pending data *)
+                    commit_output servant >>= fun () ->
                     fail exn)
     in
     let rec run_cmds state cmds =

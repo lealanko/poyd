@@ -15,15 +15,23 @@ let output_dump out v = output_string out (dump v)
 
 let current_output = Queue.create ()
 
-let temp_output = Queue.create ()
+let temp_output = ref (Queue.create ())
 
 let add_output o = 
-    Queue.add o temp_output
+    Queue.add o !temp_output
+
+let clear_output _ = Queue.clear current_output; return ()
 
 let in_thr thunk =
-    PoydThread.run thr thunk >>= fun ret ->
+    PoydThread.run thr (fun () ->
+        let q = Queue.create ()
+        in
+        temp_output := q;
+        let ret = thunk ()
+        in
+        (ret, q)) >>= fun (ret, q) ->
     (* Only commit the output if the thunk succeeded. *)
-    Queue.transfer temp_output current_output;
+    Queue.transfer q current_output;
     return ret
 
 let finish_t, finish_k = task ()
@@ -47,6 +55,7 @@ let output_status c k msg =
     PoydThread.callback thr (fun () ->
         match k with
         | Status.Output (Some f, _, _) ->
+            L.dbg "Output to %s: %s" f msg >>= fun () ->
             add_output (OutputStatus (k, msg));
             return ()
         | _ ->
@@ -119,11 +128,13 @@ let set_client _ co =
     match co with
     | None -> begin
         L.dbg "Disconnect client" >>= fun () ->
+        clear_output () >>= fun () ->
         disconnect ();
         return ()
     end
     | Some c -> 
         L.dbg "Set a new client" >>= fun () ->
+        clear_output () >>= fun () ->
         in_thr (fun () -> begin
         current_client := Some c;
         current_run := Phylo.empty ();
@@ -208,8 +219,6 @@ let get_stored_trees _ =
     return strees
 
 let get_output _ = return (BatList.of_enum (BatQueue.enum current_output))
-
-let clear_output _ = Queue.clear current_output; return ()
 
 let begin_oneachtree _ dosomething mergingscript = 
     (in_thr <| fun () ->
