@@ -816,7 +816,26 @@ let forest_search data queue origin_cost search trees =
             match filename with
             | Some filename -> 
                     let title = majority_text ^ " Majority Consensus Tree" in
-                    GraphicsPs.display title filename [|(0.0, res)|]
+                    let tmpfile = Filename.temp_file filename ".pdf"
+                    in
+                    Status.user_message Status.Information 
+                        (Printf.sprintf "%s -> %s" filename tmpfile);
+                    GraphicsPs.display title tmpfile [|(0.0, res)|];
+                    let ic = open_in_bin tmpfile 
+                    in
+                    let len = in_channel_length ic 
+                    in
+                    let str = String.create len 
+                    in
+                    really_input ic str 0 len;
+                    close_in ic;
+                    Sys.remove tmpfile;
+                    let filename = 
+                        (try Filename.chop_extension filename with
+                        | _ -> filename) ^ ".pdf"
+                    in
+                    Status.user_message (Status.Output (Some filename, false, []))
+                        (StatusCommon.escape str)
             | None -> 
                     let r = AsciiTree.to_string ~sep:2 ~bd:2 true res in
                     Status.user_message fo 
