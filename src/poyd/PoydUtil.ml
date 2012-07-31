@@ -19,3 +19,8 @@ let get_procid () =
     let pid = Unix.getpid () in
     return (Printf.sprintf "%s/%d" fqdn pid)
 
+let script_txt cmd = 
+    Format.sprintf (StatusCommon.string_to_format 
+                        (Analyzer.script_to_string cmd))
+
+    

@@ -818,8 +818,6 @@ let forest_search data queue origin_cost search trees =
                     let title = majority_text ^ " Majority Consensus Tree" in
                     let tmpfile = Filename.temp_file filename ".pdf"
                     in
-                    Status.user_message Status.Information 
-                        (Printf.sprintf "%s -> %s" filename tmpfile);
                     GraphicsPs.display title tmpfile [|(0.0, res)|];
                     let ic = open_in_bin tmpfile 
                     in

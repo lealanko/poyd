@@ -60,7 +60,8 @@ let run_task master task cmds =
                 L.trace_ (fun () ->
                     PoydParallel.run_parallel master.pool task.client
                         servant meth)
-                    "PoydParallel" >>= fun (new_state, cont) ->
+                    "PoydParallel: %s" (PoydUtil.script_txt meth) 
+                >>= fun (new_state, cont) ->
                 (* This looks bad, but this is the simplest way to
                    tell the top loop to get a new servant. *)
                 L.dbg "Raise Restart" >>= fun () ->
@@ -70,7 +71,7 @@ let run_task master task cmds =
                 L.trace 
                     (fun () -> Servant.begin_script servant [cmd])
                     "execute_script: %s"
-                    (Analyzer.script_to_string cmd) >>= fun () ->
+                    (PoydUtil.script_txt cmd) >>= fun () ->
                 match state tick with
                 | Sleep -> loop rest
                 | _ -> 

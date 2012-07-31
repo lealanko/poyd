@@ -20,7 +20,10 @@ let temp_output = ref (Queue.create ())
 let add_output o = 
     Queue.add o !temp_output
 
-let clear_output _ = Queue.clear current_output; return ()
+let clear_output _ = 
+    L.dbg "clear output" >>= fun () ->
+    Queue.clear current_output; 
+    return ()
 
 let in_thr thunk =
     PoydThread.run thr (fun () ->
@@ -55,7 +58,6 @@ let output_status c k msg =
     PoydThread.callback thr (fun () ->
         match k with
         | Status.Output (Some f, _, _) ->
-            L.dbg "Output to %s: %s" f msg >>= fun () ->
             add_output (OutputStatus (k, msg));
             return ()
         | _ ->
@@ -167,7 +169,7 @@ let begin_script _ script =
 let begin_script _ script = 
     L.dbg "Running script:" >>= fun () ->
     Lwt_list.iter_s (fun cmd -> 
-        L.dbg "  %s" (Analyzer.script_to_string cmd)) script >>= fun () ->
+        L.dbg "  %s" (PoydUtil.script_txt cmd)) script >>= fun () ->
     in_thr (fun () ->
         finally close_remotes (fun () ->
             List.fold_left Phylo.folder !current_run script) ())
@@ -211,14 +213,23 @@ let reroot _ = set <| Phylo.reroot_at_outgroup
 
 (* This must _not_ run in the poy thread, since it gets called even when
    the thread is aborted. *)
+let dump_trees title trees =
+    let s = String.concat "," 
+        (List.map (fun t -> string_of_float (Ptree.get_cost `Adjusted t))
+             (Sexpr.to_list trees))
+    in
+    L.dbg "%s: %s" title s
+    
 let get_stored_trees _ = 
     (* get (fun r -> r.stored_trees) >>= fun strees -> *)
     let strees = (!current_run).stored_trees 
     in
-    L.dbg "getting %d stored trees" (Sexpr.cardinal strees) >>= fun () ->
+    dump_trees "get stored trees" strees >>= fun () ->
     return strees
 
-let get_output _ = return (BatList.of_enum (BatQueue.enum current_output))
+let get_output _ = 
+    L.dbg "get output" >>= fun () ->
+    return (BatList.of_enum (BatQueue.enum current_output))
 
 let begin_oneachtree _ dosomething mergingscript = 
     (in_thr <| fun () ->
@@ -227,6 +238,9 @@ let begin_oneachtree _ dosomething mergingscript =
     let iter rng tree =
         set <| Phylo.iter_on_each_tree 
                 Phylo.folder name dosomething mergingscript rng tree
+        >>= fun () ->
+        dump_trees "trees after iter" (!current_run).trees >>= fun () ->
+        dump_trees "stored trees after iter" (!current_run).stored_trees
     in
     let finish () =
         set <| Phylo.end_on_each_tree Phylo.folder name

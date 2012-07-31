@@ -351,7 +351,8 @@ let parallel_pipeline pool client state n todo combine =
 	~pool seeds >>= fun trees ->
     L.dbg "Produced %d trees" (Sexpr.cardinal trees) >>= fun () ->
     return { state with PoydState.run = 
-	    { state.PoydState.run with stored_trees = trees } }
+	    { state.PoydState.run with stored_trees = trees }
+           }
 
 
 
@@ -399,7 +400,11 @@ let on_each_tree pool client state todo combine =
         ~work:(accum_worker ~add_seed ~add_result ~get_result)
 	~pool seeds >>= fun trees ->
     return { state with PoydState.run = 
-	    { state.PoydState.run with stored_trees = trees } }
+	    { state.PoydState.run with trees;
+                stored_trees = `Empty;
+                original_trees = `Empty
+            }
+           }
 
 
 let support pool client state meth =
@@ -483,32 +488,34 @@ let no_cont t =
     t >>= fun ret ->
     return (ret, [])
 
-let release_svt reroot pool svt =
-    (if reroot 
-    then Servant.reroot svt 
-    else return ()) >>= fun () ->
-    L.trace_ (fun () -> PoydState.receive svt)
-        "Receive state from servant" >>= fun state ->
-    L.dbg "Trees in state: %d" (Sexpr.cardinal state.PoydState.run.trees)
-    >>= fun () ->
-    L.info "Releasing servant" >>= fun () ->
-    Servant.set_client svt None >>= fun () ->
-    Pool.put pool svt >>= fun () ->
-    L.info "Released" >>= fun () ->
-    return state
-
-let run_parallel pool client svt meth = match meth with
+let run_parallel pool client svt meth = 
+    let release_svt () =
+        L.trace_ (fun () -> PoydState.receive svt)
+            "Receive state from servant" >>= fun state ->
+        L.trace_ (fun () -> Servant.get_output svt)
+            "Receive output from servant" >>= fun output ->
+        Client.execute_output client output >>= fun () ->
+        L.dbg "Trees in state: %d" (Sexpr.cardinal state.PoydState.run.trees)
+        >>= fun () ->
+        L.info "Releasing servant" >>= fun () ->
+        Servant.set_client svt None >>= fun () ->
+        Pool.put pool svt >>= fun () ->
+        L.info "Released" >>= fun () ->
+        return state
+    in
+    match meth with
     | #Methods.support_method as meth ->
-        release_svt true pool svt >>= fun state ->
+        Servant.reroot svt >>= fun () ->
+        release_svt () >>= fun state ->
 	no_cont (support pool client state meth)
     | #Methods.bremer_support as meth ->
         Servant.reroot svt >>= fun () ->
-        release_svt true pool svt >>= fun state ->
+        release_svt () >>= fun state ->
 	no_cont (bremer pool client state meth)
     | `OnEachTree (todo, combine) ->
-        release_svt false pool svt >>= fun state ->
+        release_svt () >>= fun state ->
 	no_cont (on_each_tree pool client state todo combine)
     | `ParallelPipeline (times, todo, composer, continue) ->
-        release_svt false pool svt >>= fun state ->
+        release_svt () >>= fun state ->
 	parallel_pipeline pool client state times todo composer >>= fun s ->
 	return (s, continue)
