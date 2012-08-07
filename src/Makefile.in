@@ -65,15 +65,13 @@ ifeq ($(USEWIN32),true)
 PROGRAMS += poyd/poyd_service.native
 endif
 
-DOCS = commands.pdf poy.1
-
 ALL_TARGETS = $(PROGRAMS) $(DOCS)
 
 
 .PHONY: install all clean distclean
 
 all:
-	$(OCAMLBUILD) -use-ocamlfind $(PROGRAMS) $(DOCS)
+	$(OCAMLBUILD) -use-ocamlfind $(PROGRAMS) poy.1
 
 doc:
 	$(OCAMLBUILD) -use-ocamlfind commands.pdf

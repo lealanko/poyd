@@ -2,7 +2,8 @@ open Ocamlbuild_plugin
 open Command
 
 (* Configuration section *)
-let zlib_lib = "-lz"
+let win32 = Sys.os_type = "Win32"
+let zlib_lib = if win32 then "libz.a" else "-lz"
 
 let static = true
 

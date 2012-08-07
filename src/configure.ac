@@ -91,7 +91,6 @@ case ${OS_INFORMATION} in
         USEWIN32="true"
         DUSEWIN32="-DUSEWIN32"
         OUSEWIN32=",use_win32"
-        CFLAGS="-mwin32 -mno-cygwin $CFLAGS"
         ;;
     *-mingw*)
         USEWIN32="true"
