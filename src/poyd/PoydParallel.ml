@@ -197,13 +197,15 @@ let do_parallel
         | Fail _ -> "Fail"
         | Sleep -> "Sleep"
     in
+    let debug_async = false
+    in
     let msg fmt = Printf.kfprintf (fun out ->
-        Printf.fprintf out "\n%!") stderr fmt
+        if debug_async then Printf.fprintf out "\n%!") stderr fmt
     in
     let trace_cancel t = 
-        (* msg "pre-cancel: %s" (state_str (state t)); *)
+        msg "pre-cancel: %s" (state_str (state t));
         cancel t;
-        (* msg "post-cancel: %s" (state_str (state t)); *)
+        msg "post-cancel: %s" (state_str (state t));
     in
     let request_servant pri = 
         pause () >>= fun () ->
