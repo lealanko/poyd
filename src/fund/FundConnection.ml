@@ -486,8 +486,14 @@ let make ?addr in_ch out_ch port =
         | Some (ADDR_UNIX path) -> 
             return path
         | Some (ADDR_INET (a, p)) ->
-            gethostbyaddr a >>= fun host ->
-            return (Printf.sprintf "%s:%d" host.h_name p)) >>= fun name ->
+            try_bind
+                (fun () -> gethostbyaddr a)
+                (fun host -> return host.h_name)
+                (fun _ ->
+                    return (Unix.string_of_inet_addr a))
+            >>= fun aname ->
+            return (Printf.sprintf "%s:%d" aname p))
+        >>= fun name ->
         make_name name in_ch out_ch port
         
 let make ?addr in_ch out_ch port =
