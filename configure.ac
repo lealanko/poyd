@@ -15,12 +15,10 @@ AC_SUBST(USEGRAPHICS)
 AC_SUBST(USEPARALLEL)
 AC_SUBST(DOCSTRING)
 AC_SUBST(OCAMLFLAGS)
-AC_SUBST(MERCURIAL)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAML)
 AC_SUBST(OCAMLBUILD)
 
-AC_CHECK_PROGS([MERCURIAL], [hg])
 AC_CHECK_PROGS([OCAMLC], [ocamlc.opt ocamlc])
 AC_CHECK_PROGS([OCAMLBUILD], [ocamlbuild.native ocamlbuild])
 AC_CHECK_PROGS([OCAML], [ocaml])
@@ -30,9 +28,9 @@ AC_ARG_ENABLE([graphics], [AS_HELP_STRING([--enable-graphics],
 
 AC_SUBST(USEINTERFACE)
 AC_ARG_ENABLE([interface], [AS_HELP_STRING([--enable-interface=interface],
-              [Force POY's user interface. Valid options are flat, ncurses, readline, and html. The default is ncurses, if ncurses is not found, then the readline interface is used, if readline is not present either, then choose the flat interface.])],
+              [Force POY's user interface. Valid options are flat, ncurses, readline, and html. The default is flat. NOTE: poyd master and servant require the flat interface.])],
               [USEINTERFACE=$enableval],
-              [USEINTERFACE=ncurses])
+              [USEINTERFACE=flat])
 
 AC_ARG_WITH([ocaml-flags], [Add the following flags to the ocaml compiler.],
             [OCAMLFLAGS=$withval],[])
@@ -42,9 +40,6 @@ AC_ARG_WITH([extras], [Add the following object files to the final linking rules
 
 AC_ARG_WITH(ocaml-flags, [Add the following flags to the ocaml compiler.],
             [OCAMLFLAGS=$withval],[])
-
-AC_ARG_WITH(version-number, [AS_HELP_STRING([--with-version-number], [Use the configuration provided version number (used for release purposes only).])], [MERCURIAL="echo $withval"],[MERCURIAL="$MERCURIAL id -i"])
-
 
 AC_ARG_ENABLE([mpi], [AS_HELP_STRING([--enable-mpi], 
               [Turns on parallel support using MPI. When using MPI remember to set CC to the appropriate mpicc compiler.])], 
@@ -98,6 +93,7 @@ case `./gnu/config.guess` in
     *-cygwin*)
         USEWIN32=true
         CFLAGS="-mwin32 -mno-cygwin $CFLAGS"
+	
         ;;
     *)
         ;;

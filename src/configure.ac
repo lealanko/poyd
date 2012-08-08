@@ -7,8 +7,11 @@ AC_CONFIG_SRCDIR([add.c])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
+AC_PROG_MAKE_SET
+AC_PROG_MKDIR_P
 AC_PROG_CC
-
+AC_PROG_INSTALL
+AC_ARG_PROGRAM
 
 # What are we going to substitute in the Makefile
 AC_SUBST(DUSE_NATIVEDYNLINK)
@@ -61,7 +64,6 @@ AC_SUBST(OCAMLTOP)
 AC_SUBST(OCAMLLEX)
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLBUILD)
-AC_SUBST(MERCURIAL)
 AC_SUBST(LIBS)
 AC_SUBST(OCAMLFLAGS)
 AC_SUBST(EXTRAS)
@@ -103,17 +105,14 @@ esac
 INTERFACE_SELECTED="true"
 
 AC_ARG_ENABLE([interface], [AS_HELP_STRING([--enable-interface],
-              [Force POY's user interface. Valid options are flat, ncurses, readline, and html. The default is ncurses, if ncurses is not found, then the readline interface is used, if readline is not present either, then choose the flat interface.])],
+              [Force POY's user interface. Valid options are flat, ncurses, readline, and html. The default is flat. NOTE: poyd master and servant require the flat interface.])],
               [USEINTERFACE=$enableval],
-              [USEINTERFACE="ncurses"; INTERFACE_SELECTED="false"; DUSENCURSES="-DUSENCURSES"; OUSENCURSES=",use_ncurses"])
+              [USEINTERFACE=flat])
 
 AC_ARG_WITH(extras, [AS_HELP_STRING([--with-extras], 
             [Add the following object files to the final linking rules (needed for windows).])],
             [EXTRAS=$withval],[])
 
-AC_CHECK_PROGS([MERCURIAL], [hg])
-
-AC_ARG_WITH(version-number, [AS_HELP_STRING([--with-version-number], [Use the configuration provided version number (used for release purposes only).])], [MERCURIAL="echo $withval"],[MERCURIAL="$MERCURIAL id -i"])
 
 AC_ARG_WITH(ocaml-flags, [AS_HELP_STRING([--with-ocaml-flags], 
             [Add the following flags to the ocaml compiler.])],
@@ -271,7 +270,7 @@ AC_FUNC_STAT
 AC_CHECK_FUNCS([floor gettimeofday memset pow sqrt sin exp])
 
 CC_VERSION="`$CC --version`"
-POY_VERSION_NUMBER="`$MERCURIAL`"
+POY_VERSION_NUMBER="POYd"
 
 
 AC_CONFIG_FILES([Makefile _tags myocamlbuild.ml buildNumber.ml compileFlags.ml])

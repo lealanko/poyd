@@ -73,8 +73,9 @@ fi])
 ])
 
 dnl These modifications are to allow for an empty cross compiler tree.
-define([_AC_COMPILER_EXEEXT], [EXEEXT=
-])
+dnl LA: disabled for windows
+dnl define([_AC_COMPILER_EXEEXT], [EXEEXT=
+dnl ])
 
 AC_DEFUN([LIBC_PROG_FOO_GNU],
 [# Most GNU programs take a -v and spit out some text including
