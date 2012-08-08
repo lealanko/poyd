@@ -1,8 +1,231 @@
-README
+This is a release candidate of poyd, a fault-tolerant distributed version
+of the POY phylogenetic analysis program.
 
-----------------------------------
-POY 4.0 Alpha
------------------------------------
-This is the Phylogenetic Analysis Program using Direct Optimization.  See the
-user documentation in docs/commands.pdf (requires Latex2e).
+The current version parallelizes the same computations as standard POY
+4.1.2, with the exception of the "fusion" operation which cannot be
+parallelized without sacrificing accuracy. The computations are split
+into parts and distributed to servant nodes. If a single node fails
+during computation, only the parts that it has computed so far need to
+be recomputed. 
 
+The software has three components: master, servant and client.
+
+
+poyd-master
+-----------
+
+The master process receives tasks from clients and allocates them to
+servants, periodically saving the state of a task in order to resume it
+if a servant dies. The master process opens a TCP port which must be
+accessible to the other processes.
+
+Usage: poyd-master [-p port]
+
+-p port     
+
+	The port that the master listens to (default 7693)
+
+
+poyd-servant
+------------
+
+The servant processes connect to the master, and then await for tasks
+from the master.
+
+Usage: poyd-servant [-h host] [-p port]
+
+-h host
+	
+	The hostname of the machine running the master process (default
+	localhost)
+
+-p port
+
+	The port that the master is listening to (default 7693)
+
+
+poyd-client
+-----------
+
+The client process connects to the master and begins a new task, and
+reads commands from the user or from a file, sending them to the master
+to be processed by a servant. The client also performs I/O by printing
+messages and reading and writing files.
+
+The interface of poyd-client is exactly the same as that of the ordinary
+poy program, except that it also supports command-line options for
+specifying the location of the master:
+
+-h host
+	
+	The hostname of the machine running the master process (default
+	localhost)
+
+-p port
+
+	The port that the master is listening to (default 7693)
+
+
+poyd-service.exe
+----------------
+
+This variant of poyd-servant launches a Windows service. The program
+must be executed by the Service Control Manager. See below for details.
+
+Usage: poyd-service [-n name] [-l logfile] [-- [-h host] [-p port]]
+
+-n name
+
+	The name of the service to register with the service control
+	manager. Default "poyd".
+
+-l logfile
+
+	A file to which the service will dump informational messages. If
+	a logfile is not specified, the service will use the Windows
+	Event Logging facility.
+
+-- servant-options
+
+	All options following the double dash "--" are interpreted the
+	same way as poyd-servant options.
+
+
+poy
+---
+
+A version of the stand-alone poy program is also provided. This should
+produce identical results with poyd-client, and can be used for
+comparison purposes to measure the performance overhead of distributed
+computation.
+
+
+Verbosity
+---------
+
+For technical reasons, a verbosity option is not yet provided, but the
+programs dump some information by setting the environment variable
+LWT_LOG to "*->info". To see low-level communication dumps, set LWT_LOG
+to "*->debug".
+
+
+Compatibility
+-------------
+
+The interface and behavior of poyd-client should be the same as that of
+the standard poy program. However, the produced results will not be
+exactly the same as those produced by the official POY 4.1.2 release,
+due to changes to the behavior of random number generators.
+
+
+Running the servant
+-------------------
+
+Typically, the servant is meant to be constantly running as a background
+process on a machine with spare cycles. This requires some manual
+administration.
+
+Under Unix, the poyd-servant process can be daemonized with standard
+utilities: su, nohup, nice, and redirection of stderr to a log file. The
+process doesn't require any privileges beyond making a network
+connection to the master, creating and accessing files in $TMPDIR, and
+writing to stderr, so it can (and probably should) be run under a dummy
+user. For maximal security, $TMPDIR should be private.
+
+When the servant process is terminated with SIGTERM, it flushes its
+recently computed results to the master before exiting. On shutdown, the
+servant should preferably be killed by an init script at an early phase
+of the shutdown sequence, but it should be able to respond to a final
+globally sent SIGTERM, provided that its network connection is still up
+at that stage of the shutdown process.
+
+Under Windows, the poyd-service program needs to be registered as a
+Windows Service with the standard "sc" command. For instance:
+
+sc create poyd binPath= "c:\path\to\poyd-service.exe -- -h master.example.org" start= auto depend= Tcpip
+
+This registers the service and makes it start automatically on system
+startup, once TCP/IP networking is available. The service can also be
+started manually with "sc start poyd", or from the service manager in
+the control panel.
+
+Ideally, the service should be stopped explicitly before shutdown by
+using the "sc stop poyd" command. Under newer versions of Windows, the
+service should be able to send its state to the master upon shutdown
+even if it is not stopped explicitly before that. Under Windows XP,
+however, there is no guarantee that the service's shutdown handler gets
+run before TCP/IP networking is disabled.
+
+
+Parallelism
+-----------
+
+A single servant process cannot make use of multiple processor cores
+simultaneously. To fully use N cores, ideally N+1 servant instances
+should be launched, provided there is sufficient memory available. Under
+Unix this should be straightforward. Under windows, each instance needs
+to be launched as a separate service with its own name. The -n -option
+of poyd-service is used to specify the name. For instance, on a
+dual-core machine, one would ideally create three services:
+
+sc create poyd1 binPath= "c:\path\to\poyd-service.exe -n poyd1 -- -h master.example.org" start= auto depend= Tcpip
+sc create poyd2 binPath= "c:\path\to\poyd-service.exe -n poyd2 -- -h master.example.org" start= auto depend= Tcpip
+sc create poyd3 binPath= "c:\path\to\poyd-service.exe -n poyd3 -- -h master.example.org" start= auto depend= Tcpip
+
+
+Compiling
+---------
+
+To compile the code directly from the source repository, the following
+tools and libraries are needed:
+
+autoconf >= 2.60
+gcc >= 4.5
+ocaml >= 3.12.1
+findlib >= 1.2.8
+uuidm >= 0.9.3
+lwt >= 2.3.2
+batteries >= 2.0beta2
+
+Under CygWin, you need the MinGW-targeted version of gcc.
+
+To compile, cd to the source directory and perform the following steps:
+
+
+1. Generate the configure script
+
+$ (autoconf; cd src; autoconf)
+
+
+2. Run the configure script
+
+$ ./configure
+
+You can use the --prefix option to specify an installation root other than /usr/local.
+
+Under CygWin, you need to specify that you use the MinGW compiler:
+
+$ CC=i686-pc-mingw32-gcc ./configure
+
+
+3. Compile
+
+$ make
+
+This generates the binaries under src/_build.
+
+
+4. Install
+
+$ make install
+
+This installs the binaries (renaming them slightly) under the specified
+installation root.
+
+
+5. (Optional) Generate command documentation
+
+$ make doc
+
+This generates a file "manual.pdf" under the source tree. Generating the
+documentation requires that LaTeX is available.
