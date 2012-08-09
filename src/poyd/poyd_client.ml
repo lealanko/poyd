@@ -56,6 +56,8 @@ let _ = Lwt_log.default := PoydPoy.status_logger
 module L = (val FundLog.make "poyd_client" 
         : FundLog.S)
 
+let epf fmt = Printf.ifprintf () (fmt ^^ "\n%!")
+
 let main () =
     C.get_name C.client >>= fun name ->
     L.info "This is poyd client %s." name >>= fun () ->
@@ -64,10 +66,24 @@ let main () =
     L.info "Connected to poyd master at %s:%d." host port >>= fun () ->
     get_root "poyd-master" >>= fun master ->
     Master.create_task master stub >>= fun task ->
-    let run command = PoydThread.callback thr (fun () ->
-        task $ command) in
+    let run command = 
+        epf "-> run";
+        try 
+            PoydThread.callback thr (fun () ->
+                L.trace_ (fun () -> task $ command)
+                    "running command");
+            epf "<- run";
+        with exn ->
+            epf "<# run";
+            raise exn
+    in
     PoydThread.run thr (fun () ->
-        MainUtil.main script run !Arguments.just_exit) >>= fun r ->
+        epf "main started";
+        let r = MainUtil.main script run !Arguments.just_exit
+        in
+        epf "main ended";
+        r) >>= fun r ->
+    epf "after main";
     C.finish C.client;
     disconnect conn >>= fun () ->
     L.info "Disconnected from poyd master." >>= fun () ->

@@ -15,7 +15,9 @@ let make name = let module M = struct
 
     let finish_cond = Lwt_condition.create ()
 
-    let finish = Lwt_condition.wait finish_cond
+    let finish = 
+        Lwt_condition.wait finish_cond >>= fun () ->
+        L.dbg "finished"
 
     let notify_finish () = 
         Lwt_condition.broadcast finish_cond ()

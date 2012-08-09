@@ -14,6 +14,8 @@ let pprint printer () v =
     printer false outc v;
     BatIO.close_out out
 
+let epf fmt = Printf.ifprintf () (fmt ^^ "\n%!")
+
 
 module type ID_QUERY = sig
     type d
@@ -172,6 +174,8 @@ let make_name name in_ch out_ch port = let module M = struct
     let out_map = ref OutMap.empty
     let in_map = ref InMap.empty
 
+    let close_t, close_k = task ()
+
     let with_tmp_file pfx sfx fn =
         let tmp_path = Filename.temp_file pfx sfx
         in
@@ -231,9 +235,25 @@ let make_name name in_ch out_ch port = let module M = struct
         IO.read_into_exactly ic s 0 len >>= fun () ->
         return s
 
+    let read_int64 ic =
+        let s = String.create 8
+        in
+        epf "before read_into_exactly";
+        IO.read_into_exactly ic s 0 8 >>= fun () ->
+        epf "after read_into_exactly";
+        let i = ref 0L
+        in
+        String.iter (fun c ->
+            i := Int64.(logor (shift_left !i 8) (of_int (Char.code c))))
+            s;
+        epf "read_int64: got %Ld" !i;
+        return !i
+
     let read_big_value ic = 
+        epf "start read_big_value";
         L.dbg "reading message length" >>= fun () ->
-        IO.BE.read_int64 ic >>= fun len64 ->
+        read_int64 ic >>= fun len64 ->
+        epf "got length %Ld" len64;
         L.dbg "got length: %Ld" len64 >>= fun () ->
         if len64 <= Int64.of_int Sys.max_string_length
         then begin
@@ -264,7 +284,7 @@ let make_name name in_ch out_ch port = let module M = struct
         L.trace (fun () -> write_msg msg) "write_msg %a" OutMsg.pr msg
 
     let read_msg () : InMsg.t lwt =
-	IO.atomic read_big_value in_ch
+	read_big_value in_ch
 
     let read_msg () =
         L.trace ~pr:InMsg.pr read_msg "read_msg"
@@ -281,7 +301,6 @@ let make_name name in_ch out_ch port = let module M = struct
         let mv = MVar.create_empty () in
         out_map := OutMap.put !out_map id mv;
         finalize (fun () ->
-           (*  L.dbg "send request: %a" pr_request rq >>= fun () -> *)
             let msg = OutMsg.mk_request rq id in
             block (write_msg msg) >>= fun () ->
             let rec take () = catch
@@ -420,41 +439,17 @@ let make_name name in_ch out_ch port = let module M = struct
 	        end
 	        | _ -> fail (Failure "not cancellable")
                  
-    let mgr_finish = OutboundMgr.finish <&> InboundMgr.finish   
-
-
-    (* This contraption makes sure that if finish is cancelled, then
-       mgr_finish is cancelled too, but if mgr_finish is cancelled
-       independently, then finish returns normally. *)
-    let finish = 
-        finalize (fun () -> 
-            wait_thread mgr_finish)
-            (fun () ->
-                Lwt_io.close in_ch <&> Lwt_io.close out_ch >>= fun () ->
-                L.info "Closed")
-
-    let close () =
-        (* First ensure we won't send any more apply requests. *)
-        OutboundMgr.close () >>= fun () ->
-        (* Then send the close request. The request is our promise we
-           won't call further, the response is the peer's promise they
-           won't either. *)
-        write_msg OutMsg.Close >>= fun () ->
-        (* Now we can stop accepting incoming calls. *)
-	InboundMgr.close () >>= fun () -> 
-        (* Finally wait until all remaining calls are processed. *)
-        finish >>= fun () ->
-        (* And close the handles. This triggers on_shutdown. *)
-        Lwt_io.close in_ch <&> Lwt_io.close out_ch
 
     let abort () =
         Lwt_io.abort in_ch <&> Lwt_io.abort out_ch
 
-    let _ =
+    let mainloop =
         let on_read_exn exn =
             (match exn with
             | End_of_file ->
                 L.dbg "Closed by remote peer"
+            | IO.Channel_closed _ ->
+                L.dbg "Closed locally"
             | _ ->
                 L.warning "Read error, closing.") >>= fun () ->
             (* Ensure no new remote requests are made. *)
@@ -466,8 +461,7 @@ let make_name name in_ch out_ch port = let module M = struct
                     Lwt_mvar.put mv (Bad (ConnectionError exn))) in
             OutMap.(iter !out_map { visit });
             (* Send cancel to all tasks that are still running.
-               This should just be inbound. 
-            cancel mgr_finish;*)
+               This should just be inbound. *)
             cancel InboundMgr.finish;
             return () in
         let rec handle_msg msg =
@@ -475,11 +469,43 @@ let make_name name in_ch out_ch port = let module M = struct
 	        handle_message msg);
 	    loop ()
         and loop () = 
-            try_bind 
-                read_msg
+            try_bind (fun () -> 
+                let t = read_msg ()
+                in
+                finalize (fun () -> pick [t; protected close_t])
+                    (fun () -> cancel t; return ()))
                 handle_msg
-                on_read_exn in
-        detach loop
+                on_read_exn 
+        in
+        loop ()
+
+    let close () =
+        (* First ensure we won't send any more apply requests. *)
+        epf "OutboundMgr.close";
+        OutboundMgr.close () >>= fun () ->
+        (* Then send the close request. The request is our promise we
+           won't call further, the response is the peer's promise they
+           won't either. *)
+        epf "OutMsg.close";
+        write_msg OutMsg.Close >>= fun () ->
+        (* Now we can stop accepting incoming calls. *)
+        epf "InboundMgr.close";
+	InboundMgr.close () >>= fun () -> 
+        (* Finally wait until all remaining calls are processed. *)
+        epf "finish";
+        OutboundMgr.finish <&> InboundMgr.finish >>= fun () ->
+        epf "mainloop";
+        wakeup_exn close_k (IO.Channel_closed "closed locally");
+        mainloop
+
+
+    let finish = finalize
+        (fun () -> mainloop)
+        (fun () ->
+            epf "handle close";
+            Lwt_io.close in_ch <&> Lwt_io.close out_ch)
+            
+
 end in return (module M : CONNECTION)
 
 let make ?addr in_ch out_ch port =
