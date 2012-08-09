@@ -22,9 +22,11 @@ let status_logger =
     let output section level lines =
         let c = convert_level level 
         in
-        PoydThread.run thread (fun () ->
-            List.iter (fun line ->
-                Status.user_message c (StatusCommon.escape line)) lines)
+        (* PoydThread.run thread (fun () -> *)
+        List.iter (fun line ->
+            Status.user_message c (StatusCommon.escape line)) lines;
+        return ()
+    (* ) *)
     in
     let close () = return ()
     in
