@@ -69,16 +69,15 @@ let _ =
     Lwt_main.run (
         L.notice "Starting poyd servant. Service name: \"%s\"" !svc_name 
         >>= fun () ->
-        L.notice "Step forward" >>= fun () ->
         catch (fun () ->
-            L.notice "Now in catch, calling WinSvc.run" >>= fun () ->
+            L.dbg "Now in catch, calling WinSvc.run" >>= fun () ->
             WinSvc.run 
                 ~name:!svc_name ~main:svc_main
                 ~stop:stop_handler ())
             (function
               | Failure msg -> L.error "%s" msg
               | _ -> return ()) >>= fun () ->
-        L.notice "WinSvc done")
+        L.dbg "WinSvc done")
         
         
 
