@@ -77,7 +77,7 @@ let run_task master task cmds =
                 | _ -> 
                     PoydState.receive servant >>= fun state ->
                     commit_output servant >>= fun () ->
-                    L.info "Task %d: Saved checkpoint from %s" task.id s_name 
+                    L.info "Saved checkpoint from %s" s_name 
                     >>= fun () ->
                     Client.output_status task.client Status.Information
                         "Saved checkpoint" >>= fun () ->
@@ -108,7 +108,7 @@ let run_task master task cmds =
                 | Fund.ConnectionError _ 
                 | Fund.RouteError -> begin
                     Servant.get_name servant >>= fun s_name ->
-                    L.info "Error connecting to servant %s" s_name
+                    L.error "Error connecting to servant %s" s_name
                     >>= fun () ->
                     fail (Restart (restart_state, cmds))
                 end
@@ -119,10 +119,10 @@ let run_task master task cmds =
                     fail exn)
     in
     let rec run_cmds state cmds =
-        L.info "Task %d: Requesting servant" task.id >>= fun () ->
+        L.dbg "Requesting servant" >>= fun () ->
         Pool.get master.pool 0 >>= fun servant ->
         Servant.get_name servant >>= fun s_name ->
-        L.info "Task %d: Allocated servant %s" task.id s_name >>= fun () ->
+        L.info "Allocated servant %s" s_name >>= fun () ->
         catch (fun () ->
             Servant.set_client servant (Some task.client) >>= fun () ->
             Servant.clear_output servant >>= fun () ->
@@ -145,24 +145,22 @@ let run_task master task cmds =
                     fail exn)
                 (fun () ->
                     Pool.put master.pool servant >>= fun () ->
-                    L.info "Task %d: Released servant %s to pool"
-                        task.id s_name))
+                    L.info "Released servant %s to pool" s_name))
             (function
               | Restart (rstate, rcmds) ->
-                  L.info "Task %d: Restarting from checkpoint" task.id >>= fun () ->
-                  Client.output_status task.client Status.Information
-                      "Restarting from checkpoint" >>= fun () ->
+                  L.dbg "Restarting from checkpoint" >>= fun () ->
                   run_cmds rstate rcmds
               | Fund.ConnectionError _
               | Fund.RouteError ->
-                  L.info "Task %d: Error connecting to servant %s" task.id s_name >>= fun () ->
+                  L.error "Error connecting to servant %s" s_name 
+                  >>= fun () ->
                   run_cmds state cmds
               | exn ->
                   fail exn)
     in
-    L.info "Task %d: Running commands" task.id >>= fun () ->
+    L.dbg "Running commands" >>= fun () ->
     run_cmds task.state cmds >>= fun () ->
-    L.info "Task %d: Commands finished" task.id
+    L.dbg "Commands finished"
 
 
 let next_task_id = ref 0

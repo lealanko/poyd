@@ -3,7 +3,7 @@ open FundLwt
 open Fund
 
 
-let checkpoint = ref 1.0
+let checkpoint = ref 60.0
 
 let master_specs = [
     ("-c", Arg.Set_float checkpoint,

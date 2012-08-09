@@ -8,6 +8,7 @@ module type S = sig
     val dbg : ('a, ftr, unit, unit lwt) format4 -> 'a
     val info : ('a, ftr, unit, unit lwt) format4 -> 'a
     val notice : ('a, ftr, unit, unit lwt) format4 -> 'a
+    val warning : ('a, ftr, unit, unit lwt) format4 -> 'a
     val error : ('a, ftr, unit, unit lwt) format4 -> 'a
     val trace : ?pr:(ftr -> 'a -> unit) -> (unit -> 'a lwt) ->
         ('b, ftr, unit, 'a lwt) format4 -> 'b
@@ -187,6 +188,7 @@ let make secname = (module struct
     let dbg fmt = log ~level:Lwt_log.Debug fmt
     let notice fmt = log ~level:Lwt_log.Notice fmt
     let info fmt = log ~level:Lwt_log.Info fmt
+    let warning fmt = log ~level:Lwt_log.Warning fmt
     let error fmt = log ~level:Lwt_log.Error fmt
       
 

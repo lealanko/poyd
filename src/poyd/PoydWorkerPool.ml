@@ -2,7 +2,8 @@ open PoydPrelude
 
 module L = (val FundLog.make "PoydWorkerPool" : FundLog.S)
 
-type worker = PoydServantStub.t
+module Servant = PoydServantStub
+type worker = Servant.t
 
 module Q = struct
     module M = BatMap
@@ -78,6 +79,8 @@ let get p pri =
         p.available <- rest;
         L.dbg "Had available, taking directly, now have %d" 
             (BatSet.cardinal p.available) >>= fun () ->
+        Servant.get_name w >>= fun name ->
+        L.info "Servant %s allocated from pool" name >>= fun () ->
         return w
     with Not_found ->
         let t = ccc (fun k ->
@@ -89,6 +92,8 @@ let get p pri =
         t
 
 let rec put p w = 
+    Servant.get_name w >>= fun name ->
+    L.info "Servant %s stored to pool" name >>= fun () ->
     if Q.size p.pending_consumers = 0 then begin
         p.available <- BatSet.add w p.available;
         L.dbg "No consumers, adding to available, now have %d" 

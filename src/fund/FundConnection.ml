@@ -167,6 +167,8 @@ let make_name name in_ch out_ch port = let module M = struct
 
     module InMsg = Message(RemoteMsgId)(LocalMsgId)
 
+    module L = (val FundLog.make ("FundConnection:" ^ name) : FundLog.S)
+
     let out_map = ref OutMap.empty
     let in_map = ref InMap.empty
 
@@ -432,7 +434,8 @@ let make_name name in_ch out_ch port = let module M = struct
         finalize (fun () -> 
             wait_thread mgr_finish)
             (fun () ->
-                Lwt_io.close in_ch <&> Lwt_io.close out_ch)
+                Lwt_io.close in_ch <&> Lwt_io.close out_ch >>= fun () ->
+                L.info "Closed")
 
     let close () =
         (* First ensure we won't send any more apply requests. *)
@@ -453,7 +456,11 @@ let make_name name in_ch out_ch port = let module M = struct
 
     let _ =
         let on_read_exn exn =
-            L.dbg "read exn" >>= fun () ->
+            (match exn with
+            | End_of_file ->
+                L.dbg "Closed by remote peer"
+            | _ ->
+                L.warning "Read error, closing.") >>= fun () ->
             (* Ensure no new remote requests are made. *)
             OutboundMgr.close () >>= fun () ->
             (* Abort all the current ones. *)
@@ -494,6 +501,7 @@ let make ?addr in_ch out_ch port =
             >>= fun aname ->
             return (Printf.sprintf "%s:%d" aname p))
         >>= fun name ->
+        L.info "Established connection to %s" name >>= fun () ->
         make_name name in_ch out_ch port
         
 let make ?addr in_ch out_ch port =

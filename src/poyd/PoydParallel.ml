@@ -77,6 +77,7 @@ let dump_state {d_seeds; d_results; n_running} =
 
 
 let worker add_seed add_result get_result svt d_mv w_mv =
+    Servant.get_name svt >>= fun name ->
     let rec loop wst =
         let rec finalize () =
             check (fun () ->
@@ -93,11 +94,11 @@ let worker add_seed add_result get_result svt d_mv w_mv =
         and check thunk hdl =
             on_exn (fun () -> on_exn thunk hdl) (function
               | Abort -> begin
-                  L.dbg "Worker terminating" >>= fun () ->
+                  L.notice "Servant %s terminating" name >>= fun () ->
                   finalize ()
               end
               | ConnectionError _ | RouteError -> begin
-                  L.dbg "Worker failed" >>= fun () ->
+                  L.error "Servant %s failed" name >>= fun () ->
                   Lwt_mvar.put d_mv (Add (wst.seeds, wst.results))
               end
               | exn ->
@@ -181,6 +182,8 @@ let do_parallel
             "Releasing parallel worker" >>= fun () ->
         match res with
         | Bad (ConnectionError _ | RouteError | Abort as exn) ->
+            Servant.get_name svt >>= fun name ->
+            L.info "Discarding finished servant %s" name >>= fun () ->
             fail exn
         | res ->
 	    Pool.put pool svt >>= fun () ->
@@ -340,9 +343,9 @@ let parallel_pipeline pool client state n todo combine =
             "Trees sent, begin combine script"
     in
     let get_result svt =
-	L.info "Getting trees" >>= fun () ->
+	L.dbg "Getting trees" >>= fun () ->
 	Servant.get_stored_trees svt >>= fun trees ->
-	L.info "Got %d trees" (Sexpr.cardinal trees) >>= fun () ->
+	L.dbg "Got %d trees" (Sexpr.cardinal trees) >>= fun () ->
         return (Phylo.normalize_trees trees)
     in
     let seeds = create_rngs state.PoydState.rng n
@@ -369,23 +372,23 @@ let on_each_tree pool client state todo combine =
         finish ()
     in
     let add_seed (_, iter, _) (rng, tree) =
-	L.info "Adding seed: rng %08x, tree %08x"
+	L.dbg "Adding seed: rng %08x, tree %08x"
             (Hashtbl.hash rng) (Hashtbl.hash tree)
         >>= fun () ->
         iter rng tree
     in
     let add_result (svt, _, _) trees =
-	L.info "Adding trees %08x" (Hashtbl.hash trees) >>= fun () ->
+	L.dbg "Adding trees %08x" (Hashtbl.hash trees) >>= fun () ->
         Servant.add_stored_trees svt trees >>= fun () ->
-        L.info "Trees sent, begin combine script" >>= fun () ->
+        L.dbg "Trees sent, begin combine script" >>= fun () ->
         Servant.begin_script svt combine >>= fun () ->
-        L.info "Script done"
+        L.dbg "Script done"
     in
     let get_result (svt, _, _) =
-	L.info "Getting trees" >>= fun () ->
+	L.dbg "Getting trees" >>= fun () ->
 	Servant.get_stored_trees svt >>= fun trees ->
         return (Phylo.normalize_trees trees) >>= fun trees ->
-        L.info "Received trees %08x" (Hashtbl.hash trees) >>= fun () ->
+        L.dbg "Received trees %08x" (Hashtbl.hash trees) >>= fun () ->
         return trees
     in
     let trees = Sexpr.to_list state.PoydState.run.trees
@@ -395,7 +398,7 @@ let on_each_tree pool client state todo combine =
     let seeds = BatList.map2 (fun a b -> (a, b)) rngs trees
     in
     Lwt_list.iter_s (fun (rng, tree) ->
-        L.info "Seed: rng %08x, tree %08x" (Hashtbl.hash rng) (Hashtbl.hash tree))
+        L.dbg "Seed: rng %08x, tree %08x" (Hashtbl.hash rng) (Hashtbl.hash tree))
         seeds >>= fun () ->
     do_parallel ~client
 	~init_servant ~finalize_servant 
@@ -425,7 +428,7 @@ let support pool client state meth =
         finish ()
     in
     let add_seed (_, iter, _, _) rng =
-	L.info "Adding seed: rng %08x" (Hashtbl.hash rng) >>= fun () ->
+	L.dbg "Adding seed: rng %08x" (Hashtbl.hash rng) >>= fun () ->
         iter rng 
     in
     (* We cheat a bit by combining results locally, since there's no real computation 
@@ -435,12 +438,12 @@ let support pool client state meth =
         return ()
     in
     let get_result (svt, _, _, r) =
-	L.info "Getting support" >>= fun () ->
+	L.dbg "Getting support" >>= fun () ->
         Servant.get_support svt typ >>= fun sup ->
-        L.info "Received support %08x" (Hashtbl.hash sup) >>= fun () ->
+        L.dbg "Received support %08x" (Hashtbl.hash sup) >>= fun () ->
         return (Phylo.add_support !r sup)
     in
-    L.info "Creating rng seeds for support, initial rng: %08x" 
+    L.dbg "Creating rng seeds for support, initial rng: %08x" 
         (Hashtbl.hash state.PoydState.rng) >>= fun () ->
     let seeds = create_rngs state.PoydState.rng it
     in
@@ -465,7 +468,7 @@ let bremer pool client state meth =
         finish ()
     in
     let compute_seed (iter, _) (rng, tree) =
-	L.info "Computing seed: rng %08x" (Hashtbl.hash rng) >>= fun () ->
+	L.dbg "Computing seed: rng %08x" (Hashtbl.hash rng) >>= fun () ->
         iter rng tree >>= fun stree ->
         return (`Single stree)
     in
@@ -499,10 +502,8 @@ let run_parallel pool client svt meth =
         Client.execute_output client output >>= fun () ->
         L.dbg "Trees in state: %d" (Sexpr.cardinal state.PoydState.run.trees)
         >>= fun () ->
-        L.info "Releasing servant" >>= fun () ->
         Servant.set_client svt None >>= fun () ->
         Pool.put pool svt >>= fun () ->
-        L.info "Released" >>= fun () ->
         return state
     in
     match meth with
