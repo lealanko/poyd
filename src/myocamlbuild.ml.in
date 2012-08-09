@@ -364,9 +364,24 @@ dispatch begin function
     dep  ["link"; "ocaml"; "use_gzcaml"] ["libgzcaml.a"; "libzlibstubs.a"];
     dep  ["link"; "ocaml"; "use_parallel"] ["libmpicaml.a"];
 
-    flag ["link"; "ocaml"; "use_libwinsvc"]
-         (S[A"-cclib"; A"-lwinsvc"; A"-cclib"; A"-Lwinsvc"]);
-    dep  ["link"; "ocaml"; "use_libwinsvc"] ["winsvc/libwinsvc.a"];
+    rule "Windows message resource generation"
+        ~prods:["%.rc"; "%.h"]
+        ~dep:"%.mc"
+        begin fun env _build ->
+            let dir = Pathname.dirname (env "%")
+            in
+            Cmd (S[A"windmc"; A"-h"; A dir; A"-r"; A dir; A (env "%.mc")])
+        end;
+
+    rule "Windows resource compilation"
+        ~prod:"%.o"
+        ~dep:"%.rc"
+        begin fun env _build ->
+            Cmd (S[A"windres"; A (env "%.rc"); A (env "%.o")])
+        end;
+
+    dep  ["link"; "ocaml"; "use_libwinsvc"] 
+        ["winsvc/winsvc_stubs.o"; "winsvc/events.o"];
 
     (* As an approximation all our C files use the headers.
        Note: This will import headers in the build directory. *)
