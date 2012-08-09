@@ -2,6 +2,7 @@ open Lwt
 open FundLwt
 open Fund
 
+module L = (val FundLog.make "PoydMaster" : FundLog.S)
 
 let checkpoint = ref 60.0
 
@@ -23,6 +24,7 @@ let port = !PoydArgs.port
 
 let main () =
     listen ~port () >>= fun () ->
+    L.info "Listening on port %d" port >>= fun () ->
     set_root "poyd-master" stub >>= fun () ->
     halt ()
 

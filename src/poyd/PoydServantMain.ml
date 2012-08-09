@@ -23,20 +23,28 @@ let main specs args =
     L.info "This is poyd servant %s" name >>= fun () ->
     let rec connect_loop delay = 
         catch 
-            (fun () -> connect ~host ~port ())
-            (fun exn ->
-                L.error "Couldn't connect to %s:%d" host port >>= fun () ->
-                L.info "Sleeping for %d seconds before retrying" delay >>= fun () ->
-                Lwt_unix.sleep (float_of_int delay) >>= fun () ->
-                connect_loop (min (delay * 2) max_delay))
+            (fun () -> L.trace_ (fun () -> connect ~host ~port ())
+                "connect")
+            (function 
+              | Unix.Unix_error (Unix.ECONNREFUSED, _, _) -> begin
+                  (if delay = 1
+                   then L.info "Couldn't connect to %s:%d, retrying..." host port
+                   else return ()) >>= fun () ->
+                  L.dbg "Sleeping for %d seconds before retrying" delay 
+                  >>= fun () ->
+                  Lwt_unix.sleep (float_of_int delay) >>= fun () ->
+                  connect_loop (min (delay * 2) max_delay)
+              end
+              | exn -> fail exn)
     and main_loop () =
         connect_loop 1 >>= fun conn ->
+        L.notice "Connected to %s:%d" host port >>= fun () ->
         get_root "poyd-master" >>= fun master ->
         L.trace_ (fun () -> Master.register_servant master stub)
             "Register to poyd master" >>= fun () ->
         wait conn >>= fun () ->
         PoydServantImpl.disconnect impl;
-        L.info "Disconnected from master, reconnecting" >>= fun () ->
+        L.notice "Disconnected from master, reconnecting" >>= fun () ->
         main_loop ()
     and finish () =
         PoydServantImpl.finish impl >>= fun () ->

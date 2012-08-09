@@ -64,7 +64,7 @@ let pr_apply (type r_) f app =
     pr_struct f [
         memp "id" pr_id App.id;
         memp "handle" pr_any App.handle;
-        memp "arg" pr_any App.arg]
+    ]
 
 type 'r request =
     | QueryId of id_query * ('r, bool) teq
@@ -264,11 +264,7 @@ let make_name name in_ch out_ch port = let module M = struct
         L.trace (fun () -> write_msg msg) "write_msg %a" OutMsg.pr msg
 
     let read_msg () : InMsg.t lwt =
-        catch (fun () ->
-	    IO.atomic read_big_value in_ch)
-        (fun exn ->
-            L.dbg "Caught exn: %s" (Printexc.to_string exn) >>= fun () ->
-            fail (ConnectionError exn))
+	IO.atomic read_big_value in_ch
 
     let read_msg () =
         L.trace ~pr:InMsg.pr read_msg "read_msg"
@@ -301,13 +297,13 @@ let make_name name in_ch out_ch port = let module M = struct
                 return ())
 
     let do_request_out rq =
-        L.trace (fun () -> do_request_out rq) "do_request_out %a" pr_request rq
+        L.trace_ (fun () -> do_request_out rq) "do_request_out %a" pr_request rq
 
     let request_out rq =
 	OutboundMgr.task (fun () -> do_request_out rq)
 
     let request_out rq =
-        L.trace (fun () -> request_out rq) "request_out %a" pr_request rq
+        L.trace_ (fun () -> request_out rq) "request_out %a" pr_request rq
 
     let get_root key =
         request_out (GetRoot key)
@@ -376,7 +372,7 @@ let make_name name in_ch out_ch port = let module M = struct
             return (cast_back teq ())
 
     let handle_request rq =
-	L.trace (fun () -> handle_request rq) "handle_request %a" pr_request rq
+	L.trace_ (fun () -> handle_request rq) "handle_request %a" pr_request rq
 
     let handle_message (msg : InMsg.t) : unit lwt = 
         let open InMsg in 
@@ -505,4 +501,4 @@ let make ?addr in_ch out_ch port =
         make_name name in_ch out_ch port
         
 let make ?addr in_ch out_ch port =
-    L.trace (fun () -> make ?addr in_ch out_ch port) "make"
+    L.trace_ (fun () -> make ?addr in_ch out_ch port) "make"
