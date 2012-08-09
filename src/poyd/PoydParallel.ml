@@ -200,10 +200,7 @@ let do_parallel
         | Fail _ -> "Fail"
         | Sleep -> "Sleep"
     in
-    let debug_async = false
-    in
-    let msg fmt = Printf.kfprintf (fun out ->
-        if debug_async then Printf.fprintf out "\n%!") stderr fmt
+    let msg fmt = Printf.ifprintf () (fmt ^^ "\n%!")
     in
     let trace_cancel t = 
         msg "pre-cancel: %s" (state_str (state t));

@@ -80,7 +80,7 @@ let get p pri =
         L.dbg "Had available, taking directly, now have %d" 
             (BatSet.cardinal p.available) >>= fun () ->
         Servant.get_name w >>= fun name ->
-        L.info "Servant %s allocated from pool" name >>= fun () ->
+        L.dbg "Servant %s allocated from pool" name >>= fun () ->
         return w
     with Not_found ->
         let t = ccc (fun k ->
@@ -93,7 +93,7 @@ let get p pri =
 
 let rec put p w = 
     Servant.get_name w >>= fun name ->
-    L.info "Servant %s stored to pool" name >>= fun () ->
+    L.dbg "Servant %s stored to pool" name >>= fun () ->
     if Q.size p.pending_consumers = 0 then begin
         p.available <- BatSet.add w p.available;
         L.dbg "No consumers, adding to available, now have %d" 

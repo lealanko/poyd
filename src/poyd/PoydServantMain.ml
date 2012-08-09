@@ -37,15 +37,20 @@ let main specs args =
               end
               | exn -> fail exn)
     and main_loop () =
-        connect_loop 1 >>= fun conn ->
-        L.notice "Connected to %s:%d" host port >>= fun () ->
-        get_root "poyd-master" >>= fun master ->
-        L.trace_ (fun () -> Master.register_servant master stub)
-            "Register to poyd master" >>= fun () ->
-        wait conn >>= fun () ->
-        PoydServantImpl.disconnect impl;
-        L.notice "Disconnected from master, reconnecting" >>= fun () ->
-        main_loop ()
+        try_bind (fun () -> connect_loop 1)
+            (fun conn ->
+                L.notice "Connected to %s:%d" host port >>= fun () ->
+                get_root "poyd-master" >>= fun master ->
+                L.trace_ (fun () -> Master.register_servant master stub)
+                    "Register to poyd master" >>= fun () ->
+                wait conn >>= fun () ->
+                PoydServantImpl.disconnect impl;
+                L.notice "Disconnected from master, reconnecting" >>= fun () ->
+                main_loop ())
+            (function
+              | Not_found ->
+                  L.error "Unknown address: %s" host
+              | exn -> fail exn)
     and finish () =
         PoydServantImpl.finish impl >>= fun () ->
         L.info "Servant finished cleanly"

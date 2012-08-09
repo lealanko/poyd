@@ -122,7 +122,7 @@ let run_task master task cmds =
         L.dbg "Requesting servant" >>= fun () ->
         Pool.get master.pool 0 >>= fun servant ->
         Servant.get_name servant >>= fun s_name ->
-        L.info "Allocated servant %s" s_name >>= fun () ->
+        L.dbg "Allocated servant %s" s_name >>= fun () ->
         catch (fun () ->
             Servant.set_client servant (Some task.client) >>= fun () ->
             Servant.clear_output servant >>= fun () ->
@@ -131,21 +131,21 @@ let run_task master task cmds =
             | Bad (Fund.ConnectionError _ | Fund.RouteError | Restart _ as exn) ->
                 (* Don't return the servant to pool, it failed. *)
                 fail exn
-            | res -> finalize (fun () -> match res with
-                | Ok ret -> begin
-                    PoydState.receive servant >>= fun new_state ->
-                    Servant.get_output servant >>= fun output ->
-                    task.state <- new_state;
-                    Client.execute_output task.client output >>= fun () ->
-                    Servant.set_client servant None >>= fun () ->
-                    return ret
-                end
-                | Bad exn -> 
-                    Servant.set_client servant None >>= fun () ->
-                    fail exn)
-                (fun () ->
-                    Pool.put master.pool servant >>= fun () ->
-                    L.info "Released servant %s to pool" s_name))
+            | Ok ret -> begin
+                PoydState.receive servant >>= fun new_state ->
+                Servant.get_output servant >>= fun output ->
+                task.state <- new_state;
+                Servant.set_client servant None >>= fun () ->
+                Pool.put master.pool servant >>= fun () ->
+                L.dbg "Released servant %s to pool" s_name >>= fun () ->
+                Client.execute_output task.client output >>= fun () ->
+                return ret
+            end
+            | Bad exn -> 
+                Servant.set_client servant None >>= fun () ->
+                Pool.put master.pool servant >>= fun () ->
+                L.dbg "Released servant %s to pool" s_name >>= fun () ->
+                fail exn)
             (function
               | Restart (rstate, rcmds) ->
                   L.dbg "Restarting from checkpoint" >>= fun () ->
