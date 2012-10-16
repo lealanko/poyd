@@ -1,6 +1,7 @@
 open FundPrelude
 
 type ('a, 'b) teq = Teq
+type (-'a, +'b) tsub = Tsub
 
 module type TYPE0 = sig
     type t0
@@ -27,8 +28,12 @@ end
 let eq_refl = Teq
 let eq_sym _ = Teq
 let eq_trans _ _ = Teq
+let eq_sub _ = Tsub
 let cast teq v = Obj.magic v
 let cast_back teq v = Obj.magic v
+let tcast tsub v = Obj.magic v
+
+let sub_refl = Tsub
 
 type ('d, 'a, 'b) type2
 

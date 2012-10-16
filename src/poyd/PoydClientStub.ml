@@ -72,6 +72,6 @@ module Make(Client : CLIENT) = struct
         get_name c >>= fun name ->
         return { 
             name = name;
-            hdl = fun (type r) -> Fund.publish (f c);
+            hdl = magic (fun (type r) -> Fund.publish (f c));
         }
 end

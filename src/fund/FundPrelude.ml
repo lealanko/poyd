@@ -1,6 +1,4 @@
 
-include Lwt
-
 include FundLwt
 
 include BatPervasives

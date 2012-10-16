@@ -142,7 +142,7 @@ let set_client _ co =
         current_run := Phylo.empty ();
         Status.is_parallel 1 (Some (output_status c));
         FileStream.(set_current_open_in 
-                        { open_in_fn = fun (type t) -> remote_open_in c });
+                        { open_in_fn = magic (fun (type t) -> remote_open_in c) });
         StatusCommon.Files.get_margin_fn := get_margin;
         StatusCommon.Files.set_margin_fn := set_margin;
         StatusCommon.set_information_output_fn := set_information_output;

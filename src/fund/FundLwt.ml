@@ -1,5 +1,35 @@
 open Lwt
 
+let return = return
+let (>>=) = (>>=)
+let fail = fail
+let wait = wait
+let map = map
+let choose = choose
+let bind = bind
+let try_bind = try_bind
+let catch = catch
+let finalize = finalize
+let join = join
+let (<?>) = (<?>)
+let (<&>) = (<&>)
+let wakeup = wakeup
+let wakeup_exn = wakeup_exn
+let waiter_of_wakener = waiter_of_wakener
+let on_cancel = on_cancel
+let cancel = cancel
+let task = task
+let state = state
+let pick = pick
+let protected = protected
+let (>|=) = (>|=)
+let pause = pause
+exception Canceled = Canceled
+type 'a state = 'a Lwt.state =
+                | Return of 'a
+                | Fail of exn
+                | Sleep
+
 type 'a lwt = 'a Lwt.t
 
 type 'a cont = 'a Lwt.u

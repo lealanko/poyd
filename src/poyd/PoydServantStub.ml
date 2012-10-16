@@ -216,6 +216,6 @@ module Make (Servant : SERVANT with module Client = Client) = struct
         get_name s >>= fun name ->
         return {
             name = name;
-            hdl = fun (type r) -> publish (f s);
+            hdl = magic (fun (type r) -> publish (f s));
         }
 end

@@ -36,6 +36,6 @@ struct
 
     let make m =
         {
-            hdl = fun (type r) -> Fund.publish (f m)
+            hdl = magic (fun (type r) -> Fund.publish (f m))
         }
 end

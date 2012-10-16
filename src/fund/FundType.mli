@@ -1,4 +1,5 @@
 type ('a, 'b) teq
+type (-'a, +'b) tsub
 
 module type TYPE0 = sig
     type t0
@@ -19,9 +20,13 @@ end
 val eq_refl : ('a, 'a) teq
 val eq_sym : ('a, 'b) teq -> ('b, 'a) teq
 val eq_trans : ('a, 'b) teq -> ('b, 'c) teq -> ('a, 'c) teq
+val eq_sub : ('a, 'b) teq -> ('a, 'b) tsub
 
+val sub_refl : ('a, 'a) tsub
 val cast : ('a, 'b) teq -> 'a -> 'b
 val cast_back : ('a, 'b) teq -> 'b -> 'a
+
+val tcast : ('a, 'b) tsub -> 'a -> 'b
 
 type ('d, 'a, 'b) type2
 
@@ -33,3 +38,7 @@ module Type2 (T : TYPE2) : sig
 end
 
 val unsafe_eq : unit -> ('a, 'b) teq
+
+
+
+
