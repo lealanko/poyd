@@ -1,5 +1,5 @@
-This is a release candidate of poyd, a fault-tolerant distributed version
-of the POY phylogenetic analysis program.
+This is poyd, a fault-tolerant distributed version of the POY
+phylogenetic analysis program.
 
 The current version parallelizes the same computations as standard POY
 4.1.2, with the exception of the "fusion" operation which cannot be
