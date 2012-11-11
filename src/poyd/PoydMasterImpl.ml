@@ -162,6 +162,8 @@ let run_task master task cmds =
     run_cmds task.state cmds >>= fun () ->
     L.dbg "Commands finished"
 
+let run_task master task cmds =
+    L.trace_ (fun () -> run_task master task cmds) "run_task _ %d _" task.id
 
 let next_task_id = ref 0
 

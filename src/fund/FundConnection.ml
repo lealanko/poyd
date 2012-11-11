@@ -319,7 +319,13 @@ let make_name name in_ch out_ch port = let module M = struct
         L.trace_ (fun () -> do_request_out rq) "do_request_out %a" pr_request rq
 
     let request_out rq =
-	OutboundMgr.task (fun () -> do_request_out rq)
+        catch 
+            (fun () -> OutboundMgr.task (fun () -> do_request_out rq))
+            (function
+            | FundTaskMgr.MgrClosed as exn ->
+                fail (ConnectionError exn)
+            | exn ->
+                fail exn)
 
     let request_out rq =
         L.trace_ (fun () -> request_out rq) "request_out %a" pr_request rq
