@@ -21,7 +21,6 @@ let make () = (module struct
 
     let query_ports id qid =
         let ports = Seq.fold_r (fun a l -> a :: l) ports [] in
-        let _ = L.dbg "ports: %s" (dump ports) in
         let query_port p =
             let module P = (val p : PORT) in
             catch (fun () -> P.query_id id qid)
