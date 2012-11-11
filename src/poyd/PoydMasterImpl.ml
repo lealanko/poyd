@@ -37,7 +37,13 @@ type task = {
 
 exception Restart of PoydState.t * script list
 
-        
+
+(* Distinguish client-side connection errors from 
+   servant by wrapping them in ClientExn. *)
+
+let client_call thunk =
+    catch thunk
+        (fun exn -> raise (ClientExn exn))
         
 let run_task master task cmds =
     let module L = 
@@ -46,7 +52,8 @@ let run_task master task cmds =
     in
     let commit_output servant =
         Servant.get_output servant >>= fun output ->
-        Client.execute_output task.client output
+        client_call (fun () ->
+            Client.execute_output task.client output)
     in
     let run_tick servant cmds  =
         Servant.get_name servant >>= fun s_name ->
@@ -79,8 +86,9 @@ let run_task master task cmds =
                     commit_output servant >>= fun () ->
                     L.info "Saved checkpoint from %s" s_name 
                     >>= fun () ->
-                    Client.output_status task.client Status.Information
-                        "Saved checkpoint" >>= fun () ->
+                    client_call (fun () ->
+                        Client.output_status task.client Status.Information
+                            "Saved checkpoint") >>= fun () ->
                     return (Some (state, rest))
         in 
         loop cmds 
@@ -138,7 +146,8 @@ let run_task master task cmds =
                 Servant.set_client servant None >>= fun () ->
                 Pool.put master.pool servant >>= fun () ->
                 L.dbg "Released servant %s to pool" s_name >>= fun () ->
-                Client.execute_output task.client output >>= fun () ->
+                client_call (fun () ->
+                    Client.execute_output task.client output) >>= fun () ->
                 return ret
             end
             | Bad exn -> 
@@ -155,6 +164,7 @@ let run_task master task cmds =
                   L.error "Error connecting to servant %s" s_name 
                   >>= fun () ->
                   run_cmds state cmds
+              | ClientExn (exn) 
               | exn ->
                   fail exn)
     in
